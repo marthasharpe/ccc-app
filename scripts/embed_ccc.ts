@@ -9,15 +9,9 @@ import OpenAI from "openai";
 config({ path: ".env.local" });
 
 // Validation schemas
-const FootnoteSchema = z.object({
-  number: z.number(),
-  text: z.string(),
-});
-
 const CCCParagraphSchema = z.object({
   paragraph_number: z.number(),
   content: z.string(),
-  footnotes: z.array(FootnoteSchema).optional(),
 });
 
 const CCCDataSchema = z.array(CCCParagraphSchema);
@@ -52,6 +46,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
       model: "text-embedding-3-small",
       input: text,
       encoding_format: "float",
+      dimensions: 1536, // Explicitly set to 1536 for consistency
     });
 
     return response.data[0].embedding;
@@ -76,7 +71,6 @@ async function insertParagraph(paragraph: z.infer<typeof CCCParagraphSchema>) {
           paragraph_number: paragraph.paragraph_number,
           content: paragraph.content,
           embedding: embedding,
-          footnotes: paragraph.footnotes ?? null,
         },
         {
           onConflict: "paragraph_number",
@@ -118,8 +112,14 @@ async function main() {
     const cccRawData = readFileSync(cccFilePath, "utf8");
     const cccData = JSON.parse(cccRawData);
 
+    // Transform data from {id, text} to {paragraph_number, content}
+    const transformedData = cccData.map((item: any) => ({
+      paragraph_number: item.id,
+      content: item.text
+    }));
+
     // Validate the data structure
-    const validatedData = CCCDataSchema.parse(cccData);
+    const validatedData = CCCDataSchema.parse(transformedData);
     console.log(`📖 Loaded ${validatedData.length} CCC paragraphs`);
 
     // Process each paragraph
