@@ -1,0 +1,93 @@
+import React from 'react'
+
+interface LinkifyCCCProps {
+  text: string
+  onCCCClick: (reference: string) => void
+}
+
+/**
+ * Converts CCC paragraph references in text to clickable links
+ * Matches patterns like: (CCC 1234), CCC 1234, (CCC 1234-1236), and bare numbers in parentheses like (1234)
+ */
+export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
+  // Combined regex to match both CCC references and bare paragraph numbers in parentheses
+  const combinedRegex = /(\(?(CCC\s+(\d+)(?:-\d+)?)\)?|\((\d{1,4})\))/gi
+
+  const parts = []
+  let lastIndex = 0
+  let match
+
+  while ((match = combinedRegex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+
+    let numberPart: string
+    let displayText = match[0]
+
+    if (match[2]) {
+      // CCC reference match (group 2 contains "CCC 1234" or "CCC 1234-1236")
+      numberPart = match[2].replace('CCC ', '') // "1234" or "1234-1236"
+    } else if (match[4]) {
+      // Bare number in parentheses match (group 4 contains just the number)
+      const num = parseInt(match[4])
+      // Only convert if it's a valid CCC paragraph number (1-2865)
+      if (num >= 1 && num <= 2865) {
+        numberPart = match[4]
+      } else {
+        // Not a valid paragraph number, treat as regular text
+        parts.push(match[0])
+        lastIndex = match.index + match[0].length
+        continue
+      }
+    } else {
+      // Shouldn't happen, but fallback to regular text
+      parts.push(match[0])
+      lastIndex = match.index + match[0].length
+      continue
+    }
+
+    // Add the clickable link
+    parts.push(
+      <button
+        key={`ccc-${match.index}`}
+        onClick={() => onCCCClick(numberPart)}
+        className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+        title={`Click to read CCC ${numberPart}`}
+      >
+        {displayText}
+      </button>
+    )
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // Add remaining text after the last match
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+
+  return <span>{parts}</span>
+}
+
+/**
+ * Simple function to check if text contains CCC references or bare paragraph numbers
+ */
+export function hasCCCReferences(text: string): boolean {
+  const combinedRegex = /(\(?(CCC\s+\d+(?:-\d+)?)\)?|\((\d{1,4})\))/i
+  const match = combinedRegex.exec(text)
+  
+  if (!match) return false
+  
+  // If it's a CCC reference, it's valid
+  if (match[2]) return true
+  
+  // If it's a bare number in parentheses, check if it's a valid paragraph number
+  if (match[3]) {
+    const num = parseInt(match[3])
+    return num >= 1 && num <= 2865
+  }
+  
+  return false
+}

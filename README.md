@@ -1,4 +1,4 @@
-# MyCat - Catechism Search
+# CathCat - Catholic Catechism Assistant
 
 A Next.js application for searching the Catechism of the Catholic Church using semantic search.
 
@@ -14,7 +14,7 @@ A Next.js application for searching the Catechism of the Catholic Church using s
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Supabase account
 - OpenAI API key (for future implementation)
@@ -22,25 +22,30 @@ A Next.js application for searching the Catechism of the Catholic Church using s
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Set up environment variables:
+
 ```bash
 cp .env.local.example .env.local
 ```
 
 Fill in your Supabase credentials in `.env.local`:
+
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `OPENAI_API_KEY`: Your OpenAI API key (for future use)
 
 3. Set up your Supabase database:
+
    - Run the SQL commands in `supabase/schema.sql` in your Supabase SQL editor
    - This will create the `ccc_paragraphs` table with pgvector support
 
 4. Run the development server:
+
 ```bash
 npm run dev
 ```

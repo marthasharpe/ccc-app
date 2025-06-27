@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { generateEmbedding } from '@/lib/openai'
+import { supabaseService } from '@/lib/supabase'
+import { generateEmbedding, rewriteQuery } from '@/lib/openai'
+import { expandQuery } from '@/utils/expandQuery'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,14 +14,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate embedding for the search query
-    const queryEmbedding = await generateEmbedding(query)
+    // Step 1: Rewrite query using LLM to optimize for theological search
+    // Convert modern/colloquial language into precise Catechism terminology
+    console.log('Original query:', query)
+    const rewrittenQuery = await rewriteQuery(query)
+    console.log('LLM rewritten query:', rewrittenQuery)
+    
+    // Step 2: Expand the rewritten query with synonyms for additional coverage
+    const expandedQuery = expandQuery(rewrittenQuery)
+    
+    // Log the full transformation pipeline for auditing
+    if (expandedQuery !== rewrittenQuery) {
+      console.log('Synonym expansion applied:')
+      console.log('  After rewrite:', rewrittenQuery)
+      console.log('  After expansion:', expandedQuery)
+    }
+
+    // Step 3: Generate embedding for the optimized query
+    const queryEmbedding = await generateEmbedding(expandedQuery)
 
     // Search for similar paragraphs using the pgvector function
-    const { data: results, error } = await supabase.rpc('search_ccc_paragraphs', {
+    const { data: results, error } = await supabaseService.rpc('search_ccc_paragraphs', {
       query_embedding: queryEmbedding,
-      match_threshold: 0.7, // Adjust this threshold as needed
-      match_count: 10 // Return top 10 results
+      match_threshold: 0.3,
+      match_count: 10
     })
 
     if (error) {
