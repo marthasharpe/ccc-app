@@ -1,0 +1,211 @@
+import React from 'react'
+
+interface FormatCCCContentProps {
+  content: string
+  onCCCClick?: (reference: string) => void
+}
+
+/**
+ * Formats CCC paragraph content with proper styling and links
+ * - Text wrapped in ** becomes bold
+ * - Text wrapped in * becomes italic
+ * - Numbers in parentheses (1234) become clickable links to other paragraphs
+ * - Lines starting with > become block quotes
+ * - Preserves line breaks and other formatting
+ */
+export function FormatCCCContent({ content, onCCCClick }: FormatCCCContentProps) {
+  // First, split content by lines to handle block quotes
+  const lines = content.split('\n')
+  const processedElements = []
+  
+  let currentQuoteLines = []
+  let currentNormalContent = ''
+  
+  const processNormalContent = (text: string) => {
+    if (!text.trim()) return []
+    
+    const parts = []
+    let currentIndex = 0
+    
+    // Combined regex to match bold markers, italic markers, and paragraph references
+    // Updated to handle comma-separated paragraph numbers like (438, 695, 536)
+    const formatRegex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|\((\d{1,4}(?:\s*,\s*\d{1,4})*)\))/g
+    
+    let match
+    while ((match = formatRegex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > currentIndex) {
+        const textBefore = text.slice(currentIndex, match.index)
+        parts.push(textBefore)
+      }
+      
+      if (match[2]) {
+        // Bold text match (group 2 contains the text between **)
+        parts.push(
+          <strong key={`bold-${match.index}`} className="font-bold">
+            {match[2]}
+          </strong>
+        )
+      } else if (match[3]) {
+        // Italic text match (group 3 contains the text between *)
+        parts.push(
+          <em key={`italic-${match.index}`} className="italic">
+            {match[3]}
+          </em>
+        )
+      } else if (match[4]) {
+        // Paragraph number match (group 4 contains number(s), possibly comma-separated)
+        const numbersString = match[4]
+        const numbers = numbersString.split(',').map(n => n.trim()).map(n => parseInt(n))
+        
+        // Check if all numbers are valid CCC paragraph numbers
+        const allValidNumbers = numbers.every(num => num >= 1 && num <= 2865)
+        
+        if (allValidNumbers && onCCCClick) {
+          // If single number, make only the number clickable (not the parentheses)
+          if (numbers.length === 1) {
+            parts.push(
+              <span key={`ccc-${match.index}`}>
+                (
+                <button
+                  onClick={() => onCCCClick(numbers[0].toString())}
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+                  title={`Click to read CCC ${numbers[0]}`}
+                >
+                  {numbers[0]}
+                </button>
+                )
+              </span>
+            )
+          } else {
+            // Multiple numbers - create a span with individually clickable numbers
+            const clickableNumbers = []
+            const numberParts = numbersString.split(',')
+            
+            for (let i = 0; i < numberParts.length; i++) {
+              const numberPart = numberParts[i].trim()
+              const num = parseInt(numberPart)
+              
+              clickableNumbers.push(
+                <button
+                  key={`ccc-${match.index}-${i}`}
+                  onClick={() => onCCCClick(num.toString())}
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+                  title={`Click to read CCC ${num}`}
+                >
+                  {num}
+                </button>
+              )
+              
+              // Add comma and space between numbers (except for the last one)
+              if (i < numberParts.length - 1) {
+                clickableNumbers.push(', ')
+              }
+            }
+            
+            parts.push(
+              <span key={`ccc-group-${match.index}`}>
+                ({clickableNumbers})
+              </span>
+            )
+          }
+        } else {
+          // Not all valid paragraph numbers or no click handler, treat as regular text
+          parts.push(match[0])
+        }
+      }
+      
+      currentIndex = match.index + match[0].length
+    }
+    
+    // Add remaining text after the last match
+    if (currentIndex < text.length) {
+      const remainingText = text.slice(currentIndex)
+      parts.push(remainingText)
+    }
+    
+    return parts
+  }
+  
+  const flushCurrentContent = () => {
+    if (currentNormalContent.trim()) {
+      const formattedParts = processNormalContent(currentNormalContent)
+      // Convert line breaks within normal content
+      const withBreaks = []
+      for (let i = 0; i < formattedParts.length; i++) {
+        const part = formattedParts[i]
+        if (typeof part === 'string' && part.includes('\n')) {
+          const subLines = part.split('\n')
+          for (let j = 0; j < subLines.length; j++) {
+            if (subLines[j]) {
+              withBreaks.push(subLines[j])
+            }
+            if (j < subLines.length - 1) {
+              withBreaks.push(<br key={`br-normal-${i}-${j}`} />)
+            }
+          }
+        } else {
+          withBreaks.push(part)
+        }
+      }
+      processedElements.push(...withBreaks)
+      currentNormalContent = ''
+    }
+  }
+  
+  const flushCurrentQuote = () => {
+    if (currentQuoteLines.length > 0) {
+      const quoteContent = currentQuoteLines.join('\n')
+      const formattedQuoteContent = processNormalContent(quoteContent)
+      processedElements.push(
+        <blockquote 
+          key={`quote-${processedElements.length}`} 
+          className="border-l-4 border-muted pl-4 italic text-muted-foreground my-4"
+        >
+          {formattedQuoteContent}
+        </blockquote>
+      )
+      currentQuoteLines = []
+    }
+  }
+  
+  // Process each line
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    
+    if (line.trim().startsWith('>')) {
+      // This is a quote line - flush any normal content first
+      flushCurrentContent()
+      
+      // Remove the > and any following whitespace, add to quote
+      const quoteLine = line.replace(/^>\s*/, '')
+      currentQuoteLines.push(quoteLine)
+    } else {
+      // This is normal content - flush any quote first
+      flushCurrentQuote()
+      
+      // Add to normal content with line break if not first line
+      if (currentNormalContent && line.trim()) {
+        currentNormalContent += '\n' + line
+      } else if (line.trim()) {
+        currentNormalContent += line
+      } else if (currentNormalContent) {
+        // Empty line in normal content
+        currentNormalContent += '\n'
+      }
+    }
+  }
+  
+  // Flush any remaining content
+  flushCurrentContent()
+  flushCurrentQuote()
+  
+  return <span>{processedElements}</span>
+}
+
+/**
+ * Simple function to check if content contains formatting that needs processing
+ */
+export function hasFormattedContent(content: string): boolean {
+  return /(\*\*[^*]+\*\*|\*[^*]+\*|\(\d{1,4}(?:\s*,\s*\d{1,4})*\)|^>\s)/.test(content)
+}

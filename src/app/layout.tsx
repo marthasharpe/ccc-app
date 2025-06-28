@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { NavTabs } from "@/components/NavTabs";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,23 +38,18 @@ export default function RootLayout({
                   href="/"
                   className="text-xl font-bold hover:text-primary transition-colors"
                 >
-                  CathCat
+                  MyCat
                 </Link>
+                <span className="text-sm text-muted-foreground">
+                  My Catholic Catechism
+                </span>
               </div>
-              <nav className="flex items-center space-x-4">
-                <Link
-                  href="/chat"
-                  className="text-sm font-bold bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors"
-                >
-                  Chat
-                </Link>
-                <Link
-                  href="/search"
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Search
-                </Link>
-              </nav>
+              <NavTabs
+                tabs={[
+                  { href: "/chat", label: "Chat" },
+                  { href: "/search", label: "Search" },
+                ]}
+              />
             </div>
           </div>
         </header>

@@ -1,10 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CCCModal from "@/components/CCCModal";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  isChatLimitReached,
+  incrementChatUsageCount,
+  getRemainingChatCount,
+  getDailyChatLimit,
+} from "@/lib/usageClient";
 
 interface Message {
   id: string;
@@ -37,16 +52,46 @@ Example questions:
     string | null
   >(null);
   const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
+  const [isLimitReached, setIsLimitReached] = useState(false);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [remainingCount, setRemainingCount] = useState<number | null>(null);
 
   const handleCCCClick = (reference: string) => {
     setSelectedCCCReference(reference);
     setIsCCCModalOpen(true);
   };
 
+  // Check usage limits on component mount and update remaining count
+  useEffect(() => {
+    const checkUsage = async () => {
+      const limitReached = await isChatLimitReached();
+      const remaining = await getRemainingChatCount();
+      setIsLimitReached(limitReached);
+      setRemainingCount(remaining);
+    };
+
+    checkUsage();
+  }, []);
+
+  const updateUsageCount = async () => {
+    const remaining = await getRemainingChatCount();
+    const limitReached = await isChatLimitReached();
+    setRemainingCount(remaining);
+    setIsLimitReached(limitReached);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!input.trim() || isLoading) return;
+
+    // Check if user has reached daily limit
+    const limitReached = await isChatLimitReached();
+    console.log("Limit check:", { limitReached, input: input.trim() }); // Debug log
+    if (limitReached) {
+      setShowLimitDialog(true);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -82,6 +127,10 @@ Example questions:
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Increment usage count after successful response
+      await incrementChatUsageCount();
+      await updateUsageCount();
     } catch (error) {
       console.error("Chat error:", error);
 
@@ -109,6 +158,13 @@ Example questions:
           Ask questions about Catholic teachings and receive answers based on
           the Catechism of the Catholic Church
         </p>
+        {remainingCount !== null && (
+          <p className="text-xs text-muted-foreground mt-2">
+            {isLimitReached
+              ? `Daily limit reached (${getDailyChatLimit()} questions)`
+              : `${remainingCount} free questions remaining today`}
+          </p>
+        )}
       </div>
 
       <div className="bg-card rounded-lg border min-h-[500px] flex flex-col">
@@ -261,10 +317,15 @@ Example questions:
               )}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-2">
-            Responses are based on the Catechism of the Catholic Church and
-            official Church teaching.
-          </p>
+          <div className="flex justify-between items-center mt-2">
+            <p className="text-xs text-muted-foreground">
+              Responses are based on the Catechism of the Catholic Church and
+              official Church teaching.
+            </p>
+            {isLimitReached && (
+              <p className="text-xs text-red-500">Daily limit reached</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -276,7 +337,30 @@ Example questions:
           setIsCCCModalOpen(false);
           setSelectedCCCReference(null);
         }}
+        onCCCClick={handleCCCClick}
       />
+
+      {/* Daily Limit Alert Dialog */}
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Daily Chat Limit Reached</AlertDialogTitle>
+            <AlertDialogDescription>
+              You can still browse and search the Catechism, but chat will be
+              available again tomorrow.
+              <br />
+              <br />
+              <strong>Want to keep chatting?</strong> Sign in to boost your
+              daily limit!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
+              I understand
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

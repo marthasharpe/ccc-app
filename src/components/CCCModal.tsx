@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { FormatCCCContent } from '@/utils/formatCCCContent'
 
 interface CCCModalProps {
   paragraphReference: string | null // Can be "1234" or "1234-1236"
   isOpen: boolean
   onClose: () => void
+  onCCCClick?: (reference: string) => void // For nested paragraph links
 }
 
 interface CCCParagraph {
@@ -24,7 +26,7 @@ interface CCCResponse {
   paragraphs?: CCCParagraph[]
 }
 
-export default function CCCModal({ paragraphReference, isOpen, onClose }: CCCModalProps) {
+export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCClick }: CCCModalProps) {
   const [data, setData] = useState<CCCResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -226,9 +228,12 @@ export default function CCCModal({ paragraphReference, isOpen, onClose }: CCCMod
                           {paragraph.paragraph_number}
                         </span>
                       </div>
-                      <p className="text-foreground leading-relaxed">
-                        {paragraph.content}
-                      </p>
+                      <div className="text-foreground leading-relaxed">
+                        <FormatCCCContent 
+                          content={paragraph.content} 
+                          onCCCClick={onCCCClick}
+                        />
+                      </div>
                       {index < (data.paragraphs?.length || 0) - 1 && (
                         <div className="border-t border-muted my-4" />
                       )}
@@ -236,9 +241,12 @@ export default function CCCModal({ paragraphReference, isOpen, onClose }: CCCMod
                   ))
                 ) : (
                   // Display single paragraph
-                  <p className="text-foreground leading-relaxed">
-                    {data.content}
-                  </p>
+                  <div className="text-foreground leading-relaxed">
+                    <FormatCCCContent 
+                      content={data.content || ''} 
+                      onCCCClick={onCCCClick}
+                    />
+                  </div>
                 )}
               </div>
             </div>

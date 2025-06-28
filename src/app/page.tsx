@@ -12,21 +12,25 @@ export default function Home() {
           Catholic Church.
         </p>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/chat">
-            <Button size="lg" className="text-lg px-8 py-3">
+            <Button size="lg" className="text-lg px-8 py-3 cursor-pointer w-48">
               Start Chatting
             </Button>
           </Link>
           <Link href="/search">
-            <Button variant="outline" size="lg" className="text-lg px-8 py-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="text-lg px-8 py-3 cursor-pointer w-48"
+            >
               Browse Catechism
             </Button>
           </Link>
         </div>
 
         <div className="mt-16 grid md:grid-cols-3 gap-8">
-          <div className="p-6 border rounded-lg">
+          <div className="p-6 border">
             <h3 className="font-semibold mb-3">Ask Questions</h3>
             <p className="text-sm text-muted-foreground">
               Get clear answers about Catholic teaching, doctrine, and moral
@@ -34,7 +38,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="p-6 border rounded-lg">
+          <div className="p-6 border">
             <h3 className="font-semibold mb-3">Accurate Responses</h3>
             <p className="text-sm text-muted-foreground">
               Responses include specific Catechism references you can click to
@@ -42,7 +46,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="p-6 border rounded-lg">
+          <div className="p-6 border">
             <h3 className="font-semibold mb-3">Search for Topics</h3>
             <p className="text-sm text-muted-foreground">
               Browse and search through specific paragraphs when you need
