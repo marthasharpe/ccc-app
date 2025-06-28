@@ -3,7 +3,7 @@ import { generateChatResponse } from '@/lib/openai'
 
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json()
+    const { message, model } = await request.json()
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -12,10 +12,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Chat question received:', message)
+    // Validate model parameter
+    const validModels = ["gpt-4", "gpt-3.5-turbo"]
+    const selectedModel = validModels.includes(model) ? model : "gpt-3.5-turbo"
+
+    console.log('Chat question received:', message, 'Model:', selectedModel)
 
     // Generate response using Catholic catechism assistant
-    const response = await generateChatResponse(message)
+    const response = await generateChatResponse(message, selectedModel)
 
     console.log('Chat response generated successfully')
 

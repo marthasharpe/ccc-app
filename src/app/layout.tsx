@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CathCat - Catholic Catechism Assistant",
+  title: "MyCat - My Catholic Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
 };

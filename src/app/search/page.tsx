@@ -14,6 +14,11 @@ interface SearchResult {
   similarity: number;
 }
 
+interface SearchResponse {
+  results: SearchResult[];
+  query: string;
+}
+
 export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +63,7 @@ export default function SearchPage() {
         throw new Error("Search failed");
       }
 
-      const data = await response.json();
+      const data: SearchResponse = await response.json();
       setResults(data.results || []);
     } catch (error) {
       console.error("Search error:", error);
@@ -167,20 +172,27 @@ export default function SearchPage() {
                   <div className="border p-4">
                     <h3 className="font-medium mb-2">How to Search</h3>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Use specific terms</li>
-                      <li>• Try different phrasings</li>
-                      <li>• Search by topic or concept</li>
-                      <li>• Use quotation marks for exact phrases</li>
+                      <li>• Use specific terms for exact matches</li>
+                      <li>• Try different phrasings for concepts</li>
+                      <li>
+                        • Search automatically uses both keyword and AI
+                        understanding
+                      </li>
+                      <li>
+                        • Look for colored badges showing search type used
+                      </li>
                     </ul>
                   </div>
 
                   <div className="border p-4">
                     <h3 className="font-medium mb-2">Paragraph Numbers</h3>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Type "1234" for paragraph 1234</li>
-                      <li>• Type "CCC 1234" or "#1234"</li>
-                      <li>• Type "1234-1236" for ranges</li>
-                      <li>• Try "paragraph 1234"</li>
+                      <li>• Type &ldquo;1234&rdquo; for paragraph 1234</li>
+                      <li>
+                        • Type &ldquo;CCC 1234&rdquo; or &ldquo;#1234&rdquo;
+                      </li>
+                      <li>• Type &ldquo;1234-1236&rdquo; for ranges</li>
+                      <li>• Try &ldquo;paragraph 1234&rdquo;</li>
                     </ul>
                   </div>
                 </div>

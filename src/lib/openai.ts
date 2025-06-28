@@ -24,11 +24,12 @@ export async function generateEmbedding(text: string): Promise<number[]> {
  * Generate chat response using Catholic catechism assistant
  */
 export async function generateChatResponse(
-  userQuestion: string
+  userQuestion: string,
+  model: "gpt-4" | "gpt-3.5-turbo" = "gpt-3.5-turbo"
 ): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: model,
       messages: [
         {
           role: "system",

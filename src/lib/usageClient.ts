@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEY = "cathcat_daily_usage";
-const DAILY_CHAT_LIMIT = 1;
+const DAILY_CHAT_LIMIT = 20;
 
 interface DailyUsage {
   date: string; // YYYY-MM-DD format

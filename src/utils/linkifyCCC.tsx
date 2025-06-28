@@ -24,17 +24,31 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
     }
 
     let numberPart: string
-    let displayText = match[0]
+    let beforeText = ''
+    let clickableText = ''
+    let afterText = ''
 
     if (match[2]) {
       // CCC reference match (group 2 contains "CCC 1234" or "CCC 1234-1236")
       numberPart = match[2].replace('CCC ', '') // "1234" or "1234-1236"
+      
+      // Check if the match has parentheses around it
+      if (match[0].startsWith('(') && match[0].endsWith(')')) {
+        beforeText = '('
+        clickableText = match[2] // "CCC 1234"
+        afterText = ')'
+      } else {
+        clickableText = match[2] // "CCC 1234"
+      }
     } else if (match[4]) {
       // Bare number in parentheses match (group 4 contains just the number)
       const num = parseInt(match[4])
       // Only convert if it's a valid CCC paragraph number (1-2865)
       if (num >= 1 && num <= 2865) {
         numberPart = match[4]
+        beforeText = '('
+        clickableText = match[4] // Just the number
+        afterText = ')'
       } else {
         // Not a valid paragraph number, treat as regular text
         parts.push(match[0])
@@ -48,7 +62,11 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
       continue
     }
 
-    // Add the clickable link
+    // Add the parts: non-clickable text before, clickable link, non-clickable text after
+    if (beforeText) {
+      parts.push(beforeText)
+    }
+    
     parts.push(
       <button
         key={`ccc-${match.index}`}
@@ -56,9 +74,13 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
         className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
         title={`Click to read CCC ${numberPart}`}
       >
-        {displayText}
+        {clickableText}
       </button>
     )
+    
+    if (afterText) {
+      parts.push(afterText)
+    }
 
     lastIndex = match.index + match[0].length
   }

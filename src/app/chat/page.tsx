@@ -14,12 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  isChatLimitReached,
-  incrementChatUsageCount,
-  getRemainingChatCount,
-  getDailyChatLimit,
-} from "@/lib/usageClient";
+import { isChatLimitReached, incrementChatUsageCount } from "@/lib/usageClient";
 
 interface Message {
   id: string;
@@ -54,29 +49,27 @@ Example questions:
   const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [remainingCount, setRemainingCount] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(
+    "gpt-3.5-turbo"
+  );
 
   const handleCCCClick = (reference: string) => {
     setSelectedCCCReference(reference);
     setIsCCCModalOpen(true);
   };
 
-  // Check usage limits on component mount and update remaining count
+  // Check usage limits on component mount
   useEffect(() => {
     const checkUsage = async () => {
       const limitReached = await isChatLimitReached();
-      const remaining = await getRemainingChatCount();
       setIsLimitReached(limitReached);
-      setRemainingCount(remaining);
     };
 
     checkUsage();
   }, []);
 
   const updateUsageCount = async () => {
-    const remaining = await getRemainingChatCount();
     const limitReached = await isChatLimitReached();
-    setRemainingCount(remaining);
     setIsLimitReached(limitReached);
   };
 
@@ -110,7 +103,10 @@ Example questions:
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userMessage.content }),
+        body: JSON.stringify({
+          message: userMessage.content,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) {
@@ -158,13 +154,50 @@ Example questions:
           Ask questions about Catholic teachings and receive answers based on
           the Catechism of the Catholic Church
         </p>
-        {remainingCount !== null && (
-          <p className="text-xs text-muted-foreground mt-2">
-            {isLimitReached
-              ? `Daily limit reached (${getDailyChatLimit()} questions)`
-              : `${remainingCount} free questions remaining today`}
-          </p>
-        )}
+
+        {/* Model Selection */}
+        <div className="flex flex-col items-center gap-3 mt-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Model:</span>
+            <div className="flex rounded-md border">
+              <Button
+                variant={
+                  selectedModel === "gpt-3.5-turbo" ? "default" : "ghost"
+                }
+                size="sm"
+                onClick={() => setSelectedModel("gpt-3.5-turbo")}
+                className="rounded-r-none border-r"
+              >
+                GPT-3.5*
+              </Button>
+              <Button
+                variant={selectedModel === "gpt-4" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedModel("gpt-4")}
+                className="rounded-l-none"
+              >
+                GPT-4*
+              </Button>
+            </div>
+          </div>
+
+          {/* Model Description */}
+          <div className="max-w-xl text-center">
+            {selectedModel === "gpt-3.5-turbo" ? (
+              <div className="text-xs text-muted-foreground">
+                * Good for basic questions about Catholic teaching. May
+                occasionally provide less detailed explanations or miss subtle
+                theological nuances. Faster and lower cost.
+              </div>
+            ) : (
+              <div className="text-xs text-muted-foreground">
+                * More thoughtful and comprehensive responses. Better at
+                handling complex theological questions and providing nuanced
+                explanations. Slower and higher cost.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="bg-card rounded-lg border min-h-[500px] flex flex-col">
@@ -188,7 +221,7 @@ Example questions:
                 </svg>
               </div>
               <p className="text-lg mb-2">
-                Welcome! I'm here to help with questions about Catholic
+                Welcome! I&apos;m here to help with questions about Catholic
                 teaching.
               </p>
               <p className="text-sm">
@@ -200,10 +233,12 @@ Example questions:
                   Example questions:
                 </p>
                 <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>• "What is prayer?"</li>
-                  <li>• "How do I prepare for confession?"</li>
-                  <li>• "What does the Church teach about marriage?"</li>
-                  <li>• "How can I grow in virtue?"</li>
+                  <li>• &ldquo;What is prayer?&rdquo;</li>
+                  <li>• &ldquo;How do I prepare for confession?&rdquo;</li>
+                  <li>
+                    • &ldquo;What does the Church teach about marriage?&rdquo;
+                  </li>
+                  <li>• &ldquo;How can I grow in virtue?&rdquo;</li>
                 </ul>
               </div>
             </div>
@@ -232,15 +267,6 @@ Example questions:
                       onCCCClick={handleCCCClick}
                     />
                   )}
-                </div>
-                <div
-                  className={`text-xs mt-2 opacity-70 ${
-                    message.isUser
-                      ? "text-primary-foreground/70"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  {message.timestamp.toLocaleTimeString()}
                 </div>
               </div>
             </div>
