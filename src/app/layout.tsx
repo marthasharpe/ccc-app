@@ -48,6 +48,7 @@ export default function RootLayout({
                 tabs={[
                   { href: "/chat", label: "Chat" },
                   { href: "/search", label: "Search" },
+                  { href: "/about", label: "About" },
                 ]}
               />
             </div>

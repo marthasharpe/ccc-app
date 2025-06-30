@@ -33,9 +33,11 @@ export default function ParagraphDisplay({
   const [data, setData] = useState<CCCResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
 
   useEffect(() => {
     fetchParagraph(reference);
+    setCurrentParagraphIndex(0); // Reset to first paragraph when new data loads
   }, [reference]);
 
   const fetchParagraph = async (ref: string) => {
@@ -52,6 +54,7 @@ export default function ParagraphDisplay({
 
       const responseData = await response.json();
       setData(responseData);
+      setCurrentParagraphIndex(0); // Reset to first paragraph when new data loads
     } catch (err) {
       console.error("Error fetching paragraph(s):", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -61,22 +64,123 @@ export default function ParagraphDisplay({
   };
 
   const isRange = data?.paragraphs !== undefined;
+
+  // Get current paragraph info for display and navigation
+  const currentParagraphNumber = isRange
+    ? data?.paragraphs?.[currentParagraphIndex]?.paragraph_number
+    : data?.paragraph_number;
+
   const displayTitle = isRange
-    ? `CCC ${data?.start_paragraph}-${data?.end_paragraph}`
+    ? `CCC ${currentParagraphNumber} (${currentParagraphIndex + 1} of ${
+        data?.paragraphs?.length
+      })`
     : `CCC ${data?.paragraph_number}`;
+
+  // Navigation logic
+  const canNavigatePrevious = isRange
+    ? currentParagraphIndex > 0
+    : (data?.paragraph_number || 1) > 1;
+
+  const canNavigateNext = isRange
+    ? currentParagraphIndex < (data?.paragraphs?.length || 1) - 1
+    : (data?.paragraph_number || 2865) < 2865;
+
+  const handleNavigatePrevious = () => {
+    if (!canNavigatePrevious) return;
+
+    if (isRange) {
+      // Navigate within the current range
+      setCurrentParagraphIndex(currentParagraphIndex - 1);
+    } else {
+      // Navigate to previous single paragraph
+      const prevNumber = (data?.paragraph_number || 1) - 1;
+      if (prevNumber >= 1) {
+        fetchParagraph(prevNumber.toString());
+      }
+    }
+  };
+
+  const handleNavigateNext = () => {
+    if (!canNavigateNext) return;
+
+    if (isRange) {
+      // Navigate within the current range
+      setCurrentParagraphIndex(currentParagraphIndex + 1);
+    } else {
+      // Navigate to next single paragraph
+      const nextNumber = (data?.paragraph_number || 2865) + 1;
+      if (nextNumber <= 2865) {
+        fetchParagraph(nextNumber.toString());
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header with back button */}
+      {/* Header with navigation and back button */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">
-            {isLoading ? "Loading..." : displayTitle}
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Catechism of the Catholic Church
-          </p>
+        <div className="flex items-center space-x-4">
+          <div>
+            <h2 className="text-2xl font-bold">
+              {isLoading ? "Loading..." : displayTitle}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Catechism of the Catholic Church
+            </p>
+          </div>
+
+          {/* Navigation Buttons */}
+          {data && (
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNavigatePrevious}
+                disabled={!canNavigatePrevious || isLoading}
+                className="h-8 w-8 p-0"
+                title="Previous paragraph"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNavigateNext}
+                disabled={!canNavigateNext || isLoading}
+                className="h-8 w-8 p-0"
+                title="Next paragraph"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Button>
+            </div>
+          )}
         </div>
+
         <Button
           variant="outline"
           onClick={onBackToSearch}
@@ -147,29 +251,30 @@ export default function ParagraphDisplay({
         {data && (
           <div className="p-6 space-y-6">
             {isRange ? (
-              // Display multiple paragraphs for ranges
-              <div className="space-y-8">
-                {data.paragraphs?.map((paragraph, index) => (
-                  <div key={paragraph.paragraph_number} className="space-y-4">
+              // Display current paragraph from range
+              (() => {
+                const currentParagraph =
+                  data.paragraphs?.[currentParagraphIndex];
+                if (!currentParagraph) return null;
+
+                return (
+                  <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                        CCC {paragraph.paragraph_number}
+                        CCC {currentParagraph.paragraph_number}
                       </span>
                     </div>
                     <div className="prose prose-lg max-w-none">
                       <div className="text-foreground leading-relaxed">
                         <FormatCCCContent
-                          content={paragraph.content}
+                          content={currentParagraph.content}
                           onCCCClick={onCCCClick}
                         />
                       </div>
                     </div>
-                    {index < (data.paragraphs?.length || 0) - 1 && (
-                      <div className="border-t border-muted mt-6" />
-                    )}
                   </div>
-                ))}
-              </div>
+                );
+              })()
             ) : (
               // Display single paragraph
               <div className="space-y-4">

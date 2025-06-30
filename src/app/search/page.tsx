@@ -174,13 +174,7 @@ export default function SearchPage() {
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>• Use specific terms for exact matches</li>
                       <li>• Try different phrasings for concepts</li>
-                      <li>
-                        • Search automatically uses both keyword and AI
-                        understanding
-                      </li>
-                      <li>
-                        • Look for colored badges showing search type used
-                      </li>
+                      <li>• Search uses both keyword and AI understanding</li>
                     </ul>
                   </div>
 

@@ -30,10 +30,12 @@ export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCCli
   const [data, setData] = useState<CCCResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0)
 
   useEffect(() => {
     if (isOpen && paragraphReference) {
       fetchParagraph(paragraphReference)
+      setCurrentParagraphIndex(0) // Reset to first paragraph when new data loads
     }
   }, [isOpen, paragraphReference])
 
@@ -51,6 +53,7 @@ export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCCli
       
       const responseData = await response.json()
       setData(responseData)
+      setCurrentParagraphIndex(0) // Reset to first paragraph when new data loads
     } catch (err) {
       console.error('Error fetching paragraph(s):', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -62,44 +65,57 @@ export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCCli
   const handleClose = () => {
     setData(null)
     setError(null)
+    setCurrentParagraphIndex(0)
     onClose()
   }
 
   const isRange = data?.paragraphs !== undefined
+  
+  // Get current paragraph info for display and navigation
+  const currentParagraphNumber = isRange 
+    ? data?.paragraphs?.[currentParagraphIndex]?.paragraph_number
+    : data?.paragraph_number
+  
   const displayTitle = isRange 
-    ? `CCC ${data?.start_paragraph}-${data?.end_paragraph}`
+    ? `CCC ${currentParagraphNumber} (${currentParagraphIndex + 1} of ${data?.paragraphs?.length})`
     : `CCC ${data?.paragraph_number}`
 
-  // Get current range for navigation
-  const currentStart = isRange ? data?.start_paragraph! : data?.paragraph_number!
-  const currentEnd = isRange ? data?.end_paragraph! : data?.paragraph_number!
-
-  const canNavigatePrevious = currentStart > 1
-  const canNavigateNext = currentEnd < 2865
+  // Navigation logic
+  const canNavigatePrevious = isRange 
+    ? currentParagraphIndex > 0 
+    : (data?.paragraph_number || 1) > 1
+    
+  const canNavigateNext = isRange 
+    ? currentParagraphIndex < (data?.paragraphs?.length || 1) - 1
+    : (data?.paragraph_number || 2865) < 2865
 
   const handleNavigatePrevious = () => {
     if (!canNavigatePrevious) return
     
-    const newEnd = currentStart - 1
-    const newStart = Math.max(1, newEnd - (currentEnd - currentStart)) // Keep same range size
-    
-    if (newStart === newEnd) {
-      fetchParagraph(newStart.toString())
+    if (isRange) {
+      // Navigate within the current range
+      setCurrentParagraphIndex(currentParagraphIndex - 1)
     } else {
-      fetchParagraph(`${newStart}-${newEnd}`)
+      // Navigate to previous single paragraph
+      const prevNumber = (data?.paragraph_number || 1) - 1
+      if (prevNumber >= 1) {
+        fetchParagraph(prevNumber.toString())
+      }
     }
   }
 
   const handleNavigateNext = () => {
     if (!canNavigateNext) return
     
-    const newStart = currentEnd + 1
-    const newEnd = Math.min(2865, newStart + (currentEnd - currentStart)) // Keep same range size
-    
-    if (newStart === newEnd) {
-      fetchParagraph(newStart.toString())
+    if (isRange) {
+      // Navigate within the current range
+      setCurrentParagraphIndex(currentParagraphIndex + 1)
     } else {
-      fetchParagraph(`${newStart}-${newEnd}`)
+      // Navigate to next single paragraph
+      const nextNumber = (data?.paragraph_number || 2865) + 1
+      if (nextNumber <= 2865) {
+        fetchParagraph(nextNumber.toString())
+      }
     }
   }
 
@@ -122,7 +138,7 @@ export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCCli
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, canNavigatePrevious, canNavigateNext, isLoading, handleNavigatePrevious, handleNavigateNext, handleClose])
+  }, [isOpen, canNavigatePrevious, canNavigateNext, isLoading, currentParagraphIndex])
 
   if (!isOpen) return null
 
@@ -218,27 +234,22 @@ export default function CCCModal({ paragraphReference, isOpen, onClose, onCCCCli
                 </span>
               </div>
               
-              <div className="prose prose-sm max-w-none space-y-6">
+              <div className="prose prose-sm max-w-none">
                 {isRange ? (
-                  // Display multiple paragraphs for ranges
-                  data.paragraphs?.map((paragraph, index) => (
-                    <div key={paragraph.paragraph_number} className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-                          {paragraph.paragraph_number}
-                        </span>
-                      </div>
+                  // Display current paragraph from range
+                  (() => {
+                    const currentParagraph = data.paragraphs?.[currentParagraphIndex]
+                    if (!currentParagraph) return null
+                    
+                    return (
                       <div className="text-foreground leading-relaxed">
                         <FormatCCCContent 
-                          content={paragraph.content} 
+                          content={currentParagraph.content} 
                           onCCCClick={onCCCClick}
                         />
                       </div>
-                      {index < (data.paragraphs?.length || 0) - 1 && (
-                        <div className="border-t border-muted my-4" />
-                      )}
-                    </div>
-                  ))
+                    )
+                  })()
                 ) : (
                   // Display single paragraph
                   <div className="text-foreground leading-relaxed">
