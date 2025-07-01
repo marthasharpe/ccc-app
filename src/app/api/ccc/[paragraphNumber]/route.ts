@@ -3,10 +3,11 @@ import { supabaseService } from '@/lib/supabase'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { paragraphNumber: string } }
+  { params }: { params: Promise<{ paragraphNumber: string }> }
 ) {
   try {
-    const paramValue = params.paragraphNumber
+    const resolvedParams = await params;
+    const paramValue = resolvedParams.paragraphNumber
 
     // Handle range format: "283-284" or single number: "283"
     let startNum: number, endNum: number
