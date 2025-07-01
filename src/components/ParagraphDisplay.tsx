@@ -137,7 +137,7 @@ export default function ParagraphDisplay({
                 size="sm"
                 onClick={handleNavigatePrevious}
                 disabled={!canNavigatePrevious || isLoading}
-                className="h-8 w-8 p-0"
+                className="p-0"
                 title="Previous paragraph"
               >
                 <svg
@@ -153,6 +153,7 @@ export default function ParagraphDisplay({
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
+                Previous
               </Button>
 
               <Button
@@ -160,9 +161,10 @@ export default function ParagraphDisplay({
                 size="sm"
                 onClick={handleNavigateNext}
                 disabled={!canNavigateNext || isLoading}
-                className="h-8 w-8 p-0"
+                className="p-0"
                 title="Next paragraph"
               >
+                Next
                 <svg
                   className="h-4 w-4"
                   fill="none"
@@ -248,7 +250,7 @@ export default function ParagraphDisplay({
           </div>
         )}
 
-        {data && (
+        {data && !isLoading && (
           <div className="p-6 space-y-6">
             {isRange ? (
               // Display current paragraph from range

@@ -15,6 +15,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { isChatLimitReached, incrementChatUsageCount } from "@/lib/usageClient";
+import {
+  saveChatSession,
+  loadChatSession,
+  clearChatSession,
+  getDefaultWelcomeMessage,
+} from "@/lib/chatPersistence";
 
 interface Message {
   id: string;
@@ -25,21 +31,7 @@ interface Message {
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      content: `Welcome! I'm here to help with questions about Catholic teaching.
-
-Try asking about prayer, sacraments, moral life, or any topic in the Catechism.
-
-Example questions:
-
-• "What is prayer?"
-• "How do I prepare for confession?"
-• "What does the Church teach about marriage?"
-• "How can I grow in virtue?"`,
-      isUser: false,
-      timestamp: new Date(),
-    },
+    getDefaultWelcomeMessage(),
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,20 +45,42 @@ Example questions:
     "gpt-3.5-turbo"
   );
 
+  const handleStartNewChat = () => {
+    setMessages([getDefaultWelcomeMessage()]);
+    clearChatSession();
+  };
+
   const handleCCCClick = (reference: string) => {
     setSelectedCCCReference(reference);
     setIsCCCModalOpen(true);
   };
 
-  // Check usage limits on component mount
+  // Load saved chat session and check usage limits on component mount
   useEffect(() => {
+    const loadSavedChat = () => {
+      const savedSession = loadChatSession();
+      if (savedSession) {
+        setMessages(savedSession.messages);
+        setSelectedModel(savedSession.selectedModel);
+      }
+    };
+
     const checkUsage = async () => {
       const limitReached = await isChatLimitReached();
       setIsLimitReached(limitReached);
     };
 
+    loadSavedChat();
     checkUsage();
   }, []);
+
+  // Save chat session whenever messages or model changes
+  useEffect(() => {
+    if (messages.length > 1) {
+      // Don't save if only welcome message
+      saveChatSession(messages, selectedModel);
+    }
+  }, [messages, selectedModel]);
 
   const updateUsageCount = async () => {
     const limitReached = await isChatLimitReached();
@@ -157,28 +171,41 @@ Example questions:
 
         {/* Model Selection */}
         <div className="flex flex-col items-center gap-3 mt-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Model:</span>
-            <div className="flex rounded-md border">
-              <Button
-                variant={
-                  selectedModel === "gpt-3.5-turbo" ? "default" : "ghost"
-                }
-                size="sm"
-                onClick={() => setSelectedModel("gpt-3.5-turbo")}
-                className="rounded-r-none border-r"
-              >
-                GPT-3.5*
-              </Button>
-              <Button
-                variant={selectedModel === "gpt-4" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedModel("gpt-4")}
-                className="rounded-l-none"
-              >
-                GPT-4*
-              </Button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Model:</span>
+              <div className="flex rounded-md border">
+                <Button
+                  variant={
+                    selectedModel === "gpt-3.5-turbo" ? "default" : "ghost"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedModel("gpt-3.5-turbo")}
+                  className="rounded-r-none border-r"
+                >
+                  GPT-3.5*
+                </Button>
+                <Button
+                  variant={selectedModel === "gpt-4" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedModel("gpt-4")}
+                  className="rounded-l-none"
+                >
+                  GPT-4*
+                </Button>
+              </div>
             </div>
+
+            {messages.length > 1 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartNewChat}
+                className="text-xs"
+              >
+                Start New Chat
+              </Button>
+            )}
           </div>
 
           {/* Model Description */}
@@ -200,7 +227,7 @@ Example questions:
         </div>
       </div>
 
-      <div className="bg-card rounded-lg border min-h-[500px] flex flex-col">
+      <div className="bg-card rounded-lg border flex flex-col">
         {/* Messages Area */}
         <div className="flex-1 p-6 overflow-y-auto space-y-4">
           {messages.length === 0 && (

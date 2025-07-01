@@ -76,8 +76,16 @@ export default function SearchPage() {
   const handleBackToSearch = () => {
     setShowParagraphView(false);
     setParagraphReference(null);
-    setQuery("");
-    setResults([]);
+    // Don't clear query and results to preserve search state
+    // Scroll to top when returning to search
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleParagraphClick = (paragraphNumber: number) => {
+    setParagraphReference(paragraphNumber.toString());
+    setShowParagraphView(true);
+    // Scroll to top when navigating to paragraph view
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCCCClick = (reference: string) => {
@@ -119,8 +127,8 @@ export default function SearchPage() {
               <div className="mb-4">
                 <p className="text-sm text-muted-foreground">
                   {results.length > 0
-                    ? `Results for "${query}"`
-                    : `Found no results for "${query}"`}
+                    ? `Top results for "${query}"`
+                    : `No results found for "${query}"`}
                 </p>
               </div>
             )}
@@ -130,17 +138,24 @@ export default function SearchPage() {
                 {results.map((result) => (
                   <div
                     key={result.id}
-                    className="border rounded-lg p-6 bg-card"
+                    className="border rounded-lg p-6 bg-card hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() =>
+                      handleParagraphClick(result.paragraph_number)
+                    }
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-primary">
                         Paragraph {result.paragraph_number}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Click to view full paragraph
                       </span>
                     </div>
                     <div className="text-foreground leading-relaxed">
                       <FormatCCCContent
                         content={result.content}
                         onCCCClick={handleCCCClick}
+                        searchQuery={query}
                       />
                     </div>
                   </div>
