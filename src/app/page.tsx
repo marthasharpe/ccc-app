@@ -8,14 +8,14 @@ export default function Home() {
         <h1 className="text-4xl font-bold mb-6">Ask About Catholic Teaching</h1>
         <p className="text-xl text-muted-foreground mb-8">
           Get answers to your questions about Catholic doctrine, faith, and
-          morals. Chat with an AI assistant trained on the Catechism of the
-          Catholic Church.
+          morals. Ask an AI assistant trained on the Catechism of the Catholic
+          Church.
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/chat">
             <Button size="lg" className="text-lg px-8 py-3 cursor-pointer w-48">
-              Start Chatting
+              Ask a Question
             </Button>
           </Link>
           <Link href="/search">
@@ -24,7 +24,7 @@ export default function Home() {
               size="lg"
               className="text-lg px-8 py-3 cursor-pointer w-48"
             >
-              Browse Catechism
+              Search the Catechism
             </Button>
           </Link>
         </div>

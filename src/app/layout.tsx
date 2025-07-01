@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "MyCat - My Catholic Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
+  other: {
+    "apple-mobile-web-app-title": "ccc-app",
+  },
 };
 
 export default function RootLayout({
@@ -46,7 +49,7 @@ export default function RootLayout({
               </div>
               <NavTabs
                 tabs={[
-                  { href: "/chat", label: "Chat" },
+                  { href: "/chat", label: "Ask" },
                   { href: "/search", label: "Search" },
                   { href: "/about", label: "About" },
                 ]}
