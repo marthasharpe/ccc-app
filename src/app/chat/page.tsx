@@ -108,7 +108,7 @@ export default function ChatPage() {
           <h1 className="text-3xl font-bold mb-4">
             Ask Your Teaching Assistant
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Hello! I am here to help you learn about Catholic teaching. I will
             do my best to provide clear, helpful answers based on the Catechism
             and provide links to the paragraphs I referenced so you can read
@@ -128,7 +128,7 @@ export default function ChatPage() {
                   }
                   size="sm"
                   onClick={() => setSelectedModel("gpt-3.5-turbo")}
-                  className="rounded-r-none border-r"
+                  className="rounded-r-none border-r cursor-pointer"
                 >
                   GPT-3.5
                 </Button>
@@ -136,7 +136,7 @@ export default function ChatPage() {
                   variant={selectedModel === "gpt-4" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedModel("gpt-4")}
-                  className="rounded-l-none"
+                  className="rounded-l-none cursor-pointer"
                 >
                   GPT-4.0
                 </Button>
@@ -172,7 +172,7 @@ export default function ChatPage() {
         </div>
 
         {/* Question Input */}
-        <div className="mb-8">
+        <div className="mb-8 w-full max-w-2xl mx-auto">
           <form onSubmit={handleSubmit} className="flex space-x-3">
             <Input
               value={question}

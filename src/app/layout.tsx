@@ -50,8 +50,8 @@ export default function RootLayout({
                     className="w-10 h-10"
                   />
                 </Link>
-                <h1 className="text-m" style={{ color: '#E5A431' }}>
-                  My Interactive Catechism
+                <h1 className="text-m" style={{ color: "#E5A431" }}>
+                  An Interactive Catechism
                 </h1>
               </div>
               <NavTabs

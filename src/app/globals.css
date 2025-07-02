@@ -135,15 +135,53 @@
   .body-font {
     font-family: ui-sans-serif, system-ui, sans-serif;
   }
-  input[type="text"], input[type="search"], textarea, .input-field {
+  input[type="text"], input[type="search"], textarea, .input-field, input[data-slot="input"] {
     background-color: #1a5137 !important;
     border-color: #005030 !important;
     color: #ffffff !important;
   }
-  input[type="text"]:focus, input[type="search"]:focus, textarea:focus, .input-field:focus {
+  input[type="text"]:focus, input[type="search"]:focus, textarea:focus, .input-field:focus, input[data-slot="input"]:focus {
     background-color: #225c42 !important;
     border-color: #E5A431 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(229, 164, 49, 0.2) !important;
+  }
+  
+  /* Button variant overrides for better visibility on dark background */
+  .bg-background.shadow-xs {
+    background-color: rgba(229, 164, 49, 0.1) !important;
+    border-color: #E5A431 !important;
+    color: #E5A431 !important;
+  }
+  .bg-background.shadow-xs:hover {
+    background-color: rgba(229, 164, 49, 0.2) !important;
+    border-color: #E5A431 !important;
+  }
+  
+  /* Ghost button improvements */
+  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
+    background-color: rgba(229, 164, 49, 0.05) !important;
+    color: #E5A431 !important;
+    border-color: #E5A431 !important;
+  }
+  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]):hover {
+    background-color: rgba(229, 164, 49, 0.15) !important;
+    border-color: #E5A431 !important;
+  }
+  
+  /* Specific targeting for GPT toggle buttons */
+  button[data-slot="button"][class*="ghost"] {
+    background-color: rgba(229, 164, 49, 0.05) !important;
+    color: #E5A431 !important;
+    border: 1px solid #E5A431 !important;
+  }
+  button[data-slot="button"][class*="ghost"]:hover {
+    background-color: rgba(229, 164, 49, 0.15) !important;
+    border-color: #E5A431 !important;
+  }
+  
+  /* Catch-all for any remaining inactive buttons */
+  button[data-slot="button"]:not([class*="bg-primary"]) {
+    border: 1px solid #E5A431 !important;
   }
 }
