@@ -1,11 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-3xl mx-auto text-center">
-        <h1 className="text-4xl font-bold mb-6">Ask About Catholic Teaching</h1>
+        <div className="flex justify-center">
+          <Image
+            src="/icon0.svg"
+            alt="MyCat"
+            width={120}
+            height={120}
+            className="w-40 h-40"
+          />
+        </div>
+        <h1 className="text-4xl font-bold mb-6">
+          Learn About Catholic Teaching
+        </h1>
         <p className="text-xl text-muted-foreground mb-8">
           Get answers to your questions about Catholic doctrine, faith, and
           morals. Ask an AI assistant trained on the Catechism of the Catholic

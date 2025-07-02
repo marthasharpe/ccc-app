@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 import { NavTabs } from "@/components/NavTabs";
 import "./globals.css";
 
@@ -39,13 +40,19 @@ export default function RootLayout({
               <div className="flex items-center space-x-2">
                 <Link
                   href="/"
-                  className="text-xl font-bold hover:text-primary transition-colors"
+                  className="flex items-center hover:opacity-80 transition-opacity"
                 >
-                  MyCat
+                  <Image
+                    src="/icon0.svg"
+                    alt="MyCat"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10"
+                  />
                 </Link>
-                <span className="text-sm text-muted-foreground">
-                  My Catholic Catechism
-                </span>
+                <h1 className="text-m" style={{ color: '#E5A431' }}>
+                  My Interactive Catechism
+                </h1>
               </div>
               <NavTabs
                 tabs={[

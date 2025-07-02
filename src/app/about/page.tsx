@@ -4,6 +4,20 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
           <h2 className="text-2xl font-bold mb-6">
+            Why an Interactive Catechism?
+          </h2>
+          <p className="text-lg leading-relaxed mb-6">
+            This app was created to make the teachings of the Catholic Church
+            more accessible to those who want to learn more. It uses an AI
+            assistant so users can ask questions in their own words and receive
+            clear, faithful answers based on the Catechism of the Catholic
+            Church. Our goal is to provide trustworthy guidance using technology
+            as a tool for evangelization and learning.
+          </p>
+
+          <div className="border-t border-muted my-8"></div>
+
+          <h2 className="text-2xl font-bold mb-6">
             📘 What is the Catechism of the Catholic Church?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
@@ -37,9 +51,9 @@ export default function AboutPage() {
               <h3 className="text-xl font-semibold mb-2">
                 1. The Creed — What the Church believes
               </h3>
-              <p className="text-muted-foreground">
-                (Apostles&apos; Creed and Nicene Creed, with explanations of
-                each article of faith)
+              <p className="">
+                Apostles&apos; Creed and Nicene Creed, with explanations of each
+                article of faith
               </p>
             </div>
 
@@ -47,9 +61,9 @@ export default function AboutPage() {
               <h3 className="text-xl font-semibold mb-2">
                 2. The Sacraments — How the Church celebrates the faith
               </h3>
-              <p className="text-muted-foreground">
-                (Baptism, Eucharist, Confirmation, etc.; how God shares His life
-                with us)
+              <p className="">
+                Baptism, Eucharist, Confirmation, etc.; how God shares His life
+                with us
               </p>
             </div>
 
@@ -57,9 +71,9 @@ export default function AboutPage() {
               <h3 className="text-xl font-semibold mb-2">
                 3. The Commandments — How the Church lives the faith
               </h3>
-              <p className="text-muted-foreground">
-                (A moral guide based on the Ten Commandments, including
-                conscience, virtue, and social teaching)
+              <p className="">
+                A moral guide based on the Ten Commandments, including
+                conscience, virtue, and social teaching
               </p>
             </div>
 
@@ -67,8 +81,8 @@ export default function AboutPage() {
               <h3 className="text-xl font-semibold mb-2">
                 4. Prayer — How the Church speaks with God
               </h3>
-              <p className="text-muted-foreground">
-                (Especially the Our Father, as a model of all Christian prayer)
+              <p className="">
+                Especially the Our Father, as a model of all Christian prayer
               </p>
             </div>
           </div>

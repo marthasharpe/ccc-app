@@ -27,7 +27,7 @@ export default function ChatPage() {
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(
-    "gpt-3.5-turbo"
+    "gpt-4"
   );
 
   const handleClearQuestion = () => {
@@ -105,10 +105,14 @@ export default function ChatPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-4">Ask a Question</h1>
+          <h1 className="text-3xl font-bold mb-4">
+            Ask Your Teaching Assistant
+          </h1>
           <p className="text-muted-foreground">
-            Ask questions about Catholic teaching and receive answers based on
-            the Catechism of the Catholic Church
+            Hello! I am here to help you learn about Catholic teaching. I will
+            do my best to provide clear, helpful answers based on the Catechism
+            and provide links to the paragraphs I referenced so you can read
+            more in context.
           </p>
         </div>
 
@@ -126,7 +130,7 @@ export default function ChatPage() {
                   onClick={() => setSelectedModel("gpt-3.5-turbo")}
                   className="rounded-r-none border-r"
                 >
-                  GPT-3.5*
+                  GPT-3.5
                 </Button>
                 <Button
                   variant={selectedModel === "gpt-4" ? "default" : "ghost"}
@@ -134,7 +138,7 @@ export default function ChatPage() {
                   onClick={() => setSelectedModel("gpt-4")}
                   className="rounded-l-none"
                 >
-                  GPT-4*
+                  GPT-4.0
                 </Button>
               </div>
             </div>
@@ -152,17 +156,16 @@ export default function ChatPage() {
           </div>
 
           {/* Model Description */}
-          <div className="max-w-xl text-center">
+          <div className="max-w-92 text-center">
             {selectedModel === "gpt-3.5-turbo" ? (
               <div className="text-xs text-muted-foreground">
-                * Good for basic questions about Catholic teaching. May
-                occasionally provide less detailed explanations. Faster and
-                lower cost.
+                * GPT-3.5 - Good for basic questions about Catholic teaching.
+                May occasionally provide less detailed explanations.
               </div>
             ) : (
               <div className="text-xs text-muted-foreground">
-                * More thoughtful and comprehensive responses. Better at
-                handling complex theological questions. Slower and higher cost.
+                * GPT-4.0 - More thoughtful and comprehensive responses. Better
+                at handling complex theological questions.
               </div>
             )}
           </div>
@@ -174,7 +177,7 @@ export default function ChatPage() {
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask a question about Catholic teaching..."
+              placeholder="What would you like to know about Catholic teaching?"
               disabled={isLoading}
               className="flex-1"
               maxLength={500}
@@ -218,7 +221,7 @@ export default function ChatPage() {
         {isLoading && (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-muted-foreground">Getting answer...</p>
+            <p className="mt-2 text-muted-foreground">Thinking...</p>
           </div>
         )}
 
@@ -228,7 +231,7 @@ export default function ChatPage() {
             <div className="border rounded-lg p-6 bg-card">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-primary">
-                  Catholic Teaching Response
+                  Response:
                 </span>
               </div>
               <div className="text-foreground leading-relaxed">
@@ -247,10 +250,10 @@ export default function ChatPage() {
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="border p-4">
-                <h3 className="font-medium mb-2">Popular Topics</h3>
+                <h3 className="font-medium mb-2">Suggested Topics</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Prayer and Spirituality</li>
-                  <li>• Sacraments</li>
+                  <li>• The Sacraments</li>
                   <li>• Moral Teaching</li>
                   <li>• Trinity and Doctrine</li>
                 </ul>
