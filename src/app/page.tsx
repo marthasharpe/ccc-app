@@ -20,8 +20,9 @@ export default function Home() {
         </h1>
         <p className="text-xl text-muted-foreground mb-8">
           Get answers to your questions about Catholic doctrine, faith, and
-          morals. Ask an AI assistant trained on the Catechism of the Catholic
-          Church.
+          morals.
+          <br />
+          Ask an AI assistant trained on the Catechism of the Catholic Church.
         </p>
 
         <div className="flex flex-wrap gap-4 justify-center">

@@ -65,17 +65,6 @@ export default function ParagraphDisplay({
 
   const isRange = data?.paragraphs !== undefined;
 
-  // Get current paragraph info for display and navigation
-  const currentParagraphNumber = isRange
-    ? data?.paragraphs?.[currentParagraphIndex]?.paragraph_number
-    : data?.paragraph_number;
-
-  const displayTitle = isRange
-    ? `CCC ${currentParagraphNumber} (${currentParagraphIndex + 1} of ${
-        data?.paragraphs?.length
-      })`
-    : `CCC ${data?.paragraph_number}`;
-
   // Navigation logic
   const canNavigatePrevious = isRange
     ? currentParagraphIndex > 0
@@ -122,11 +111,8 @@ export default function ParagraphDisplay({
         <div className="flex items-center space-x-4">
           <div>
             <h2 className="text-2xl font-bold">
-              {isLoading ? "Loading..." : displayTitle}
-            </h2>
-            <p className="text-muted-foreground text-sm">
               Catechism of the Catholic Church
-            </p>
+            </h2>
           </div>
 
           {/* Navigation Buttons */}
@@ -137,7 +123,7 @@ export default function ParagraphDisplay({
                 size="sm"
                 onClick={handleNavigatePrevious}
                 disabled={!canNavigatePrevious || isLoading}
-                className="p-0"
+                className="p-0 cursor-pointer"
                 title="Previous paragraph"
               >
                 <svg
@@ -161,7 +147,7 @@ export default function ParagraphDisplay({
                 size="sm"
                 onClick={handleNavigateNext}
                 disabled={!canNavigateNext || isLoading}
-                className="p-0"
+                className="p-0 cursor-pointer"
                 title="Next paragraph"
               >
                 Next

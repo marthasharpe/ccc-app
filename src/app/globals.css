@@ -180,8 +180,8 @@
     border-color: #E5A431 !important;
   }
   
-  /* Catch-all for any remaining inactive buttons */
-  button[data-slot="button"]:not([class*="bg-primary"]) {
+  /* Catch-all for any remaining inactive buttons (excluding link variants) */
+  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="underline"]) {
     border: 1px solid #E5A431 !important;
   }
 }

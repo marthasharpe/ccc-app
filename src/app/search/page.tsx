@@ -145,10 +145,7 @@ export default function SearchPage() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-primary">
-                        Paragraph {result.paragraph_number}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Click to view full paragraph
+                        CCC {result.paragraph_number}
                       </span>
                     </div>
                     <div className="text-foreground leading-relaxed">

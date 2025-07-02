@@ -180,7 +180,7 @@ export default function CCCModal({
                   size="sm"
                   onClick={handleNavigatePrevious}
                   disabled={!canNavigatePrevious || isLoading}
-                  className="p-0"
+                  className="p-0 cursor-pointer"
                   title="Previous paragraph(s)"
                 >
                   <svg
@@ -204,7 +204,7 @@ export default function CCCModal({
                   size="sm"
                   onClick={handleNavigateNext}
                   disabled={!canNavigateNext || isLoading}
-                  className="p-0"
+                  className="p-0 cursor-pointer"
                   title="Next paragraph(s)"
                 >
                   Next

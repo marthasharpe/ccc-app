@@ -42,12 +42,13 @@ export function HighlightedText({ text, searchQuery, className = '' }: Highlight
         
         if (isKeyword) {
           return (
-            <mark
+            <span
               key={index}
-              className="bg-yellow-200 dark:bg-yellow-800 dark:text-yellow-100 px-0.5 rounded-sm font-medium"
+              className="font-bold"
+              style={{ color: '#E5A431' }}
             >
               {part}
-            </mark>
+            </span>
           );
         }
         
