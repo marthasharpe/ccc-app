@@ -19,13 +19,14 @@ export async function POST(request: NextRequest) {
     console.log('Chat question received:', message, 'Model:', selectedModel)
 
     // Generate response using Catholic catechism assistant
-    const response = await generateChatResponse(message, selectedModel)
+    const { response, tokensUsed } = await generateChatResponse(message, selectedModel)
 
-    console.log('Chat response generated successfully')
+    console.log('Chat response generated successfully, tokens used:', tokensUsed)
 
     return NextResponse.json({
       response,
-      message
+      message,
+      tokensUsed
     })
 
   } catch (error) {

@@ -4,11 +4,14 @@
  */
 
 const STORAGE_KEY = "cathcat_daily_usage";
-const DAILY_CHAT_LIMIT = 20;
+const DAILY_TOKEN_LIMIT = 2000;
 
 interface DailyUsage {
   date: string; // YYYY-MM-DD format
-  chatCount: number;
+  tokensUsed: number;
+  // Legacy fields for migration
+  gpt4Count?: number;
+  gpt35Count?: number;
 }
 
 /**
@@ -27,26 +30,30 @@ function getStoredUsage(): DailyUsage {
     if (!stored) {
       return {
         date: getTodayString(),
-        chatCount: 0,
+        tokensUsed: 0,
       };
     }
 
-    const usage: DailyUsage = JSON.parse(stored);
+    const usage: Partial<DailyUsage> & { chatCount?: number } =
+      JSON.parse(stored);
 
     // Reset if the stored date is not today
     if (usage.date !== getTodayString()) {
       return {
         date: getTodayString(),
-        chatCount: 0,
+        tokensUsed: 0,
       };
     }
 
-    return usage;
+    return {
+      date: usage.date || getTodayString(),
+      tokensUsed: usage.tokensUsed || 0,
+    };
   } catch (error) {
     console.warn("Failed to parse usage data from localStorage:", error);
     return {
       date: getTodayString(),
-      chatCount: 0,
+      tokensUsed: 0,
     };
   }
 }
@@ -63,41 +70,79 @@ function saveUsage(usage: DailyUsage): void {
 }
 
 /**
- * Get the current chat usage count for today
+ * Get the current token usage for today
  */
-export async function getChatUsageCount(): Promise<number> {
+export async function getTokenUsage(): Promise<number> {
   const usage = getStoredUsage();
-  return usage.chatCount;
+  return usage.tokensUsed;
 }
 
 /**
- * Increment the chat usage count for today
+ * Add tokens to the daily usage count
  */
-export async function incrementChatUsageCount(): Promise<void> {
+export async function addTokenUsage(tokens: number): Promise<void> {
   const usage = getStoredUsage();
-  usage.chatCount += 1;
+  usage.tokensUsed += tokens;
   saveUsage(usage);
 }
 
 /**
- * Check if the user has reached the daily chat limit
+ * Check if the user has reached the daily token limit
  */
+export async function isTokenLimitReached(): Promise<boolean> {
+  const tokensUsed = await getTokenUsage();
+  return tokensUsed >= DAILY_TOKEN_LIMIT;
+}
+
+/**
+ * Check if a request would exceed the daily token limit
+ */
+export async function wouldExceedTokenLimit(
+  estimatedTokens: number
+): Promise<boolean> {
+  const tokensUsed = await getTokenUsage();
+  return tokensUsed + estimatedTokens > DAILY_TOKEN_LIMIT;
+}
+
+/**
+ * Get the remaining tokens for today
+ */
+export async function getRemainingTokens(): Promise<number> {
+  const tokensUsed = await getTokenUsage();
+  return Math.max(0, DAILY_TOKEN_LIMIT - tokensUsed);
+}
+
+/**
+ * Get the daily token limit
+ */
+export function getDailyTokenLimit(): number {
+  return DAILY_TOKEN_LIMIT;
+}
+
+/**
+ * Estimate tokens for a given text (rough approximation: ~4 chars per token)
+ */
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Legacy functions for backward compatibility (now redirect to token-based system)
+export async function getChatUsageCount(): Promise<number> {
+  return await getTokenUsage();
+}
+
+export async function incrementChatUsageCount(): Promise<void> {
+  // No-op - tokens are now tracked via addTokenUsage
+}
+
 export async function isChatLimitReached(): Promise<boolean> {
-  const count = await getChatUsageCount();
-  return count >= DAILY_CHAT_LIMIT;
+  return await isTokenLimitReached();
 }
 
-/**
- * Get the remaining chat messages for today
- */
 export async function getRemainingChatCount(): Promise<number> {
-  const count = await getChatUsageCount();
-  return Math.max(0, DAILY_CHAT_LIMIT - count);
+  return await getRemainingTokens();
 }
 
-/**
- * Get the daily chat limit (useful for displaying to users)
- */
 export function getDailyChatLimit(): number {
-  return DAILY_CHAT_LIMIT;
+  return DAILY_TOKEN_LIMIT;
 }

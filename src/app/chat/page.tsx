@@ -14,7 +14,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { isChatLimitReached, incrementChatUsageCount } from "@/lib/usageClient";
+import {
+  isTokenLimitReached,
+  addTokenUsage,
+  getRemainingTokens,
+  wouldExceedTokenLimit,
+  estimateTokens,
+} from "@/lib/usageClient";
 
 export default function ChatPage() {
   const [question, setQuestion] = useState("");
@@ -26,6 +32,8 @@ export default function ChatPage() {
   const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [remainingTokens, setRemainingTokens] = useState(0);
+  const [estimatedTokensForRequest, setEstimatedTokensForRequest] = useState(0);
   const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(
     "gpt-4"
   );
@@ -43,26 +51,43 @@ export default function ChatPage() {
   // Check usage limits on component mount
   useEffect(() => {
     const checkUsage = async () => {
-      const limitReached = await isChatLimitReached();
+      const limitReached = await isTokenLimitReached();
+      const remaining = await getRemainingTokens();
+
       setIsLimitReached(limitReached);
+      setRemainingTokens(remaining);
     };
 
     checkUsage();
   }, []);
 
   const updateUsageCount = async () => {
-    const limitReached = await isChatLimitReached();
+    const limitReached = await isTokenLimitReached();
+    const remaining = await getRemainingTokens();
+
     setIsLimitReached(limitReached);
+    setRemainingTokens(remaining);
   };
+
+  // Update estimated tokens when question changes
+  useEffect(() => {
+    if (question.trim()) {
+      const estimated = estimateTokens(question);
+      setEstimatedTokensForRequest(estimated + 300); // Add ~300 for system prompt and response
+    } else {
+      setEstimatedTokensForRequest(0);
+    }
+  }, [question]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!question.trim() || isLoading) return;
 
-    // Check if user has reached daily limit
-    const limitReached = await isChatLimitReached();
-    if (limitReached) {
+    // Check if request would exceed daily token limit
+    const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
+    const wouldExceed = await wouldExceedTokenLimit(estimated);
+    if (wouldExceed) {
       setShowLimitDialog(true);
       return;
     }
@@ -88,8 +113,10 @@ export default function ChatPage() {
       const data = await response.json();
       setAnswer(data.response);
 
-      // Increment usage count after successful response
-      await incrementChatUsageCount();
+      // Add actual token usage after successful response
+      if (data.tokensUsed) {
+        await addTokenUsage(data.tokensUsed);
+      }
       await updateUsageCount();
     } catch (error) {
       console.error("Chat error:", error);
@@ -156,24 +183,32 @@ export default function ChatPage() {
           </div>
 
           {/* Model Description */}
-          <div className="max-w-2xl text-center px-4">
+          <div className="max-w-xl text-center px-4">
             {selectedModel === "gpt-3.5-turbo" ? (
               <div className="text-xs sm:text-sm text-muted-foreground">
                 * GPT-3.5 - Good for basic questions about Catholic teaching.
-                May occasionally provide less detailed explanations.
+                May occasionally provide less detailed explanations. Uses fewer
+                tokens per response.
               </div>
             ) : (
               <div className="text-xs sm:text-sm text-muted-foreground">
                 * GPT-4.0 - More thoughtful and comprehensive responses. Better
-                at handling complex theological questions.
+                at handling complex theological questions. Uses more tokens per
+                response.
               </div>
             )}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            2000 free tokens daily (shared across both models)
           </div>
         </div>
 
         {/* Question Input */}
         <div className="mb-8 w-full max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col sm:flex-row gap-3"
+          >
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -211,10 +246,19 @@ export default function ChatPage() {
               Responses are based on the Catechism of the Catholic Church and
               official Church teaching.
             </p>
-            {isLimitReached && (
-              <p className="text-xs text-red-500">Daily limit reached</p>
-            )}
           </div>
+          {isLimitReached ? (
+            <p className="text-xs text-red-500">Daily token limit reached</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {remainingTokens} tokens remaining today
+              {estimatedTokensForRequest > 0 && (
+                <span className="ml-2 text-xs">
+                  (∼{estimatedTokensForRequest} estimated for this request)
+                </span>
+              )}
+            </p>
+          )}
         </div>
 
         {/* Loading State */}
@@ -300,17 +344,41 @@ export default function ChatPage() {
       <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Daily Chat Limit Reached</AlertDialogTitle>
+            <AlertDialogTitle>Daily Token Limit Reached</AlertDialogTitle>
             <AlertDialogDescription>
-              You can still browse and search the Catechism, but chat will be
-              available again tomorrow.
+              This request would exceed your daily limit of 1000 free tokens.
               <br />
               <br />
-              <strong>Want to keep chatting?</strong> Sign in to boost your
-              daily limit!
+              <strong>You can:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Try a shorter question to use fewer tokens</li>
+                <li>
+                  Switch to GPT-3.5 which typically uses fewer tokens per
+                  response
+                </li>
+                <li>Browse and search the Catechism (no token limit)</li>
+                <li>Sign in to upgrade to a paid plan for unlimited tokens</li>
+                <li>Wait until tomorrow for your tokens to reset</li>
+              </ul>
+              <div className="mt-3 p-2 bg-muted rounded text-sm">
+                <strong>Tokens remaining:</strong> {remainingTokens}
+                <br />
+                <strong>Estimated needed:</strong> ~{estimatedTokensForRequest}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            {selectedModel === "gpt-4" && (
+              <AlertDialogAction
+                onClick={() => {
+                  setSelectedModel("gpt-3.5-turbo");
+                  setShowLimitDialog(false);
+                }}
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Switch to GPT-3.5
+              </AlertDialogAction>
+            )}
             <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
               I understand
             </AlertDialogAction>
