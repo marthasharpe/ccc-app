@@ -4,15 +4,13 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
           <h2 className="text-2xl font-bold mb-6">
-            Why an Interactive Catechism?
+            💡 Why an Interactive Catechism?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
-            This app was created to make the teachings of the Catholic Church
-            more accessible to those who want to learn more. It uses an AI
-            assistant so users can ask questions in their own words and receive
-            clear, faithful answers based on the Catechism of the Catholic
-            Church. Our goal is to provide trustworthy guidance using technology
-            as a tool for evangelization and learning.
+            This app helps people explore what the Catholic Church teaches by
+            making the Catechism easier to understand and navigate. It uses an
+            AI assistant to provide clear, trustworthy answers and to provide
+            relevant passages from the Catechism of the Catholic Church.
           </p>
 
           <div className="border-t border-muted my-8"></div>
@@ -38,7 +36,7 @@ export default function AboutPage() {
           <div className="border-t border-muted my-8"></div>
 
           <h2 className="text-2xl font-bold mb-6">
-            🧱 Structure of the Catechism: The Four Pillars
+            🏛️ Structure of the Catechism: The Four Pillars
           </h2>
 
           <p className="text-lg mb-6">

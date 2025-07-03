@@ -102,13 +102,13 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-6 sm:px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">
             Ask Your Teaching Assistant
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
             Hello! I am here to help you learn about Catholic teaching. I will
             do my best to provide clear, helpful answers based on the Catechism
             and provide links to the paragraphs I referenced so you can read
@@ -118,7 +118,7 @@ export default function ChatPage() {
 
         {/* Model Selection */}
         <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Model:</span>
               <div className="flex rounded-md border">
@@ -156,14 +156,14 @@ export default function ChatPage() {
           </div>
 
           {/* Model Description */}
-          <div className="max-w-92 text-center">
+          <div className="max-w-2xl text-center px-4">
             {selectedModel === "gpt-3.5-turbo" ? (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 * GPT-3.5 - Good for basic questions about Catholic teaching.
                 May occasionally provide less detailed explanations.
               </div>
             ) : (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 * GPT-4.0 - More thoughtful and comprehensive responses. Better
                 at handling complex theological questions.
               </div>
@@ -173,7 +173,7 @@ export default function ChatPage() {
 
         {/* Question Input */}
         <div className="mb-8 w-full max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex space-x-3">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -185,7 +185,7 @@ export default function ChatPage() {
             <Button
               type="submit"
               disabled={isLoading || !question.trim()}
-              className="shrink-0"
+              className="shrink-0 w-full sm:w-auto"
             >
               {isLoading ? (
                 <svg
@@ -206,8 +206,8 @@ export default function ChatPage() {
               )}
             </Button>
           </form>
-          <div className="flex justify-between items-center mt-2">
-            <p className="text-xs text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-3">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Responses are based on the Catechism of the Catholic Church and
               official Church teaching.
             </p>
@@ -228,7 +228,7 @@ export default function ChatPage() {
         {/* Answer Display */}
         {answer && !isLoading && (
           <div className="space-y-6">
-            <div className="border rounded-lg p-6 bg-card">
+            <div className="border rounded-lg p-4 sm:p-6 bg-card">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-primary">
                   Response:
@@ -248,7 +248,7 @@ export default function ChatPage() {
         {/* Placeholder for no question */}
         {!question && !isLoading && (
           <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="border p-4">
                 <h3 className="font-medium mb-2">Suggested Topics</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">

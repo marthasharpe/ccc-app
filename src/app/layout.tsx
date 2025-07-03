@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import Image from "next/image";
 import { NavTabs } from "@/components/NavTabs";
+import { MobileNav } from "@/components/MobileNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,13 +55,24 @@ export default function RootLayout({
                   An Interactive Catechism
                 </h1>
               </div>
-              <NavTabs
-                tabs={[
-                  { href: "/chat", label: "Ask" },
-                  { href: "/search", label: "Search" },
-                  { href: "/about", label: "About" },
-                ]}
-              />
+              <div className="hidden md:block">
+                <NavTabs
+                  tabs={[
+                    { href: "/chat", label: "Ask" },
+                    { href: "/search", label: "Search" },
+                    { href: "/about", label: "About" },
+                  ]}
+                />
+              </div>
+              <div className="md:hidden">
+                <MobileNav
+                  tabs={[
+                    { href: "/chat", label: "Ask" },
+                    { href: "/search", label: "Search" },
+                    { href: "/about", label: "About" },
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </header>

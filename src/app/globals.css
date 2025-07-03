@@ -184,4 +184,52 @@
   button[data-slot="button"]:not([class*="bg-primary"]):not([class*="underline"]) {
     border: 1px solid #E5A431 !important;
   }
+  
+  /* Mobile responsive typography */
+  @media (max-width: 768px) {
+    html {
+      font-size: 16px; /* Ensure 16px minimum for mobile */
+    }
+    
+    /* Ensure minimum text sizes */
+    .text-xs {
+      font-size: 0.875rem !important; /* 14px instead of 12px */
+    }
+    
+    /* Better line height for mobile reading */
+    p, div, span {
+      line-height: 1.6;
+    }
+    
+    /* Improve touch targets */
+    button, input, select, textarea {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better mobile padding */
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+    
+    /* Prevent horizontal scrolling */
+    body {
+      overflow-x: hidden;
+    }
+    
+    /* Better word breaking */
+    .prose, .text-content {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+  }
+  
+  /* Tablet specific adjustments */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
 }

@@ -164,23 +164,45 @@ export default function CCCModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-background border rounded-lg shadow-lg max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+      <div className="relative bg-background border rounded-lg shadow-lg max-w-[95vw] sm:max-w-2xl w-full mx-6 sm:mx-4 max-h-[90vh] sm:max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold">
+        <div className="border-b">
+          <div className="flex items-center justify-between p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold pr-2">
               Catechism of the Catholic Church
             </h2>
-
-            {/* Navigation Buttons */}
-            {data && (
-              <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              className="h-8 w-8 p-0 shrink-0"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </Button>
+          </div>
+          
+          {/* Navigation Buttons - Mobile Stack */}
+          {data && (
+            <div className="px-4 sm:px-6 pb-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-1">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleNavigatePrevious}
                   disabled={!canNavigatePrevious || isLoading}
-                  className="p-0 cursor-pointer"
+                  className="flex-1 sm:flex-none cursor-pointer"
                   title="Previous paragraph(s)"
                 >
                   <svg
@@ -196,7 +218,7 @@ export default function CCCModal({
                       d="M15 19l-7-7 7-7"
                     />
                   </svg>
-                  Previous
+                  <span className="sm:inline">Previous</span>
                 </Button>
 
                 <Button
@@ -204,10 +226,10 @@ export default function CCCModal({
                   size="sm"
                   onClick={handleNavigateNext}
                   disabled={!canNavigateNext || isLoading}
-                  className="p-0 cursor-pointer"
+                  className="flex-1 sm:flex-none cursor-pointer"
                   title="Next paragraph(s)"
                 >
-                  Next
+                  <span className="sm:inline">Next</span>
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -223,33 +245,13 @@ export default function CCCModal({
                   </svg>
                 </Button>
               </div>
-            )}
-          </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            className="h-8 w-8 p-0"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </Button>
+            </div>
+          )}
         </div>
 
+
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {isLoading && (
             <div className="flex items-center justify-center py-8">
               <div className="flex items-center space-x-2">
@@ -291,7 +293,7 @@ export default function CCCModal({
                 </span>
               </div>
 
-              <div className="prose prose-sm max-w-none">
+              <div className="prose prose-sm sm:prose-base max-w-none">
                 {isRange ? (
                   // Display current paragraph from range
                   (() => {
@@ -323,10 +325,10 @@ export default function CCCModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 bg-muted/30">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Catechism of the Catholic Church, Second Edition</span>
-            <span className="hidden sm:inline">Use ← → keys to navigate</span>
+        <div className="border-t p-3 sm:p-4 bg-muted/30">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+            <span className="text-center sm:text-left">Catechism of the Catholic Church, Second Edition</span>
+            <span className="text-center sm:text-right text-xs">Use ← → keys to navigate</span>
           </div>
         </div>
       </div>
