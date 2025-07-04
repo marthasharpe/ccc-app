@@ -1,14 +1,36 @@
 import { createClient } from "@/lib/supabase/client";
 import { getTokenUsage as getLocalTokenUsage, addTokenUsage as addLocalTokenUsage } from "@/lib/usageClient";
 
-// Usage limits
-const ANONYMOUS_DAILY_TOKEN_LIMIT = 1500;
-const AUTHENTICATED_DAILY_TOKEN_LIMIT = 3000;
+// Model pricing (per 1000 tokens)
+const MODEL_PRICING = {
+  'gpt-4': 0.03, // $0.03 per 1k tokens
+  'gpt-3.5-turbo': 0.002, // $0.002 per 1k tokens
+} as const;
+
+// Daily cost limits (in dollars)
+const ANONYMOUS_DAILY_COST_LIMIT = 0.10; // ~3 GPT-4 responses or 50 GPT-3.5 responses
+const AUTHENTICATED_DAILY_COST_LIMIT = 0.25; // ~8 GPT-4 responses or 125 GPT-3.5 responses
 
 interface UsageData {
-  tokensUsed: number;
+  costUsed: number; // in dollars
   isAuthenticated: boolean;
-  dailyLimit: number;
+  dailyLimit: number; // in dollars
+}
+
+type ModelName = keyof typeof MODEL_PRICING;
+
+/**
+ * Calculate the cost of tokens for a specific model
+ */
+export function calculateCost(tokens: number, model: ModelName): number {
+  return (tokens / 1000) * MODEL_PRICING[model];
+}
+
+/**
+ * Calculate percentage of daily limit used
+ */
+export function calculateUsagePercentage(costUsed: number, dailyLimit: number): number {
+  return Math.min(100, Math.round((costUsed / dailyLimit) * 100));
 }
 
 /**
@@ -22,13 +44,15 @@ export async function getUserUsageData(): Promise<UsageData> {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      // Anonymous user - use localStorage
+      // Anonymous user - use localStorage (convert tokens to estimated cost)
       const tokens = await getLocalTokenUsage();
+      // Estimate cost assuming mixed usage (avg of GPT-4 and GPT-3.5)
+      const estimatedCost = calculateCost(tokens, 'gpt-3.5-turbo');
       
       return {
-        tokensUsed: tokens,
+        costUsed: estimatedCost,
         isAuthenticated: false,
-        dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
+        dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
       };
     }
 
@@ -38,7 +62,7 @@ export async function getUserUsageData(): Promise<UsageData> {
     // Get or create today's usage record
     const { data: usage, error } = await supabase
       .from('daily_usage')
-      .select('tokens_used')
+      .select('cost_used')
       .eq('user_id', user.id)
       .eq('date', today)
       .single();
@@ -47,41 +71,43 @@ export async function getUserUsageData(): Promise<UsageData> {
       console.warn('Error fetching usage data:', error);
       // Fallback to 0 if there's an error
       return {
-        tokensUsed: 0,
+        costUsed: 0,
         isAuthenticated: true,
-        dailyLimit: AUTHENTICATED_DAILY_TOKEN_LIMIT,
+        dailyLimit: AUTHENTICATED_DAILY_COST_LIMIT,
       };
     }
 
     return {
-      tokensUsed: usage?.tokens_used || 0,
+      costUsed: usage?.cost_used || 0,
       isAuthenticated: true,
-      dailyLimit: AUTHENTICATED_DAILY_TOKEN_LIMIT,
+      dailyLimit: AUTHENTICATED_DAILY_COST_LIMIT,
     };
   } catch (error) {
     console.warn('Error in getUserUsageData:', error);
     // Fallback to anonymous usage
     const tokens = await getLocalTokenUsage();
+    const estimatedCost = calculateCost(tokens, 'gpt-3.5-turbo');
     
     return {
-      tokensUsed: tokens,
+      costUsed: estimatedCost,
       isAuthenticated: false,
-      dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
+      dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
     };
   }
 }
 
 /**
- * Add tokens to the user's daily usage
+ * Add cost to the user's daily usage
  */
-export async function addTokenUsage(tokens: number): Promise<void> {
+export async function addCostUsage(tokens: number, model: ModelName): Promise<void> {
+  const cost = calculateCost(tokens, model);
   const supabase = createClient();
   
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      // Anonymous user - use localStorage
+      // Anonymous user - use localStorage (store tokens for backward compatibility)
       await addLocalTokenUsage(tokens);
       return;
     }
@@ -92,7 +118,7 @@ export async function addTokenUsage(tokens: number): Promise<void> {
     // First, try to get existing usage
     const { data: existingUsage, error: selectError } = await supabase
       .from('daily_usage')
-      .select('tokens_used')
+      .select('cost_used')
       .eq('user_id', user.id)
       .eq('date', today)
       .single();
@@ -104,7 +130,7 @@ export async function addTokenUsage(tokens: number): Promise<void> {
       return;
     }
 
-    const newTotal = (existingUsage?.tokens_used || 0) + tokens;
+    const newTotal = (existingUsage?.cost_used || 0) + cost;
 
     // Upsert with the new total
     const { error } = await supabase
@@ -112,7 +138,7 @@ export async function addTokenUsage(tokens: number): Promise<void> {
       .upsert({
         user_id: user.id,
         date: today,
-        tokens_used: newTotal,
+        cost_used: newTotal,
       }, {
         onConflict: 'user_id,date',
         ignoreDuplicates: false,
@@ -124,42 +150,58 @@ export async function addTokenUsage(tokens: number): Promise<void> {
       await addLocalTokenUsage(tokens);
     }
   } catch (error) {
-    console.warn('Error in addTokenUsage:', error);
+    console.warn('Error in addCostUsage:', error);
     // Fallback to localStorage
     await addLocalTokenUsage(tokens);
   }
 }
 
 /**
- * Check if the user has reached their daily token limit
+ * Legacy function for backward compatibility - now uses cost-based tracking
+ */
+export async function addTokenUsage(tokens: number, model: ModelName = 'gpt-3.5-turbo'): Promise<void> {
+  await addCostUsage(tokens, model);
+}
+
+/**
+ * Check if the user has reached their daily cost limit
  */
 export async function isTokenLimitReached(): Promise<boolean> {
-  const { tokensUsed, dailyLimit } = await getUserUsageData();
-  return tokensUsed >= dailyLimit;
+  const { costUsed, dailyLimit } = await getUserUsageData();
+  return costUsed >= dailyLimit;
 }
 
 /**
- * Check if a request would exceed the daily token limit
+ * Check if a request would exceed the daily cost limit
  */
-export async function wouldExceedTokenLimit(estimatedTokens: number): Promise<boolean> {
-  const { tokensUsed, dailyLimit } = await getUserUsageData();
-  return (tokensUsed + estimatedTokens) > dailyLimit;
+export async function wouldExceedTokenLimit(estimatedTokens: number, model: ModelName = 'gpt-4'): Promise<boolean> {
+  const { costUsed, dailyLimit } = await getUserUsageData();
+  const estimatedCost = calculateCost(estimatedTokens, model);
+  return (costUsed + estimatedCost) > dailyLimit;
 }
 
 /**
- * Get the remaining tokens for today
+ * Get the remaining cost for today (in dollars)
  */
-export async function getRemainingTokens(): Promise<number> {
-  const { tokensUsed, dailyLimit } = await getUserUsageData();
-  return Math.max(0, dailyLimit - tokensUsed);
+export async function getRemainingCost(): Promise<number> {
+  const { costUsed, dailyLimit } = await getUserUsageData();
+  return Math.max(0, dailyLimit - costUsed);
 }
 
 /**
- * Get the daily token limit for the current user
+ * Get the daily cost limit for the current user (in dollars)
  */
-export async function getDailyTokenLimit(): Promise<number> {
+export async function getDailyCostLimit(): Promise<number> {
   const { dailyLimit } = await getUserUsageData();
   return dailyLimit;
+}
+
+/**
+ * Get usage percentage (0-100)
+ */
+export async function getUsagePercentage(): Promise<number> {
+  const { costUsed, dailyLimit } = await getUserUsageData();
+  return calculateUsagePercentage(costUsed, dailyLimit);
 }
 
 /**
@@ -168,12 +210,17 @@ export async function getDailyTokenLimit(): Promise<number> {
 export async function getUserStatus(): Promise<{
   isAuthenticated: boolean;
   dailyLimit: number;
-  tokensUsed: number;
-  remainingTokens: number;
+  costUsed: number;
+  remainingCost: number;
+  usagePercentage: number;
 }> {
   const data = await getUserUsageData();
+  const remainingCost = Math.max(0, data.dailyLimit - data.costUsed);
+  const usagePercentage = calculateUsagePercentage(data.costUsed, data.dailyLimit);
+  
   return {
     ...data,
-    remainingTokens: Math.max(0, data.dailyLimit - data.tokensUsed),
+    remainingCost,
+    usagePercentage,
   };
 }
