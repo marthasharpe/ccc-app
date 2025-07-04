@@ -1,4 +1,4 @@
-# MyCat - Catechism Search
+# My Interactive Catechism
 
 A Next.js application for searching the Catechism of the Catholic Church using semantic search.
 

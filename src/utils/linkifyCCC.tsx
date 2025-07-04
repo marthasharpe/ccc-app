@@ -72,6 +72,16 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
         key={`ccc-${match.index}`}
         onClick={() => onCCCClick(numberPart)}
         className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+        style={{
+          padding: 0,
+          margin: 0,
+          border: 'none',
+          background: 'none',
+          display: 'inline',
+          font: 'inherit',
+          lineHeight: 'inherit',
+          verticalAlign: 'baseline'
+        }}
         title={`Click to read CCC ${numberPart}`}
       >
         {clickableText}

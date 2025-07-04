@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
@@ -48,25 +48,25 @@
 
 :root {
   --radius: 0.625rem;
-  --font-cinzel: 'Cinzel', serif;
-  --background: #002C13;
+  --font-cinzel: "Cinzel", serif;
+  --background: #002913;
   --foreground: #ffffff;
   --card: #003618;
   --card-foreground: #ffffff;
   --popover: #003618;
   --popover-foreground: #ffffff;
-  --primary: #E5A431;
-  --primary-foreground: #002C13;
+  --primary: #e5a431;
+  --primary-foreground: #002c13;
   --secondary: #004020;
   --secondary-foreground: #ffffff;
   --muted: #004020;
   --muted-foreground: #cccccc;
-  --accent: #E5A431;
-  --accent-foreground: #002C13;
+  --accent: #e5a431;
+  --accent-foreground: #002c13;
   --destructive: oklch(0.577 0.245 27.325);
   --border: #005030;
   --input: #1a5137;
-  --ring: #E5A431;
+  --ring: #e5a431;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -74,33 +74,33 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: #003618;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #E5A431;
-  --sidebar-primary-foreground: #002C13;
+  --sidebar-primary: #e5a431;
+  --sidebar-primary-foreground: #002c13;
   --sidebar-accent: #004020;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #005030;
-  --sidebar-ring: #E5A431;
+  --sidebar-ring: #e5a431;
 }
 
 .dark {
-  --background: #002C13;
+  --background: #002c13;
   --foreground: #ffffff;
   --card: #003618;
   --card-foreground: #ffffff;
   --popover: #003618;
   --popover-foreground: #ffffff;
-  --primary: #E5A431;
-  --primary-foreground: #002C13;
+  --primary: #e5a431;
+  --primary-foreground: #002c13;
   --secondary: #004020;
   --secondary-foreground: #ffffff;
   --muted: #004020;
   --muted-foreground: #cccccc;
-  --accent: #E5A431;
-  --accent-foreground: #002C13;
+  --accent: #e5a431;
+  --accent-foreground: #002c13;
   --destructive: oklch(0.704 0.191 22.216);
   --border: #005030;
   --input: #1a5137;
-  --ring: #E5A431;
+  --ring: #e5a431;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -108,12 +108,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #003618;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #E5A431;
-  --sidebar-primary-foreground: #002C13;
+  --sidebar-primary: #e5a431;
+  --sidebar-primary-foreground: #002c13;
   --sidebar-accent: #004020;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #005030;
-  --sidebar-ring: #E5A431;
+  --sidebar-ring: #e5a431;
 }
 
 @layer base {
@@ -124,107 +124,132 @@
     @apply bg-background text-foreground;
     font-family: ui-sans-serif, system-ui, sans-serif;
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cinzel', serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Cinzel", serif;
     font-weight: 600;
-    color: #E5A431;
+    color: #e5a431;
   }
   .heading-font {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
   }
   .body-font {
     font-family: ui-sans-serif, system-ui, sans-serif;
   }
-  input[type="text"], input[type="search"], textarea, .input-field, input[data-slot="input"] {
+  input[type="text"],
+  input[type="search"],
+  textarea,
+  .input-field,
+  input[data-slot="input"] {
     background-color: #1a5137 !important;
     border-color: #005030 !important;
     color: #ffffff !important;
   }
-  input[type="text"]:focus, input[type="search"]:focus, textarea:focus, .input-field:focus, input[data-slot="input"]:focus {
+  input[type="text"]:focus,
+  input[type="search"]:focus,
+  textarea:focus,
+  .input-field:focus,
+  input[data-slot="input"]:focus {
     background-color: #225c42 !important;
-    border-color: #E5A431 !important;
+    border-color: #e5a431 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(229, 164, 49, 0.2) !important;
   }
-  
+
   /* Button variant overrides for better visibility on dark background */
   .bg-background.shadow-xs {
     background-color: rgba(229, 164, 49, 0.1) !important;
-    border-color: #E5A431 !important;
-    color: #E5A431 !important;
+    border-color: #e5a431 !important;
+    color: #e5a431 !important;
   }
   .bg-background.shadow-xs:hover {
     background-color: rgba(229, 164, 49, 0.2) !important;
-    border-color: #E5A431 !important;
+    border-color: #e5a431 !important;
   }
-  
+
   /* Ghost button improvements */
-  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]) {
+  button[data-slot="button"]:not([class*="bg-primary"]):not(
+      [class*="bg-secondary"]
+    ):not([class*="bg-destructive"]) {
     background-color: rgba(229, 164, 49, 0.05) !important;
-    color: #E5A431 !important;
-    border-color: #E5A431 !important;
+    color: #e5a431 !important;
+    border-color: #e5a431 !important;
   }
-  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="bg-secondary"]):not([class*="bg-destructive"]):hover {
+  button[data-slot="button"]:not([class*="bg-primary"]):not(
+      [class*="bg-secondary"]
+    ):not([class*="bg-destructive"]):hover {
     background-color: rgba(229, 164, 49, 0.15) !important;
-    border-color: #E5A431 !important;
+    border-color: #e5a431 !important;
   }
-  
+
   /* Specific targeting for GPT toggle buttons */
   button[data-slot="button"][class*="ghost"] {
     background-color: rgba(229, 164, 49, 0.05) !important;
-    color: #E5A431 !important;
-    border: 1px solid #E5A431 !important;
+    color: #e5a431 !important;
+    border: 1px solid #e5a431 !important;
   }
   button[data-slot="button"][class*="ghost"]:hover {
     background-color: rgba(229, 164, 49, 0.15) !important;
-    border-color: #E5A431 !important;
+    border-color: #e5a431 !important;
   }
-  
+
   /* Catch-all for any remaining inactive buttons (excluding link variants) */
-  button[data-slot="button"]:not([class*="bg-primary"]):not([class*="underline"]) {
-    border: 1px solid #E5A431 !important;
+  button[data-slot="button"]:not([class*="bg-primary"]):not(
+      [class*="underline"]
+    ) {
+    border: 1px solid #e5a431 !important;
   }
-  
+
   /* Mobile responsive typography */
   @media (max-width: 768px) {
     html {
       font-size: 16px; /* Ensure 16px minimum for mobile */
     }
-    
+
     /* Ensure minimum text sizes */
     .text-xs {
       font-size: 0.875rem !important; /* 14px instead of 12px */
     }
-    
+
     /* Better line height for mobile reading */
-    p, div, span {
+    p,
+    div,
+    span {
       line-height: 1.6;
     }
-    
+
     /* Improve touch targets */
-    button, input, select, textarea {
+    button,
+    input,
+    select,
+    textarea {
       min-height: 44px;
       min-width: 44px;
     }
-    
+
     /* Better mobile padding */
     .container {
       padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
-    
+
     /* Prevent horizontal scrolling */
     body {
       overflow-x: hidden;
     }
-    
+
     /* Better word breaking */
-    .prose, .text-content {
+    .prose,
+    .text-content {
       word-wrap: break-word;
       overflow-wrap: break-word;
     }
   }
-  
+
   /* Tablet specific adjustments */
   @media (min-width: 769px) and (max-width: 1024px) {
     .container {

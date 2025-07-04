@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 import CCCModal from "@/components/CCCModal";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
 import {
@@ -17,10 +18,10 @@ import {
 import {
   isTokenLimitReached,
   addTokenUsage,
-  getRemainingTokens,
   wouldExceedTokenLimit,
-  estimateTokens,
-} from "@/lib/usageClient";
+  getUserStatus,
+} from "@/lib/usageTracking";
+import { estimateTokens } from "@/lib/usageClient";
 
 export default function ChatPage() {
   const [question, setQuestion] = useState("");
@@ -34,6 +35,12 @@ export default function ChatPage() {
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [remainingTokens, setRemainingTokens] = useState(0);
   const [estimatedTokensForRequest, setEstimatedTokensForRequest] = useState(0);
+  const [userStatus, setUserStatus] = useState<{
+    isAuthenticated: boolean;
+    dailyLimit: number;
+    tokensUsed: number;
+    remainingTokens: number;
+  } | null>(null);
   const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(
     "gpt-4"
   );
@@ -51,22 +58,24 @@ export default function ChatPage() {
   // Check usage limits on component mount
   useEffect(() => {
     const checkUsage = async () => {
+      const status = await getUserStatus();
       const limitReached = await isTokenLimitReached();
-      const remaining = await getRemainingTokens();
 
+      setUserStatus(status);
+      setRemainingTokens(status.remainingTokens);
       setIsLimitReached(limitReached);
-      setRemainingTokens(remaining);
     };
 
     checkUsage();
   }, []);
 
   const updateUsageCount = async () => {
+    const status = await getUserStatus();
     const limitReached = await isTokenLimitReached();
-    const remaining = await getRemainingTokens();
 
+    setUserStatus(status);
+    setRemainingTokens(status.remainingTokens);
     setIsLimitReached(limitReached);
-    setRemainingTokens(remaining);
   };
 
   // Update estimated tokens when question changes
@@ -133,13 +142,11 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Ask Your Teaching Assistant
+            Ask About Catholic Teaching
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Hello! I am here to help you learn about Catholic teaching. I will
-            do my best to provide clear, helpful answers based on the Catechism
-            and provide links to the paragraphs I referenced so you can read
-            more in context.
+            Ask a question and get a response based on the Catechism of the
+            Catholic Church
           </p>
         </div>
 
@@ -199,7 +206,23 @@ export default function ChatPage() {
             )}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            2000 free tokens daily (shared across both models)
+            {userStatus?.isAuthenticated ? (
+              <span className="text-green-600">
+                ✓ Signed in: {userStatus.dailyLimit.toLocaleString()} tokens
+                daily
+              </span>
+            ) : (
+              <span>
+                {userStatus?.dailyLimit.toLocaleString() || "2000"} free tokens
+                daily
+                <Link
+                  href="/auth/login"
+                  className="text-primary hover:underline ml-1"
+                >
+                  (Sign in for more)
+                </Link>
+              </span>
+            )}
           </div>
         </div>
 
@@ -346,20 +369,51 @@ export default function ChatPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Daily Token Limit Reached</AlertDialogTitle>
             <AlertDialogDescription>
-              This request would exceed your daily limit of 1000 free tokens.
+              This request would exceed your daily limit of{" "}
+              {userStatus?.dailyLimit.toLocaleString() || "1000"} tokens.
               <br />
               <br />
-              <strong>You can:</strong>
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Try a shorter question to use fewer tokens</li>
-                <li>
-                  Switch to GPT-3.5 which typically uses fewer tokens per
-                  response
-                </li>
-                <li>Browse and search the Catechism (no token limit)</li>
-                <li>Sign in to upgrade to a paid plan for unlimited tokens</li>
-                <li>Wait until tomorrow for your tokens to reset</li>
-              </ul>
+              {userStatus?.isAuthenticated ? (
+                <>
+                  <strong>You can:</strong>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Try a shorter question to use fewer tokens</li>
+                    <li>
+                      Switch to GPT-3.5 which typically uses fewer tokens per
+                      response
+                    </li>
+                    <li>Browse and search the Catechism (no token limit)</li>
+                    <li>Wait until tomorrow for your tokens to reset</li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+                    <p className="text-sm font-medium text-primary">
+                      💡 Sign in to get 5x more tokens!
+                    </p>
+                    <p className="text-xs text-primary/80 mt-1">
+                      Free accounts: {userStatus?.dailyLimit.toLocaleString()}{" "}
+                      tokens/day → Signed in: 10,000 tokens/day
+                    </p>
+                  </div>
+                  <strong>You can:</strong>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>Try a shorter question to use fewer tokens</li>
+                    <li>
+                      Switch to GPT-3.5 which typically uses fewer tokens per
+                      response
+                    </li>
+                    <li>Browse and search the Catechism (no token limit)</li>
+                    <li>
+                      <strong>
+                        Sign in to get 10,000 tokens daily (5x more!)
+                      </strong>
+                    </li>
+                    <li>Wait until tomorrow for your tokens to reset</li>
+                  </ul>
+                </>
+              )}
               <div className="mt-3 p-2 bg-muted rounded text-sm">
                 <strong>Tokens remaining:</strong> {remainingTokens}
                 <br />
@@ -368,6 +422,16 @@ export default function ChatPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            {!userStatus?.isAuthenticated && (
+              <AlertDialogAction asChild>
+                <Link
+                  href="/auth/login"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Sign In for More Tokens
+                </Link>
+              </AlertDialogAction>
+            )}
             {selectedModel === "gpt-4" && (
               <AlertDialogAction
                 onClick={() => {

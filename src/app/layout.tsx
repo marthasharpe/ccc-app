@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { NavTabs } from "@/components/NavTabs";
 import { MobileNav } from "@/components/MobileNav";
+import { AuthButton } from "@/components/AuthButton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MyCat - My Catholic Catechism",
+  title: "My Interactive Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
   other: {
@@ -38,40 +39,46 @@ export default function RootLayout({
         <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Link
-                  href="/"
-                  className="flex items-center hover:opacity-80 transition-opacity"
-                >
+              <Link
+                href="/"
+                className="flex items-center hover:opacity-80 transition-opacity"
+              >
+                <div className="flex items-center space-x-2">
                   <Image
                     src="/icon0.svg"
-                    alt="MyCat"
+                    alt="My interactive Catechism logo"
                     width={40}
                     height={40}
                     className="w-10 h-10"
                   />
-                </Link>
-                <h1 className="text-m" style={{ color: "#E5A431" }}>
-                  An Interactive Catechism
-                </h1>
-              </div>
-              <div className="hidden md:block">
-                <NavTabs
-                  tabs={[
-                    { href: "/chat", label: "Ask" },
-                    { href: "/search", label: "Search" },
-                    { href: "/about", label: "About" },
-                  ]}
-                />
-              </div>
-              <div className="md:hidden">
-                <MobileNav
-                  tabs={[
-                    { href: "/chat", label: "Ask" },
-                    { href: "/search", label: "Search" },
-                    { href: "/about", label: "About" },
-                  ]}
-                />
+                  <h1 className="text-m" style={{ color: "#E5A431" }}>
+                    My Interactive Catechism
+                  </h1>
+                </div>
+              </Link>
+
+              <div className="flex items-center gap-4">
+                <div className="hidden md:block">
+                  <NavTabs
+                    tabs={[
+                      { href: "/chat", label: "Ask" },
+                      { href: "/search", label: "Search" },
+                      { href: "/about", label: "About" },
+                      { href: "/account", label: "Account" },
+                    ]}
+                  />
+                </div>
+                <div className="md:hidden">
+                  <MobileNav
+                    tabs={[
+                      { href: "/chat", label: "Ask" },
+                      { href: "/search", label: "Search" },
+                      { href: "/about", label: "About" },
+                      { href: "/account", label: "Account" },
+                    ]}
+                  />
+                </div>
+                <AuthButton />
               </div>
             </div>
           </div>

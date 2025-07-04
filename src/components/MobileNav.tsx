@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { User } from "@supabase/supabase-js";
 
 interface NavTab {
   href: string;
@@ -16,7 +19,10 @@ interface MobileNavProps {
 
 export function MobileNav({ tabs }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -24,6 +30,33 @@ export function MobileNav({ tabs }: MobileNavProps) {
 
   const closeMenu = () => {
     setIsOpen(false);
+  };
+
+  useEffect(() => {
+    // Get initial user
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    closeMenu();
   };
 
   return (
@@ -76,6 +109,19 @@ export function MobileNav({ tabs }: MobileNavProps) {
                 </Link>
               );
             })}
+            
+            {/* Sign out button for mobile - only show if user is authenticated */}
+            {user && (
+              <div className="border-t mt-1 pt-1">
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="w-full justify-start px-4 py-2 h-auto text-sm font-normal hover:bg-muted hover:text-muted-foreground"
+                >
+                  Sign Out
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

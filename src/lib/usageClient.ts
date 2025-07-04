@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEY = "cathcat_daily_usage";
-const DAILY_TOKEN_LIMIT = 2000;
+const DAILY_TOKEN_LIMIT = 1500;
 
 interface DailyUsage {
   date: string; // YYYY-MM-DD format

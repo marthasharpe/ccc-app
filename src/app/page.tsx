@@ -9,7 +9,7 @@ export default function Home() {
         <div className="flex justify-center">
           <Image
             src="/icon0.svg"
-            alt="MyCat"
+            alt="interactive catechism logo"
             width={120}
             height={120}
             className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40"
@@ -28,7 +28,10 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/chat">
-            <Button size="lg" className="text-lg px-8 py-3 cursor-pointer w-full sm:w-48">
+            <Button
+              size="lg"
+              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-48"
+            >
               Ask a Question
             </Button>
           </Link>
