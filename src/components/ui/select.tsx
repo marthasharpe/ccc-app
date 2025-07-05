@@ -15,6 +15,11 @@ interface SelectItemProps {
   value: string;
 }
 
+interface SelectContentProps {
+  children: React.ReactNode;
+  onClose?: () => void;
+}
+
 const SelectContext = React.createContext<{
   value?: string;
   onValueChange?: (value: string) => void;
@@ -49,12 +54,18 @@ export function Select({
   React.useEffect(() => {
     const map: Record<string, string> = {};
     React.Children.forEach(children, (child) => {
-      if (React.isValidElement(child) && child.type === SelectContent) {
-        React.Children.forEach(child.props.children, (item) => {
-          if (React.isValidElement(item) && item.type === SelectItem) {
-            map[item.props.value] = item.props.children;
-          }
-        });
+      if (React.isValidElement<SelectContentProps>(child) && child.type === SelectContent) {
+        const childProps = child.props;
+        if (childProps && childProps.children) {
+          React.Children.forEach(childProps.children, (item) => {
+            if (React.isValidElement<SelectItemProps>(item) && item.type === SelectItem) {
+              const itemProps = item.props;
+              if (itemProps && itemProps.value && itemProps.children) {
+                map[itemProps.value] = String(itemProps.children);
+              }
+            }
+          });
+        }
       }
     });
     setValueToLabelMap(map);
