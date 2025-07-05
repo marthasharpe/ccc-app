@@ -84,10 +84,6 @@ export default function LoginPage() {
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">Sign In</h1>
-          <p className="text-muted-foreground">
-            Access your account to get increased daily token limits and sync
-            across devices.
-          </p>
         </div>
 
         {error && (
@@ -145,31 +141,22 @@ export default function LoginPage() {
           {/* Email/Password Form */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Email"
                 required
               />
             </div>
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium mb-2"
-              >
-                Password
-              </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Password"
                 required
               />
             </div>
@@ -178,19 +165,21 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full cursor-pointer"
             >
-              {isLoading ? "Signing in..." : "Sign In with Email"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
-          <div className="text-center">
-            <button
-              onClick={handleMagicLink}
-              disabled={isLoading || !email}
-              className="text-sm text-primary hover:underline disabled:opacity-50"
-            >
-              Send magic link instead
-            </button>
-          </div>
+          {email && (
+            <div className="text-center">
+              <button
+                onClick={handleMagicLink}
+                disabled={isLoading}
+                className="text-sm text-primary hover:underline disabled:opacity-50"
+              >
+                Send magic link instead
+              </button>
+            </div>
+          )}
 
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">
@@ -202,12 +191,6 @@ export default function LoginPage() {
                 Sign up
               </Link>
             </p>
-            <Link
-              href="/"
-              className="text-sm text-muted-foreground hover:underline"
-            >
-              Continue without account
-            </Link>
           </div>
         </div>
       </div>

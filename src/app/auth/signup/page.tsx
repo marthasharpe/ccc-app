@@ -58,13 +58,9 @@ export default function SignUpPage() {
     <div className="container mx-auto px-6 sm:px-4 py-16">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-4">
+          <h1 className="text-2xl text-center sm:text-3xl font-bold mb-4">
             Create Account
           </h1>
-          <p className="text-muted-foreground">
-            Sign up to get increased daily token limits and sync your usage
-            across devices.
-          </p>
         </div>
 
         {error && (
@@ -116,9 +112,6 @@ export default function SignUpPage() {
           {/* Email/Password Form */}
           <form onSubmit={handleEmailSignUp} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
               <Input
                 id="email"
                 type="email"
@@ -129,18 +122,12 @@ export default function SignUpPage() {
               />
             </div>
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium mb-2"
-              >
-                Password
-              </label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
+                placeholder="Choose a password"
                 required
                 minLength={6}
               />
@@ -164,12 +151,6 @@ export default function SignUpPage() {
                 Sign in
               </Link>
             </p>
-            <Link
-              href="/"
-              className="text-sm text-muted-foreground hover:underline"
-            >
-              Continue without account
-            </Link>
           </div>
         </div>
       </div>

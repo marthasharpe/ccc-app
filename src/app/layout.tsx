@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { AuthButton } from "@/components/AuthButton";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -66,6 +67,7 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+        <ScrollToTop />
         <main className="min-h-screen bg-background">{children}</main>
       </body>
     </html>
