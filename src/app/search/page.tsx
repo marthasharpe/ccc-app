@@ -31,6 +31,7 @@ export default function SearchPage() {
     string | null
   >(null);
   const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
+  const [shouldFocusInput, setShouldFocusInput] = useState(false);
 
   const handleSearch = async (searchQuery: string) => {
     setIsLoading(true);
@@ -73,6 +74,14 @@ export default function SearchPage() {
     }
   };
 
+  const handleNewSearch = () => {
+    setResults([]);
+    setQuery("");
+    setShowParagraphView(false);
+    setParagraphReference(null);
+    setShouldFocusInput(true);
+  };
+
   const handleBackToSearch = () => {
     setShowParagraphView(false);
     setParagraphReference(null);
@@ -113,7 +122,14 @@ export default function SearchPage() {
             </div>
 
             <div className="mb-8">
-              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+              <SearchBar 
+                onSearch={handleSearch} 
+                isLoading={isLoading}
+                showNewSearchButton={results.length > 0 && !isLoading}
+                onNewSearch={handleNewSearch}
+                shouldFocus={shouldFocusInput}
+                onFocused={() => setShouldFocusInput(false)}
+              />
             </div>
 
             {isLoading && (
@@ -157,44 +173,6 @@ export default function SearchPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {/* Placeholder results for demo */}
-            {!query && !isLoading && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="border p-4">
-                    <h3 className="font-medium mb-2">Popular Topics</h3>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Prayer</li>
-                      <li>• Sacraments</li>
-                      <li>• Ten Commandments</li>
-                      <li>• Trinity</li>
-                    </ul>
-                  </div>
-
-                  <div className="border p-4">
-                    <h3 className="font-medium mb-2">How to Search</h3>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Use specific terms for exact matches</li>
-                      <li>• Try different phrasings for concepts</li>
-                      <li>• Search uses both keyword and AI understanding</li>
-                    </ul>
-                  </div>
-
-                  <div className="border p-4">
-                    <h3 className="font-medium mb-2">Paragraph Numbers</h3>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Type &ldquo;1234&rdquo; for paragraph 1234</li>
-                      <li>
-                        • Type &ldquo;CCC 1234&rdquo; or &ldquo;#1234&rdquo;
-                      </li>
-                      <li>• Type &ldquo;1234-1236&rdquo; for ranges</li>
-                      <li>• Try &ldquo;paragraph 1234&rdquo;</li>
-                    </ul>
-                  </div>
-                </div>
               </div>
             )}
           </>

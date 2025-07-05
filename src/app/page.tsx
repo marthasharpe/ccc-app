@@ -19,8 +19,7 @@ export default function Home() {
           Learn About Catholic Teaching
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8">
-          Get answers to your questions about Catholic doctrine, faith, and
-          morals.
+          Get answers about Catholic faith, morals, and spirituality.
           <br className="hidden sm:block" />
           <span className="sm:hidden"> </span>
           Ask an AI assistant trained on the Catechism of the Catholic Church.
@@ -29,8 +28,8 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/chat">
             <Button
-              size="lg"
-              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-48"
+              size="sm"
+              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-76"
             >
               Ask a Question
             </Button>
@@ -38,38 +37,12 @@ export default function Home() {
           <Link href="/search">
             <Button
               variant="outline"
-              size="lg"
-              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-48"
+              size="sm"
+              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-76"
             >
               Search the Catechism
             </Button>
           </Link>
-        </div>
-
-        <div className="mt-12 sm:mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div className="p-4 sm:p-6 border">
-            <h3 className="font-semibold mb-3">Ask Questions</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Get clear answers about Catholic teaching, doctrine, and moral
-              guidance from the Catechism
-            </p>
-          </div>
-
-          <div className="p-4 sm:p-6 border">
-            <h3 className="font-semibold mb-3">Accurate Responses</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Responses include specific Catechism references you can click to
-              read the full paragraphs
-            </p>
-          </div>
-
-          <div className="p-4 sm:p-6 border sm:col-span-2 lg:col-span-1">
-            <h3 className="font-semibold mb-3">Search for Topics</h3>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Browse and search through specific paragraphs when you need
-              detailed exploration
-            </p>
-          </div>
         </div>
       </div>
     </div>

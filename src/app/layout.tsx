@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "TruthMeUp - An Interactive Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   other: {
     "apple-mobile-web-app-title": "ccc-app",
   },

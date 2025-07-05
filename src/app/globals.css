@@ -145,8 +145,8 @@
   textarea,
   .input-field,
   input[data-slot="input"] {
-    background-color: #1a5137 !important;
-    border-color: #005030 !important;
+    background-color: #003618 !important;
+    border-color: #003618 !important;
     color: #ffffff !important;
   }
   input[type="text"]:focus,
@@ -154,10 +154,7 @@
   textarea:focus,
   .input-field:focus,
   input[data-slot="input"]:focus {
-    background-color: #225c42 !important;
-    border-color: #d7b252 !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(229, 164, 49, 0.2) !important;
   }
 
   /* Button variant overrides for better visibility on dark background */

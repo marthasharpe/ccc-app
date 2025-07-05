@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CCCModal from "@/components/CCCModal";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
 import {
@@ -23,10 +29,14 @@ import {
   calculateCost,
 } from "@/lib/usageTracking";
 import { estimateTokens } from "@/lib/usageClient";
+import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
+  const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCCCReference, setSelectedCCCReference] = useState<
     string | null
@@ -43,13 +53,33 @@ export default function ChatPage() {
     remainingCost: number;
     usagePercentage: number;
   } | null>(null);
-  const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(
-    "gpt-4"
-  );
+  const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(() => {
+    // Initialize with saved model preference or default to "gpt-4"
+    if (typeof window !== "undefined") {
+      const savedModel = localStorage.getItem("selectedModel");
+      if (savedModel && (savedModel === "gpt-4" || savedModel === "gpt-3.5-turbo")) {
+        return savedModel;
+      }
+    }
+    return "gpt-4";
+  });
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Save model preference when it changes
+  useEffect(() => {
+    localStorage.setItem("selectedModel", selectedModel);
+  }, [selectedModel]);
 
   const handleClearQuestion = () => {
     setQuestion("");
     setAnswer(null);
+    setSubmittedQuestion(null);
+    // Focus the textarea after clearing
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 0);
   };
 
   const handleCCCClick = (reference: string) => {
@@ -104,6 +134,7 @@ export default function ChatPage() {
     }
 
     setIsLoading(true);
+    setSubmittedQuestion(question.trim()); // Store the submitted question
 
     try {
       const response = await fetch("/api/chat", {
@@ -144,102 +175,116 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Ask an AI Teaching Assistant
+            Your Catholic Teaching Assistant
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
-            Responses are based on the Catechism of the Catholic Church
+            AI responses are based on the Catechism of the Catholic Church
           </p>
         </div>
 
-        {/* Model Selection */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Model:</span>
-              <div className="flex rounded-md border">
-                <Button
-                  variant={
-                    selectedModel === "gpt-3.5-turbo" ? "default" : "ghost"
-                  }
-                  size="sm"
-                  onClick={() => setSelectedModel("gpt-3.5-turbo")}
-                  className="rounded-r-none border-r cursor-pointer"
-                >
-                  GPT-3.5
-                </Button>
-                <Button
-                  variant={selectedModel === "gpt-4" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedModel("gpt-4")}
-                  className="rounded-l-none cursor-pointer"
-                >
-                  GPT-4.0
-                </Button>
+        {/* Question Input - New Layout (only show when no answer) */}
+        {!answer && (
+          <div className="mb-8 w-full max-w-2xl mx-auto">
+            <form onSubmit={handleSubmit}>
+              {/* Text Input Area */}
+              <div className="mb-4">
+                <textarea
+                  ref={textareaRef}
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Ask a question..."
+                  disabled={isLoading}
+                  className={cn(
+                    "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                    "min-h-[80px] max-h-[200px] resize-none"
+                  )}
+                  maxLength={500}
+                  rows={3}
+                />
               </div>
-            </div>
 
-            {answer && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearQuestion}
-                className="text-xs"
-              >
-                Clear Question
-              </Button>
+              {/* Bottom Controls */}
+              <div className="flex items-center justify-between">
+                {/* Model Selector - Bottom Left */}
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={selectedModel}
+                    onValueChange={(value) =>
+                      setSelectedModel(value as "gpt-4" | "gpt-3.5-turbo")
+                    }
+                  >
+                    <SelectTrigger className="w-32" tabIndex={-1}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4">GPT-4.0</SelectItem>
+                      <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Ask Button - Bottom Right */}
+                <div className="flex items-center gap-2">
+                  {question.trim() && (
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      size="sm"
+                      className="px-6"
+                      tabIndex={0}
+                    >
+                      {isLoading ? (
+                        <svg
+                          className="w-4 h-4 animate-spin"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      ) : (
+                        "Ask"
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </form>
+
+            {/* Usage Limit Warning */}
+            {isLimitReached && (
+              <p className="text-xs text-red-500 mt-2 text-center">
+                Daily usage limit reached.{" "}
+                {userStatus?.isAuthenticated ? (
+                  <span>Upgrade to a paid plan for unlimited usage.</span>
+                ) : (
+                  <span>Create an account to get more usage.</span>
+                )}
+              </p>
             )}
           </div>
-        </div>
+        )}
 
-        {/* Question Input */}
-        <div className="mb-8 w-full max-w-2xl mx-auto">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col sm:flex-row gap-3"
-          >
-            <Input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="What would you like to know?"
-              disabled={isLoading}
-              className="flex-1"
-              maxLength={500}
-            />
+        {/* Clear Question Button (show when answer exists) */}
+        {answer && (
+          <div className="flex justify-center mb-6">
             <Button
-              type="submit"
-              disabled={isLoading || !question.trim()}
-              className="shrink-0 w-full sm:w-auto"
+              variant="outline"
+              size="lg"
+              onClick={handleClearQuestion}
+              className="px-8 cursor-pointer"
             >
-              {isLoading ? (
-                <svg
-                  className="w-4 h-4 animate-spin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              ) : (
-                "Ask"
-              )}
+              Ask Another Question
             </Button>
-          </form>
-          {isLimitReached && (
-            <p className="text-xs text-red-500">
-              Daily usage limit reached.{" "}
-              {userStatus?.isAuthenticated ? (
-                <span>Upgrade to a paid plan for unlimited usage.</span>
-              ) : (
-                <span>Create an account to get more usage.</span>
-              )}
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Loading State */}
         {isLoading && (
@@ -250,59 +295,35 @@ export default function ChatPage() {
         )}
 
         {/* Answer Display */}
-        {answer && !isLoading && (
+        {answer && !isLoading && submittedQuestion && (
           <div className="space-y-6">
             <div className="border rounded-lg p-4 sm:p-6 bg-card">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-primary">
-                  Response:
-                </span>
-              </div>
-              <div className="text-foreground leading-relaxed">
-                {hasCCCReferences(answer) ? (
-                  <LinkifyCCC text={answer} onCCCClick={handleCCCClick} />
-                ) : (
-                  answer
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Placeholder for no question */}
-        {!question && !isLoading && (
-          <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="border p-4">
-                <h3 className="font-medium mb-2">Suggested Topics</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Prayer and Spirituality</li>
-                  <li>• The Sacraments</li>
-                  <li>• Moral Teaching</li>
-                  <li>• Trinity and Doctrine</li>
-                </ul>
+              {/* Question Section */}
+              <div className="mb-6">
+                <div className="flex items-center mb-3">
+                  <span className="text-sm font-medium text-primary">
+                    Your Question:
+                  </span>
+                </div>
+                <div className="text-foreground leading-relaxed font-medium">
+                  {submittedQuestion}
+                </div>
               </div>
 
-              <div className="border p-4">
-                <h3 className="font-medium mb-2">Example Questions</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• &ldquo;What is prayer?&rdquo;</li>
-                  <li>• &ldquo;How do I prepare for confession?&rdquo;</li>
-                  <li>
-                    • &ldquo;What does the Church teach about marriage?&rdquo;
-                  </li>
-                  <li>• &ldquo;How can I grow in virtue?&rdquo;</li>
-                </ul>
-              </div>
-
-              <div className="border p-4">
-                <h3 className="font-medium mb-2">How It Works</h3>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Ask any question about Catholic teaching</li>
-                  <li>• Get answers based on the Catechism</li>
-                  <li>• Click CCC references for full paragraphs</li>
-                  <li>• Choose your preferred AI model</li>
-                </ul>
+              {/* Response Section */}
+              <div>
+                <div className="flex items-center mb-3">
+                  <span className="text-sm font-medium text-primary">
+                    Response:
+                  </span>
+                </div>
+                <div className="text-foreground leading-relaxed">
+                  {hasCCCReferences(answer) ? (
+                    <LinkifyCCC text={answer} onCCCClick={handleCCCClick} />
+                  ) : (
+                    answer
+                  )}
+                </div>
               </div>
             </div>
           </div>

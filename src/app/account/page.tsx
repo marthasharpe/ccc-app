@@ -226,6 +226,7 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <Button
                   variant="destructive"
+                  size="sm"
                   onClick={handleSignOut}
                   className="w-full sm:w-auto cursor-pointer"
                 >
