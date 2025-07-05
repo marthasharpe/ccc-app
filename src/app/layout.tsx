@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import Image from "next/image";
-import { NavTabs } from "@/components/NavTabs";
-import { MobileNav } from "@/components/MobileNav";
 import { AuthButton } from "@/components/AuthButton";
+import { NavigationWrapper } from "@/components/NavigationWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Interactive Catechism",
+  title: "TruthMeUp - An Interactive Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
   other: {
@@ -43,41 +42,20 @@ export default function RootLayout({
                 href="/"
                 className="flex items-center hover:opacity-80 transition-opacity"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center">
                   <Image
-                    src="/icon0.svg"
-                    alt="My interactive Catechism logo"
+                    src="/icon-192-maskable.png"
+                    alt="TruthMeUp logo"
                     width={40}
                     height={40}
                     className="w-10 h-10"
                   />
-                  <h1 className="text-m" style={{ color: "#E5A431" }}>
-                    My Interactive Catechism
-                  </h1>
+                  <h1 className="text-lg">TruthMeUp</h1>
                 </div>
               </Link>
 
               <div className="flex items-center gap-4">
-                <div className="hidden md:block">
-                  <NavTabs
-                    tabs={[
-                      { href: "/chat", label: "Ask" },
-                      { href: "/search", label: "Search" },
-                      { href: "/about", label: "About" },
-                      { href: "/account", label: "Account" },
-                    ]}
-                  />
-                </div>
-                <div className="md:hidden">
-                  <MobileNav
-                    tabs={[
-                      { href: "/chat", label: "Ask" },
-                      { href: "/search", label: "Search" },
-                      { href: "/about", label: "About" },
-                      { href: "/account", label: "Account" },
-                    ]}
-                  />
-                </div>
+                <NavigationWrapper />
                 <AuthButton />
               </div>
             </div>

@@ -4,7 +4,7 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
           <h2 className="text-2xl font-bold mb-6">
-            💡 Why an Interactive Catechism?
+            Why an Interactive Catechism?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
             This app helps people explore what the Catholic Church teaches by
@@ -16,7 +16,7 @@ export default function AboutPage() {
           <div className="border-t border-muted my-8"></div>
 
           <h2 className="text-2xl font-bold mb-6">
-            📘 What is the Catechism of the Catholic Church?
+            What is the Catechism of the Catholic Church?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
             The Catechism of the Catholic Church is a book that summarizes the
@@ -36,7 +36,7 @@ export default function AboutPage() {
           <div className="border-t border-muted my-8"></div>
 
           <h2 className="text-2xl font-bold mb-6">
-            🏛️ Structure of the Catechism: The Four Pillars
+            Structure of the Catechism: The Four Pillars
           </h2>
 
           <p className="text-lg mb-6">
@@ -87,7 +87,7 @@ export default function AboutPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          <h2 className="text-2xl font-bold mb-6">✨ Why It Matters</h2>
+          <h2 className="text-2xl font-bold mb-6">Why It Matters</h2>
 
           <p className="text-lg mb-6">
             The Catechism is not just for theologians or priests. It is written

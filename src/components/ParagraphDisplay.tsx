@@ -284,21 +284,6 @@ export default function ParagraphDisplay({
           </div>
         )}
       </div>
-
-      {/* Additional actions */}
-      {data && !isLoading && !error && (
-        <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
-          <span>Want to search for something else?</span>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={onBackToSearch}
-            className="p-0 h-auto cursor-pointer"
-          >
-            Go back to search
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

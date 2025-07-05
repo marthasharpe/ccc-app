@@ -49,24 +49,24 @@
 :root {
   --radius: 0.625rem;
   --font-cinzel: "Cinzel", serif;
-  --background: #002913;
+  --background: #011f05;
   --foreground: #ffffff;
   --card: #003618;
   --card-foreground: #ffffff;
   --popover: #003618;
   --popover-foreground: #ffffff;
-  --primary: #e5a431;
+  --primary: #d7b252;
   --primary-foreground: #002c13;
   --secondary: #004020;
   --secondary-foreground: #ffffff;
   --muted: #004020;
   --muted-foreground: #cccccc;
-  --accent: #e5a431;
+  --accent: #d7b252;
   --accent-foreground: #002c13;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #005030;
-  --input: #1a5137;
-  --ring: #e5a431;
+  --border: #004020;
+  --input: #004020;
+  --ring: #d7b252;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -74,12 +74,12 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: #003618;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #e5a431;
+  --sidebar-primary: #d7b252;
   --sidebar-primary-foreground: #002c13;
   --sidebar-accent: #004020;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #005030;
-  --sidebar-ring: #e5a431;
+  --sidebar-ring: #d7b252;
 }
 
 .dark {
@@ -89,18 +89,18 @@
   --card-foreground: #ffffff;
   --popover: #003618;
   --popover-foreground: #ffffff;
-  --primary: #e5a431;
+  --primary: #d7b252;
   --primary-foreground: #002c13;
   --secondary: #004020;
   --secondary-foreground: #ffffff;
   --muted: #004020;
   --muted-foreground: #cccccc;
-  --accent: #e5a431;
+  --accent: #d7b252;
   --accent-foreground: #002c13;
   --destructive: oklch(0.704 0.191 22.216);
   --border: #005030;
   --input: #1a5137;
-  --ring: #e5a431;
+  --ring: #d7b252;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -108,12 +108,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #003618;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #e5a431;
+  --sidebar-primary: #d7b252;
   --sidebar-primary-foreground: #002c13;
   --sidebar-accent: #004020;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #005030;
-  --sidebar-ring: #e5a431;
+  --sidebar-ring: #d7b252;
 }
 
 @layer base {
@@ -132,7 +132,7 @@
   h6 {
     font-family: "Cinzel", serif;
     font-weight: 600;
-    color: #e5a431;
+    color: #d7b252;
   }
   .heading-font {
     font-family: "Cinzel", serif;
@@ -155,7 +155,7 @@
   .input-field:focus,
   input[data-slot="input"]:focus {
     background-color: #225c42 !important;
-    border-color: #e5a431 !important;
+    border-color: #d7b252 !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(229, 164, 49, 0.2) !important;
   }
@@ -163,12 +163,12 @@
   /* Button variant overrides for better visibility on dark background */
   .bg-background.shadow-xs {
     background-color: rgba(229, 164, 49, 0.1) !important;
-    border-color: #e5a431 !important;
-    color: #e5a431 !important;
+    border-color: #d7b252 !important;
+    color: #d7b252 !important;
   }
   .bg-background.shadow-xs:hover {
     background-color: rgba(229, 164, 49, 0.2) !important;
-    border-color: #e5a431 !important;
+    border-color: #d7b252 !important;
   }
 
   /* Ghost button improvements */
@@ -176,32 +176,32 @@
       [class*="bg-secondary"]
     ):not([class*="bg-destructive"]) {
     background-color: rgba(229, 164, 49, 0.05) !important;
-    color: #e5a431 !important;
-    border-color: #e5a431 !important;
+    color: #d7b252 !important;
+    border-color: #d7b252 !important;
   }
   button[data-slot="button"]:not([class*="bg-primary"]):not(
       [class*="bg-secondary"]
     ):not([class*="bg-destructive"]):hover {
     background-color: rgba(229, 164, 49, 0.15) !important;
-    border-color: #e5a431 !important;
+    border-color: #d7b252 !important;
   }
 
   /* Specific targeting for GPT toggle buttons */
   button[data-slot="button"][class*="ghost"] {
     background-color: rgba(229, 164, 49, 0.05) !important;
-    color: #e5a431 !important;
-    border: 1px solid #e5a431 !important;
+    color: #d7b252 !important;
+    border: 1px solid #d7b252 !important;
   }
   button[data-slot="button"][class*="ghost"]:hover {
     background-color: rgba(229, 164, 49, 0.15) !important;
-    border-color: #e5a431 !important;
+    border-color: #d7b252 !important;
   }
 
   /* Catch-all for any remaining inactive buttons (excluding link variants) */
   button[data-slot="button"]:not([class*="bg-primary"]):not(
       [class*="underline"]
     ) {
-    border: 1px solid #e5a431 !important;
+    border: 1px solid #d7b252 !important;
   }
 
   /* Mobile responsive typography */

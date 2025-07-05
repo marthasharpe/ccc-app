@@ -8,14 +8,14 @@ export default function Home() {
       <div className="max-w-3xl mx-auto text-center">
         <div className="flex justify-center">
           <Image
-            src="/icon0.svg"
+            src="/icon-transparent.svg"
             alt="interactive catechism logo"
             width={120}
             height={120}
             className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40"
           />
         </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl mb-6">
           Learn About Catholic Teaching
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8">

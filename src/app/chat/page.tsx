@@ -144,11 +144,10 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Ask About Catholic Teaching
+            Ask an AI Teaching Assistant
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Ask a question and get a response based on the Catechism of the
-            Catholic Church
+          <p className="text-lg max-w-2xl mx-auto">
+            Responses are based on the Catechism of the Catholic Church
           </p>
         </div>
 
@@ -190,40 +189,6 @@ export default function ChatPage() {
               </Button>
             )}
           </div>
-
-          {/* Model Description */}
-          <div className="max-w-xl text-center px-4">
-            {selectedModel === "gpt-3.5-turbo" ? (
-              <div className="text-xs sm:text-sm text-muted-foreground">
-                * GPT-3.5 - Good for basic questions about Catholic teaching.
-                May occasionally provide less detailed explanations. Uses less
-                data per response.
-              </div>
-            ) : (
-              <div className="text-xs sm:text-sm text-muted-foreground">
-                * GPT-4.0 - More thoughtful and comprehensive responses. Better
-                at handling complex theological questions. Uses more data per
-                response.
-              </div>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {userStatus?.isAuthenticated ? (
-              <span className="text-green-600">
-                ✓ Signed in: Enhanced daily usage limit
-              </span>
-            ) : (
-              <span>
-                Free daily usage limit
-                <Link
-                  href="/auth/login"
-                  className="text-primary hover:underline ml-1"
-                >
-                  (Sign in for more)
-                </Link>
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Question Input */}
@@ -235,7 +200,7 @@ export default function ChatPage() {
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="What would you like to know about Catholic teaching?"
+              placeholder="What would you like to know?"
               disabled={isLoading}
               className="flex-1"
               maxLength={500}
@@ -264,26 +229,13 @@ export default function ChatPage() {
               )}
             </Button>
           </form>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-3">
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Responses are based on the Catechism of the Catholic Church and
-              official Church teaching.
-            </p>
-          </div>
-          {isLimitReached ? (
-            <p className="text-xs text-red-500">Daily usage limit reached</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              {100 - usagePercentage}% usage remaining today
-              {estimatedTokensForRequest > 0 && (
-                <span className="ml-2 text-xs">
-                  (∼
-                  {Math.round(
-                    calculateCost(estimatedTokensForRequest, selectedModel) *
-                      100
-                  ) / 100}
-                  % estimated for this request)
-                </span>
+          {isLimitReached && (
+            <p className="text-xs text-red-500">
+              Daily usage limit reached.{" "}
+              {userStatus?.isAuthenticated ? (
+                <span>Upgrade to a paid plan for unlimited usage.</span>
+              ) : (
+                <span>Create an account to get more usage.</span>
               )}
             </p>
           )}

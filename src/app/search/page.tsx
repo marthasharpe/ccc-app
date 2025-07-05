@@ -107,7 +107,7 @@ export default function SearchPage() {
           <>
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold mb-4">Search the Catechism</h1>
-              <p className="text-muted-foreground">
+              <p className="text-lg">
                 Find passages from the Catechism of the Catholic Church
               </p>
             </div>
@@ -163,13 +163,6 @@ export default function SearchPage() {
             {/* Placeholder results for demo */}
             {!query && !isLoading && (
               <div className="space-y-6">
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Enter a search term to find relevant passages, or type a
-                    paragraph number for direct access
-                  </p>
-                </div>
-
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="border p-4">
                     <h3 className="font-medium mb-2">Popular Topics</h3>
