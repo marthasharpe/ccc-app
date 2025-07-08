@@ -13,15 +13,6 @@ import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   isTokenLimitReached,
   addCostUsage,
   wouldExceedTokenLimit,
@@ -44,7 +35,6 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [usagePercentage, setUsagePercentage] = useState(0);
   const [estimatedTokensForRequest, setEstimatedTokensForRequest] = useState(0);
   const [userStatus, setUserStatus] = useState<{
@@ -161,7 +151,7 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Ask Your Catholic Teaching Assistant
+            Catholic Teaching Assistant
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
             AI responses are based on the Catechism of the Catholic Church
@@ -193,8 +183,8 @@ export default function ChatPage() {
                   </h3>
                   <p className="mb-4">
                     {userStatus?.isAuthenticated
-                      ? "Upgrade your account to ask unlimited questions."
-                      : "Create an account to keep asking questions."}
+                      ? "Upgrade your account to ask unlimited questions or come back tomorrow."
+                      : "Create an account to keep asking questions or come back tomorrow."}
                   </p>
                 </div>
 
@@ -202,9 +192,9 @@ export default function ChatPage() {
                   {userStatus?.isAuthenticated ? (
                     <Button
                       className="px-8"
-                      onClick={() => setShowUpgradeModal(true)}
+                      onClick={() => router.push("/plans")}
                     >
-                      Upgrade Account
+                      View Pricing
                     </Button>
                   ) : (
                     <>
@@ -364,50 +354,6 @@ export default function ChatPage() {
           </div>
         )}
       </div>
-
-      {/* Upgrade Account Modal */}
-      <AlertDialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Upgrade Your Account</AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="space-y-4">
-                <p>Paid plans will soon be available for unlimited usage.</p>
-
-                <div className="space-y-3">
-                  <div className="border rounded-lg p-4 bg-muted/30">
-                    <h4 className="font-semibold mb-2">Coming Soon:</h4>
-                    <ul className="space-y-1 text-sm">
-                      <li>
-                        • <strong>Individual Plans</strong> - Perfect for
-                        personal study and learning
-                      </li>
-                      <li>
-                        • <strong>Small Group Plans</strong> - Ideal for Bible
-                        studies or families
-                      </li>
-                      <li>
-                        • <strong>Large Group Plans</strong> - Designed for
-                        parishes, schools, and organizations
-                      </li>
-                    </ul>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    In the meantime, you can continue using your daily allowance
-                    or try our search feature which has no usage limits.
-                  </p>
-                </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowUpgradeModal(false)}>
-              Got it
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Usage Alert Dialog */}
       <UsageAlertDialog

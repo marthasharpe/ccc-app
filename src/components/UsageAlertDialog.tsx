@@ -59,6 +59,11 @@ export function UsageAlertDialog({
                 )}
                 <li>Browse and search the Catechism (no usage limit)</li>
                 <li>Wait until tomorrow for your usage to reset</li>
+                <li>
+                  <Link href="/plans" className="text-primary hover:underline">
+                    View paid plans for unlimited usage
+                  </Link>
+                </li>
               </ul>
             </div>
           ) : (
@@ -86,6 +91,11 @@ export function UsageAlertDialog({
                     <strong>Sign in to get 2x more daily usage!</strong>
                   </li>
                   <li>Wait until tomorrow for your usage to reset</li>
+                  <li>
+                    <Link href="/plans" className="text-primary hover:underline">
+                      View paid plans for unlimited usage
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </>

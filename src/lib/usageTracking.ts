@@ -9,6 +9,7 @@ const MODEL_PRICING = {
 // Daily cost limits (in dollars) - GPT-3.5 only for MVP (GPT-4 visible but disabled)
 const ANONYMOUS_DAILY_COST_LIMIT = 0.05; // ~25 GPT-3.5 responses (GPT-4 reserved for pro plans)
 const AUTHENTICATED_DAILY_COST_LIMIT = 0.1; // ~50 GPT-3.5 responses (GPT-4 reserved for pro plans)
+const UNLIMITED_DAILY_COST_LIMIT = 999999; // Effectively unlimited for paid plans
 
 // Anonymous user storage key
 const COST_STORAGE_KEY = "cathcat_daily_cost_usage";
@@ -77,6 +78,8 @@ interface UsageData {
   costUsed: number; // in dollars
   isAuthenticated: boolean;
   dailyLimit: number; // in dollars
+  hasActiveSubscription: boolean;
+  planName?: string;
 }
 
 type ModelName = keyof typeof MODEL_PRICING;
@@ -117,8 +120,22 @@ export async function getUserUsageData(): Promise<UsageData> {
         costUsed,
         isAuthenticated: false,
         dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
+        hasActiveSubscription: false,
       };
     }
+
+    // Check for active subscription
+    const { data: subscription } = await supabase
+      .from("user_subscriptions")
+      .select("plan_name, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .single();
+
+    const hasActiveSubscription = !!subscription;
+    const dailyLimit = hasActiveSubscription 
+      ? UNLIMITED_DAILY_COST_LIMIT 
+      : AUTHENTICATED_DAILY_COST_LIMIT;
 
     // Authenticated user - use Supabase with current date
     const today = getCurrentDate();
@@ -137,14 +154,18 @@ export async function getUserUsageData(): Promise<UsageData> {
       return {
         costUsed: 0,
         isAuthenticated: true,
-        dailyLimit: AUTHENTICATED_DAILY_COST_LIMIT,
+        dailyLimit,
+        hasActiveSubscription,
+        planName: subscription?.plan_name,
       };
     }
 
     return {
       costUsed: usage?.cost_used || 0,
       isAuthenticated: true,
-      dailyLimit: AUTHENTICATED_DAILY_COST_LIMIT,
+      dailyLimit,
+      hasActiveSubscription,
+      planName: subscription?.plan_name,
     };
   } catch (error) {
     console.warn("Error in getUserUsageData:", error);
@@ -155,6 +176,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       costUsed,
       isAuthenticated: false,
       dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
+      hasActiveSubscription: false,
     };
   }
 }
@@ -289,6 +311,8 @@ export async function getUserStatus(): Promise<{
   costUsed: number;
   remainingCost: number;
   usagePercentage: number;
+  hasActiveSubscription: boolean;
+  planName?: string;
 }> {
   const data = await getUserUsageData();
   const remainingCost = Math.max(0, data.dailyLimit - data.costUsed);
