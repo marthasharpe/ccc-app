@@ -90,8 +90,8 @@ export function MobileNav({ tabs }: MobileNavProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-background border rounded-md shadow-lg z-50">
-          <div className="py-1">
+        <div className="fixed left-0 right-0 top-full mt-2 mx-4 bg-background border rounded-md shadow-lg z-50">
+          <div className="py-2">
             {tabs.map((tab) => {
               const isActive = pathname === tab.href;
 
@@ -101,7 +101,7 @@ export function MobileNav({ tabs }: MobileNavProps) {
                   href={tab.href}
                   onClick={closeMenu}
                   className={cn(
-                    "block px-4 py-2 text-sm transition-colors hover:bg-muted hover:text-muted-foreground",
+                    "block px-6 py-4 text-lg transition-colors hover:bg-muted hover:text-muted-foreground",
                     isActive && "bg-muted text-muted-foreground font-medium"
                   )}
                 >
@@ -112,11 +112,11 @@ export function MobileNav({ tabs }: MobileNavProps) {
             
             {/* Sign out button for mobile - only show if user is authenticated */}
             {user && (
-              <div className="border-t mt-1 pt-1">
+              <div className="border-t mt-2 pt-2">
                 <Button
                   variant="ghost"
                   onClick={handleSignOut}
-                  className="w-full justify-start px-4 py-2 h-auto text-sm font-normal hover:bg-muted hover:text-muted-foreground"
+                  className="w-full justify-start px-6 py-4 h-auto text-lg font-normal hover:bg-muted hover:text-muted-foreground"
                 >
                   Sign Out
                 </Button>

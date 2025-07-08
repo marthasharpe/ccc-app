@@ -3,13 +3,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import { getUserStatus } from "@/lib/usageTracking";
@@ -75,170 +68,55 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="container mx-auto px-6 sm:px-4 py-16">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Account</h1>
-          <p className="text-muted-foreground">
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="prose prose-slate max-w-none">
+          <h2 className="text-2xl font-bold mb-6">Account Information</h2>
+          <p className="text-lg leading-relaxed mb-6">
             Manage your account settings and view your usage
           </p>
-        </div>
 
-        <div className="space-y-6">
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>
-                Your account details and authentication status
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Email Address
-                  </label>
-                  <p className="text-sm mt-1">{user.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Account Created
-                  </label>
-                  <p className="text-sm mt-1">
-                    {new Date(user.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Last Sign In
-                  </label>
-                  <p className="text-sm mt-1">
-                    {user.last_sign_in_at
-                      ? new Date(user.last_sign_in_at).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          }
-                        )
-                      : "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Authentication Provider
-                  </label>
-                  <p className="text-sm mt-1 capitalize">
-                    {user.app_metadata?.provider || "Email"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="border-t border-muted my-8"></div>
 
-          {/* Usage Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Usage Statistics</CardTitle>
-              <CardDescription>
-                Track your AI query usage and daily limits
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Daily Usage
-                    </label>
-                    <span className="text-sm text-muted-foreground">
-                      {userStatus?.usagePercentage || 0}% of daily limit used
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${Math.min(
-                          userStatus?.usagePercentage || 0,
-                          100
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>{userStatus?.usagePercentage || 0}% used</span>
-                    <span>
-                      {100 - (userStatus?.usagePercentage || 0)}% remaining
-                    </span>
-                  </div>
-                </div>
+          <h2 className="text-2xl font-bold mb-6">Email Address</h2>
+          <p className="text-lg leading-relaxed mb-6">{user.email}</p>
 
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Usage Benefits
-                  </label>
-                  <p className="text-sm mt-1">
-                    {userStatus?.isAuthenticated ? (
-                      <span className="text-green-600">
-                        ✓ Enhanced daily usage limit (2.5x more than free
-                        accounts)
-                      </span>
-                    ) : (
-                      <span>Free account with standard daily limit</span>
-                    )}
-                  </p>
-                </div>
+          <div className="border-t border-muted my-8"></div>
 
-                <div className="bg-muted/30 border rounded-lg p-4">
-                  <h4 className="font-medium mb-2">Account Benefits</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>
-                      ✓ Enhanced daily usage limit (2.5x more than free
-                      accounts)
-                    </li>
-                    <li>✓ Usage sync across devices</li>
-                    <li>✓ Persistent conversation history</li>
-                    <li>✓ Access to all AI models</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <h2 className="text-2xl font-bold mb-6">Daily Usage</h2>
+          <div className="mb-6">
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.min(
+                    userStatus?.usagePercentage || 0,
+                    100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>{userStatus?.usagePercentage || 0}% used</span>
+              <span>
+                {100 - (userStatus?.usagePercentage || 0)}% remaining
+              </span>
+            </div>
+          </div>
 
-          {/* Account Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Actions</CardTitle>
-              <CardDescription>
-                Manage your account and authentication
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="w-full sm:w-auto cursor-pointer"
-                >
-                  Sign Out
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Signing out will return you to the home page and reset to
-                  anonymous usage limits.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="border-t border-muted my-8"></div>
+
+          <h2 className="text-2xl font-bold mb-6">Account Actions</h2>
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="w-full sm:w-auto cursor-pointer"
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     </div>
