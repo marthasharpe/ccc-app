@@ -97,7 +97,16 @@ export function FormatCCCContent({
                 (
                 <button
                   onClick={() => onCCCClick(numbers[0].toString())}
-                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer inline"
+                  style={{
+                    padding: 0,
+                    margin: 0,
+                    border: 'none',
+                    background: 'none',
+                    font: 'inherit',
+                    lineHeight: 'inherit',
+                    verticalAlign: 'baseline',
+                  }}
                   title={`Click to read CCC ${numbers[0]}`}
                 >
                   {numbers[0]}
@@ -118,7 +127,16 @@ export function FormatCCCContent({
                 <button
                   key={`ccc-${match.index}-${i}`}
                   onClick={() => onCCCClick(num.toString())}
-                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer inline"
+                  style={{
+                    padding: 0,
+                    margin: 0,
+                    border: 'none',
+                    background: 'none',
+                    font: 'inherit',
+                    lineHeight: 'inherit',
+                    verticalAlign: 'baseline',
+                  }}
                   title={`Click to read CCC ${num}`}
                 >
                   {num}

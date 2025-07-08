@@ -27,7 +27,7 @@ export function NavTabs({ tabs }: NavTabsProps) {
               key={tab.href}
               href={tab.href}
               className={cn(
-                "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all",
+                "inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium ring-offset-background transition-all cursor-pointer",
                 "hover:bg-background/80 hover:text-muted-foreground",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 "relative",

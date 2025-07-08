@@ -29,7 +29,7 @@ export default function Home() {
           <Link href="/chat">
             <Button
               size="sm"
-              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-76"
+              className="text-lg px-8 py-3 w-full sm:w-76"
             >
               Ask a Question
             </Button>
@@ -38,7 +38,7 @@ export default function Home() {
             <Button
               variant="outline"
               size="sm"
-              className="text-lg px-8 py-3 cursor-pointer w-full sm:w-76"
+              className="text-lg px-8 py-3 w-full sm:w-76"
             >
               Search the Catechism
             </Button>

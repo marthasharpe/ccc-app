@@ -5,6 +5,8 @@ import Image from "next/image";
 import { AuthButton } from "@/components/AuthButton";
 import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { ChatProvider } from "@/contexts/ChatContext";
+import { SearchProvider } from "@/contexts/SearchContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,11 +48,11 @@ export default function RootLayout({
             <div className="flex items-center justify-between">
               <Link
                 href="/"
-                className="flex items-center hover:opacity-80 transition-opacity"
+                className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <div className="flex items-center">
                   <Image
-                    src="/icon-192-maskable.png"
+                    src="/icon-transparent.svg"
                     alt="TruthMeUp logo"
                     width={40}
                     height={40}
@@ -68,7 +70,11 @@ export default function RootLayout({
           </div>
         </header>
         <ScrollToTop />
-        <main className="min-h-screen bg-background">{children}</main>
+        <ChatProvider>
+          <SearchProvider>
+            <main className="min-h-screen bg-background">{children}</main>
+          </SearchProvider>
+        </ChatProvider>
       </body>
     </html>
   );

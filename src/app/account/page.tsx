@@ -33,7 +33,6 @@ export default function AccountPage() {
 
       setUser(user);
 
-      // Get usage status
       const status = await getUserStatus();
       setUserStatus(status);
       setIsLoading(false);
@@ -89,18 +88,13 @@ export default function AccountPage() {
               <div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: `${Math.min(
-                    userStatus?.usagePercentage || 0,
-                    100
-                  )}%`,
+                  width: `${Math.min(userStatus?.usagePercentage || 0, 100)}%`,
                 }}
               ></div>
             </div>
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
               <span>{userStatus?.usagePercentage || 0}% used</span>
-              <span>
-                {100 - (userStatus?.usagePercentage || 0)}% remaining
-              </span>
+              <span>{100 - (userStatus?.usagePercentage || 0)}% remaining</span>
             </div>
           </div>
 

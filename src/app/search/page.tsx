@@ -1,18 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
-import ParagraphDisplay from "@/components/ParagraphDisplay";
 import { detectParagraphQuery } from "@/utils/detectParagraphQuery";
 import { FormatCCCContent } from "@/utils/formatCCCContent";
-import CCCModal from "@/components/CCCModal";
-
-interface SearchResult {
-  id: number;
-  paragraph_number: number;
-  content: string;
-  similarity: number;
-}
+import { useSearch, type SearchResult } from "@/contexts/SearchContext";
 
 interface SearchResponse {
   results: SearchResult[];
@@ -20,32 +12,21 @@ interface SearchResponse {
 }
 
 export default function SearchPage() {
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [query, setQuery] = useState("");
-  const [paragraphReference, setParagraphReference] = useState<string | null>(
-    null
-  );
-  const [showParagraphView, setShowParagraphView] = useState(false);
-  const [selectedCCCReference, setSelectedCCCReference] = useState<
-    string | null
-  >(null);
-  const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
-  const [shouldFocusInput, setShouldFocusInput] = useState(false);
+  const router = useRouter();
+  const { searchState, setQuery, setResults, setIsLoading, setShouldFocusInput, clearSearch } = useSearch();
+  const { query, results, isLoading, shouldFocusInput } = searchState;
 
   const handleSearch = async (searchQuery: string) => {
     setIsLoading(true);
     setQuery(searchQuery);
-    setShowParagraphView(false);
     setResults([]);
 
     // Check if this is a paragraph number query
     const paragraphQuery = detectParagraphQuery(searchQuery);
 
     if (paragraphQuery.isParagraphQuery) {
-      // Show paragraph directly instead of searching
-      setParagraphReference(paragraphQuery.reference!);
-      setShowParagraphView(true);
+      // Navigate to paragraph page instead of showing inline
+      router.push(`/paragraph/${paragraphQuery.reference}`);
       setIsLoading(false);
       return;
     }
@@ -75,62 +56,38 @@ export default function SearchPage() {
   };
 
   const handleNewSearch = () => {
-    setResults([]);
-    setQuery("");
-    setShowParagraphView(false);
-    setParagraphReference(null);
+    clearSearch();
     setShouldFocusInput(true);
   };
 
-  const handleBackToSearch = () => {
-    setShowParagraphView(false);
-    setParagraphReference(null);
-    // Don't clear query and results to preserve search state
-    // Scroll to top when returning to search
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const handleParagraphClick = (paragraphNumber: number) => {
-    setParagraphReference(paragraphNumber.toString());
-    setShowParagraphView(true);
-    // Scroll to top when navigating to paragraph view
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    router.push(`/paragraph/${paragraphNumber}`);
   };
 
   const handleCCCClick = (reference: string) => {
-    setSelectedCCCReference(reference);
-    setIsCCCModalOpen(true);
+    router.push(`/paragraph/${reference}`);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Show paragraph view if viewing a specific paragraph */}
-        {showParagraphView && paragraphReference ? (
-          <ParagraphDisplay
-            reference={paragraphReference}
-            onBackToSearch={handleBackToSearch}
-            onCCCClick={handleCCCClick}
-          />
-        ) : (
-          <>
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4">Search the Catechism</h1>
-              <p className="text-lg">
-                Find passages from the Catechism of the Catholic Church
-              </p>
-            </div>
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-4">Search the Catechism</h1>
+          <p className="text-lg">
+            Find passages from the Catechism of the Catholic Church
+          </p>
+        </div>
 
-            <div className="mb-8">
-              <SearchBar 
-                onSearch={handleSearch} 
-                isLoading={isLoading}
-                showNewSearchButton={results.length > 0 && !isLoading}
-                onNewSearch={handleNewSearch}
-                shouldFocus={shouldFocusInput}
-                onFocused={() => setShouldFocusInput(false)}
-              />
-            </div>
+        <div className="mb-8">
+          <SearchBar 
+            onSearch={handleSearch} 
+            isLoading={isLoading}
+            showNewSearchButton={results.length > 0 && !isLoading}
+            onNewSearch={handleNewSearch}
+            shouldFocus={shouldFocusInput}
+            onFocused={() => setShouldFocusInput(false)}
+          />
+        </div>
 
             {isLoading && (
               <div className="text-center py-8">
@@ -175,19 +132,7 @@ export default function SearchPage() {
                 ))}
               </div>
             )}
-          </>
-        )}
 
-        {/* CCC Paragraph Modal */}
-        <CCCModal
-          paragraphReference={selectedCCCReference}
-          isOpen={isCCCModalOpen}
-          onClose={() => {
-            setIsCCCModalOpen(false);
-            setSelectedCCCReference(null);
-          }}
-          onCCCClick={handleCCCClick}
-        />
       </div>
     </div>
   );

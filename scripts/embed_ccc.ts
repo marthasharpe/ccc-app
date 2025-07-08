@@ -8,6 +8,12 @@ import OpenAI from "openai";
 // Load environment variables
 config({ path: ".env.local" });
 
+// Interface for CCC data structure
+interface CCCItem {
+  id: number;
+  text: string;
+}
+
 // Validation schemas
 const CCCParagraphSchema = z.object({
   paragraph_number: z.number(),
@@ -113,9 +119,9 @@ async function main() {
     const cccData = JSON.parse(cccRawData);
 
     // Transform data from {id, text} to {paragraph_number, content}
-    const transformedData = cccData.map((item: any) => ({
+    const transformedData = cccData.map((item: CCCItem) => ({
       paragraph_number: item.id,
-      content: item.text
+      content: item.text,
     }));
 
     // Validate the data structure

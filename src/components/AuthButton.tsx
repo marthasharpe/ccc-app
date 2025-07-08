@@ -49,7 +49,7 @@ export function AuthButton() {
     return (
       <div className="flex items-center gap-2">
         <Button
-          className="cursor-pointer hidden md:inline-flex"
+          className="hidden md:inline-flex"
           variant="outline"
           size="sm"
           onClick={handleSignOut}
@@ -63,12 +63,12 @@ export function AuthButton() {
   return (
     <div className="flex items-center gap-2">
       <Link href="/auth/login">
-        <Button className="cursor-pointer" variant="outline" size="sm">
+        <Button variant="outline" size="sm">
           Sign In
         </Button>
       </Link>
       <Link href="/auth/signup" className="hidden sm:inline">
-        <Button className="cursor-pointer" size="sm">
+        <Button size="sm">
           Sign Up
         </Button>
       </Link>

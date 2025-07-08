@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -10,8 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CCCModal from "@/components/CCCModal";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
+import { useRouter } from "next/navigation";
+import { useChat } from "@/contexts/ChatContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,24 +26,25 @@ import {
   addCostUsage,
   wouldExceedTokenLimit,
   getUserStatus,
-  calculateCost,
+  estimateTokens,
 } from "@/lib/usageTracking";
-import { estimateTokens } from "@/lib/usageClient";
+import { UsageAlertDialog } from "@/components/UsageAlertDialog";
 import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<string | null>(null);
-  const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(
-    null
-  );
+  const {
+    chatState,
+    setQuestion,
+    setAnswer,
+    setSubmittedQuestion,
+    setSelectedModel,
+    clearChat,
+  } = useChat();
+  const { question, answer, submittedQuestion, selectedModel } = chatState;
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCCCReference, setSelectedCCCReference] = useState<
-    string | null
-  >(null);
-  const [isCCCModalOpen, setIsCCCModalOpen] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [usagePercentage, setUsagePercentage] = useState(0);
   const [estimatedTokensForRequest, setEstimatedTokensForRequest] = useState(0);
   const [userStatus, setUserStatus] = useState<{
@@ -53,27 +54,11 @@ export default function ChatPage() {
     remainingCost: number;
     usagePercentage: number;
   } | null>(null);
-  const [selectedModel, setSelectedModel] = useState<"gpt-4" | "gpt-3.5-turbo">(() => {
-    // Initialize with saved model preference or default to "gpt-4"
-    if (typeof window !== "undefined") {
-      const savedModel = localStorage.getItem("selectedModel");
-      if (savedModel && (savedModel === "gpt-4" || savedModel === "gpt-3.5-turbo")) {
-        return savedModel;
-      }
-    }
-    return "gpt-4";
-  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Save model preference when it changes
-  useEffect(() => {
-    localStorage.setItem("selectedModel", selectedModel);
-  }, [selectedModel]);
+  const router = useRouter();
 
   const handleClearQuestion = () => {
-    setQuestion("");
-    setAnswer(null);
-    setSubmittedQuestion(null);
+    clearChat();
     // Focus the textarea after clearing
     setTimeout(() => {
       if (textareaRef.current) {
@@ -83,23 +68,21 @@ export default function ChatPage() {
   };
 
   const handleCCCClick = (reference: string) => {
-    setSelectedCCCReference(reference);
-    setIsCCCModalOpen(true);
+    router.push(`/paragraph/${reference}`);
   };
 
-  // Check usage limits on component mount
+  // Check usage limits on component mount and when model changes
   useEffect(() => {
     const checkUsage = async () => {
       const status = await getUserStatus();
       const limitReached = await isTokenLimitReached();
-
       setUserStatus(status);
       setUsagePercentage(status.usagePercentage);
       setIsLimitReached(limitReached);
     };
 
     checkUsage();
-  }, []);
+  }, [selectedModel]);
 
   const updateUsageCount = async () => {
     const status = await getUserStatus();
@@ -134,7 +117,7 @@ export default function ChatPage() {
     }
 
     setIsLoading(true);
-    setSubmittedQuestion(question.trim()); // Store the submitted question
+    setSubmittedQuestion(question.trim());
 
     try {
       const response = await fetch("/api/chat", {
@@ -154,7 +137,6 @@ export default function ChatPage() {
 
       const data = await response.json();
       setAnswer(data.response);
-
       // Add actual cost usage after successful response
       if (data.tokensUsed) {
         await addCostUsage(data.tokensUsed, selectedModel);
@@ -175,7 +157,7 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Your Catholic Teaching Assistant
+            Ask Your Catholic Teaching Assistant
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
             AI responses are based on the Catechism of the Catholic Church
@@ -185,89 +167,134 @@ export default function ChatPage() {
         {/* Question Input - New Layout (only show when no answer) */}
         {!answer && (
           <div className="mb-8 w-full max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit}>
-              {/* Text Input Area */}
-              <div className="mb-4">
-                <textarea
-                  ref={textareaRef}
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask a question..."
-                  disabled={isLoading}
-                  className={cn(
-                    "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-                    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                    "min-h-[80px] max-h-[200px] resize-none"
-                  )}
-                  maxLength={500}
-                  rows={3}
-                />
-              </div>
-
-              {/* Bottom Controls */}
-              <div className="flex items-center justify-between">
-                {/* Model Selector - Bottom Left */}
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={selectedModel}
-                    onValueChange={(value) =>
-                      setSelectedModel(value as "gpt-4" | "gpt-3.5-turbo")
-                    }
+            {isLimitReached ? (
+              /* Usage Limit Reached - Replace textarea with warning */
+              <div className="border border-primary rounded-md p-6 text-center">
+                <div className="mb-4">
+                  <svg
+                    className="w-12 h-12 text-primary mx-auto mb-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <SelectTrigger className="w-32" tabIndex={-1}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4">GPT-4.0</SelectItem>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Daily Usage Limit Reached
+                  </h3>
+                  <p className="mb-4">
+                    {userStatus?.isAuthenticated
+                      ? "Upgrade your account to ask unlimited questions."
+                      : "Create an account to keep asking questions."}
+                  </p>
                 </div>
 
-                {/* Ask Button - Bottom Right */}
-                <div className="flex items-center gap-2">
-                  {question.trim() && (
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  {userStatus?.isAuthenticated ? (
                     <Button
-                      type="submit"
-                      disabled={isLoading}
-                      size="sm"
-                      className="px-6"
-                      tabIndex={0}
+                      className="px-8"
+                      onClick={() => setShowUpgradeModal(true)}
                     >
-                      {isLoading ? (
-                        <svg
-                          className="w-4 h-4 animate-spin"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                      ) : (
-                        "Ask"
-                      )}
+                      Upgrade Account
                     </Button>
+                  ) : (
+                    <>
+                      <Button
+                        className="px-8"
+                        onClick={() => (window.location.href = "/auth/signup")}
+                      >
+                        Sign Up
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="px-8"
+                        onClick={() => (window.location.href = "/auth/login")}
+                      >
+                        Sign In
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
-            </form>
+            ) : (
+              /* Normal question input form */
+              <form onSubmit={handleSubmit}>
+                {/* Text Input Area */}
+                <div className="mb-4">
+                  <textarea
+                    ref={textareaRef}
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    placeholder="Ask a question..."
+                    disabled={isLoading}
+                    className={cn(
+                      "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                      "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                      "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                      "min-h-[40px] max-h-[200px] resize-none"
+                    )}
+                    maxLength={500}
+                    rows={3}
+                  />
+                </div>
 
-            {/* Usage Limit Warning */}
-            {isLimitReached && (
-              <p className="text-xs text-red-500 mt-2 text-center">
-                Daily usage limit reached.{" "}
-                {userStatus?.isAuthenticated ? (
-                  <span>Upgrade to a paid plan for unlimited usage.</span>
-                ) : (
-                  <span>Create an account to get more usage.</span>
-                )}
-              </p>
+                {/* Bottom Controls */}
+                <div className="flex items-center justify-between">
+                  {/* Model Selector - Bottom Left */}
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedModel}
+                      onValueChange={(value) =>
+                        setSelectedModel(value as "gpt-4" | "gpt-3.5-turbo")
+                      }
+                    >
+                      <SelectTrigger className="w-32" tabIndex={-1}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4">GPT-4.0</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Ask Button - Bottom Right */}
+                  <div className="flex items-center gap-2">
+                    {question.trim() && (
+                      <Button
+                        type="submit"
+                        disabled={isLoading}
+                        size="sm"
+                        className="px-6"
+                        tabIndex={0}
+                      >
+                        {isLoading ? (
+                          <svg
+                            className="w-4 h-4 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                        ) : (
+                          "Ask"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </form>
             )}
           </div>
         )}
@@ -330,108 +357,63 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* CCC Paragraph Modal */}
-      <CCCModal
-        paragraphReference={selectedCCCReference}
-        isOpen={isCCCModalOpen}
-        onClose={() => {
-          setIsCCCModalOpen(false);
-          setSelectedCCCReference(null);
-        }}
-        onCCCClick={handleCCCClick}
-      />
-
-      {/* Daily Limit Alert Dialog */}
-      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+      {/* Upgrade Account Modal */}
+      <AlertDialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Daily Token Limit Reached</AlertDialogTitle>
+            <AlertDialogTitle>Upgrade Your Account</AlertDialogTitle>
             <AlertDialogDescription>
-              This request would exceed your daily usage limit.
-              <br />
-              <br />
-              {userStatus?.isAuthenticated ? (
-                <>
-                  <strong>You can:</strong>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>
-                      Try a shorter question to use less of your daily limit
-                    </li>
-                    <li>
-                      Switch to GPT-3.5 which uses less of your daily limit per
-                      response
-                    </li>
-                    <li>Browse and search the Catechism (no usage limit)</li>
-                    <li>Wait until tomorrow for your usage to reset</li>
-                  </ul>
-                </>
-              ) : (
-                <>
-                  <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
-                    <p className="text-sm font-medium text-primary">
-                      💡 Sign in to get 2.5x more usage!
-                    </p>
-                    <p className="text-xs text-primary/80 mt-1">
-                      Free accounts have limited usage → Signed in: Enhanced
-                      daily limit
-                    </p>
+              <div className="space-y-4">
+                <p>Paid plans will soon be available for unlimited usage.</p>
+
+                <div className="space-y-3">
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <h4 className="font-semibold mb-2">Coming Soon:</h4>
+                    <ul className="space-y-1 text-sm">
+                      <li>
+                        • <strong>Individual Plans</strong> - Perfect for
+                        personal study and learning
+                      </li>
+                      <li>
+                        • <strong>Small Group Plans</strong> - Ideal for Bible
+                        studies or families
+                      </li>
+                      <li>
+                        • <strong>Large Group Plans</strong> - Designed for
+                        parishes, schools, and organizations
+                      </li>
+                    </ul>
                   </div>
-                  <strong>You can:</strong>
-                  <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>
-                      Try a shorter question to use less of your daily limit
-                    </li>
-                    <li>
-                      Switch to GPT-3.5 which uses less of your daily limit per
-                      response
-                    </li>
-                    <li>Browse and search the Catechism (no usage limit)</li>
-                    <li>
-                      <strong>Sign in to get 2.5x more daily usage!</strong>
-                    </li>
-                    <li>Wait until tomorrow for your usage to reset</li>
-                  </ul>
-                </>
-              )}
-              <div className="mt-3 p-2 bg-muted rounded text-sm">
-                <strong>Usage remaining:</strong> {100 - usagePercentage}%
-                <br />
-                <strong>Estimated needed:</strong> ~
-                {Math.round(
-                  calculateCost(estimatedTokensForRequest, selectedModel) * 100
-                ) / 100}
-                %
+
+                  <p className="text-sm text-muted-foreground">
+                    In the meantime, you can continue using your daily allowance
+                    or try our search feature which has no usage limits.
+                  </p>
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
-            {!userStatus?.isAuthenticated && (
-              <AlertDialogAction asChild>
-                <Link
-                  href="/auth/login"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Sign In for More Usage
-                </Link>
-              </AlertDialogAction>
-            )}
-            {selectedModel === "gpt-4" && (
-              <AlertDialogAction
-                onClick={() => {
-                  setSelectedModel("gpt-3.5-turbo");
-                  setShowLimitDialog(false);
-                }}
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              >
-                Switch to GPT-3.5
-              </AlertDialogAction>
-            )}
-            <AlertDialogAction onClick={() => setShowLimitDialog(false)}>
-              I understand
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowUpgradeModal(false)}>
+              Got it
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Usage Alert Dialog */}
+      <UsageAlertDialog
+        isOpen={showLimitDialog}
+        onOpenChange={setShowLimitDialog}
+        userStatus={userStatus}
+        selectedModel={selectedModel}
+        estimatedTokensForRequest={estimatedTokensForRequest}
+        usagePercentage={usagePercentage}
+        onSwitchToGPT35={() => {
+          setSelectedModel("gpt-3.5-turbo");
+          setShowLimitDialog(false);
+        }}
+      />
     </div>
   );
 }
