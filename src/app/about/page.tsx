@@ -4,18 +4,6 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
           <h2 className="text-2xl font-bold mb-6">
-            Why an Interactive Catechism?
-          </h2>
-          <p className="text-lg leading-relaxed mb-6">
-            This app helps people explore what the Catholic Church teaches by
-            making the Catechism easier to understand and navigate. It uses an
-            AI assistant to provide clear, trustworthy answers and to provide
-            relevant passages from the Catechism of the Catholic Church.
-          </p>
-
-          <div className="border-t border-muted my-8"></div>
-
-          <h2 className="text-2xl font-bold mb-6">
             What is the Catechism of the Catholic Church?
           </h2>
           <p className="text-lg leading-relaxed mb-6">

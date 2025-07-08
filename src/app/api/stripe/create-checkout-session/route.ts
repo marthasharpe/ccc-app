@@ -2,20 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-06-30.basil",
-});
+// Initialize Stripe only if the secret key is available
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2025-06-30.basil",
+  });
+};
 
-const PLAN_PRICE_IDS = {
-  Individual: process.env.STRIPE_INDIVIDUAL_PRICE_ID!,
-  Advanced: process.env.STRIPE_ADVANCED_PRICE_ID!,
-  "Small Group": process.env.STRIPE_SMALL_GROUP_PRICE_ID!,
-  "Large Group": process.env.STRIPE_LARGE_GROUP_PRICE_ID!,
+const getPlanPriceIds = () => {
+  return {
+    Individual: process.env.STRIPE_INDIVIDUAL_PRICE_ID!,
+    Advanced: process.env.STRIPE_ADVANCED_PRICE_ID!,
+    "Small Group": process.env.STRIPE_SMALL_GROUP_PRICE_ID!,
+    "Large Group": process.env.STRIPE_LARGE_GROUP_PRICE_ID!,
+  };
 };
 
 export async function POST(request: NextRequest) {
   try {
     const { planName } = await request.json();
+
+    // Initialize Stripe and get price IDs
+    const stripe = getStripe();
+    const PLAN_PRICE_IDS = getPlanPriceIds();
 
     // Get the authenticated user
     const supabase = await createClient();
