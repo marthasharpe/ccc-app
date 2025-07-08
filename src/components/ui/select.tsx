@@ -13,6 +13,7 @@ interface SelectProps {
 interface SelectItemProps {
   children: React.ReactNode;
   value: string;
+  disabled?: boolean;
 }
 
 interface SelectContentProps {
@@ -81,7 +82,11 @@ export function Select({
             if (child.type === SelectTrigger) {
               return React.cloneElement(child, {
                 ...(child.props || {}),
-                onClick: () => setIsOpen(!isOpen),
+                onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsOpen(!isOpen);
+                },
                 isOpen,
               } as React.ComponentProps<typeof SelectTrigger>);
             }
@@ -109,7 +114,7 @@ export function SelectTrigger({
 }: {
   children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   isOpen?: boolean;
   tabIndex?: number;
 }) {
@@ -174,13 +179,18 @@ export function SelectContent({
   );
 }
 
-export function SelectItem({ children, value }: SelectItemProps) {
+export function SelectItem({ children, value, disabled = false }: SelectItemProps) {
   const { onValueChange } = React.useContext(SelectContext);
 
   return (
     <div
-      onClick={() => onValueChange?.(value)}
-      className="px-3 py-2 text-sm cursor-pointer hover:bg-muted hover:text-muted-foreground"
+      onClick={disabled ? undefined : () => onValueChange?.(value)}
+      className={cn(
+        "px-3 py-2 text-sm",
+        disabled 
+          ? "cursor-not-allowed opacity-50 text-muted-foreground" 
+          : "cursor-pointer hover:bg-muted hover:text-muted-foreground"
+      )}
     >
       {children}
     </div>

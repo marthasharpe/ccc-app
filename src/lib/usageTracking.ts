@@ -6,9 +6,9 @@ const MODEL_PRICING = {
   "gpt-3.5-turbo": 0.002,
 } as const;
 
-// Daily cost limits (in dollars)
-const ANONYMOUS_DAILY_COST_LIMIT = 0.1; // ~2 GPT-4 responses or 50 GPT-3.5 responses
-const AUTHENTICATED_DAILY_COST_LIMIT = 0.2; // ~5 GPT-4 responses or 100 GPT-3.5 responses
+// Daily cost limits (in dollars) - GPT-3.5 only for MVP (GPT-4 visible but disabled)
+const ANONYMOUS_DAILY_COST_LIMIT = 0.05; // ~25 GPT-3.5 responses (GPT-4 reserved for pro plans)
+const AUTHENTICATED_DAILY_COST_LIMIT = 0.1; // ~50 GPT-3.5 responses (GPT-4 reserved for pro plans)
 
 // Anonymous user storage key
 const COST_STORAGE_KEY = "cathcat_daily_cost_usage";
@@ -43,7 +43,7 @@ async function getLocalCostUsage(): Promise<number> {
       localStorage.removeItem(COST_STORAGE_KEY);
       return 0;
     }
-
+    console.log("data.costUsed", data.costUsed);
     return data.costUsed || 0;
   } catch (error) {
     console.warn("Error reading local cost usage:", error);
@@ -249,7 +249,7 @@ export async function isTokenLimitReached(): Promise<boolean> {
  */
 export async function wouldExceedTokenLimit(
   estimatedTokens: number,
-  model: ModelName = "gpt-4"
+  model: ModelName = "gpt-3.5-turbo"
 ): Promise<boolean> {
   const { costUsed, dailyLimit } = await getUserUsageData();
   const estimatedCost = calculateCost(estimatedTokens, model);

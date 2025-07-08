@@ -77,7 +77,6 @@ export default function ChatPage() {
       const status = await getUserStatus();
       const limitReached = await isTokenLimitReached();
       setUserStatus(status);
-      setUsagePercentage(status.usagePercentage);
       setIsLimitReached(limitReached);
     };
 
@@ -93,11 +92,10 @@ export default function ChatPage() {
     setIsLimitReached(limitReached);
   };
 
-  // Update estimated tokens when question changes
   useEffect(() => {
     if (question.trim()) {
       const estimated = estimateTokens(question);
-      setEstimatedTokensForRequest(estimated + 300); // Add ~300 for system prompt and response
+      setEstimatedTokensForRequest(estimated + 300);
     } else {
       setEstimatedTokensForRequest(0);
     }
@@ -107,6 +105,12 @@ export default function ChatPage() {
     e.preventDefault();
 
     if (!question.trim() || isLoading) return;
+
+    // Prevent GPT-4 usage for MVP - force switch to GPT-3.5
+    if (selectedModel === "gpt-4") {
+      setSelectedModel("gpt-3.5-turbo");
+      return;
+    }
 
     // Check if request would exceed daily cost limit
     const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
@@ -257,8 +261,12 @@ export default function ChatPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gpt-4">GPT-4.0</SelectItem>
                         <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
+                        <SelectItem value="gpt-4" disabled>
+                          GPT-4.0
+                          <br />
+                          (Pro Plan)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

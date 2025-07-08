@@ -24,7 +24,7 @@ const initialChatState: ChatState = {
   question: "",
   answer: null,
   submittedQuestion: null,
-  selectedModel: "gpt-4",
+  selectedModel: "gpt-3.5-turbo", // MVP: Only GPT-3.5 for all users
 };
 
 export function ChatProvider({ children }: { children: ReactNode }) {
