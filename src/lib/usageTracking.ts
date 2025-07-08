@@ -1,15 +1,77 @@
 import { createClient } from "@/lib/supabase/client";
-import { getTokenUsage as getLocalTokenUsage, addTokenUsage as addLocalTokenUsage } from "@/lib/usageClient";
 
 // Model pricing (per 1000 tokens)
 const MODEL_PRICING = {
-  'gpt-4': 0.03, // $0.03 per 1k tokens
-  'gpt-3.5-turbo': 0.002, // $0.002 per 1k tokens
+  "gpt-4": 0.04,
+  "gpt-3.5-turbo": 0.002,
 } as const;
 
 // Daily cost limits (in dollars)
-const ANONYMOUS_DAILY_COST_LIMIT = 0.10; // ~3 GPT-4 responses or 50 GPT-3.5 responses
-const AUTHENTICATED_DAILY_COST_LIMIT = 0.25; // ~8 GPT-4 responses or 125 GPT-3.5 responses
+const ANONYMOUS_DAILY_COST_LIMIT = 0.1; // ~2 GPT-4 responses or 50 GPT-3.5 responses
+const AUTHENTICATED_DAILY_COST_LIMIT = 0.2; // ~5 GPT-4 responses or 100 GPT-3.5 responses
+
+// Anonymous user storage key
+const COST_STORAGE_KEY = "cathcat_daily_cost_usage";
+
+/**
+ * Get the current date for daily resets at midnight local time
+ */
+function getCurrentDate(): string {
+  const now = new Date();
+  return now.toISOString().split("T")[0];
+}
+
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+/**
+ * Get cost usage from localStorage for anonymous users
+ */
+async function getLocalCostUsage(): Promise<number> {
+  if (typeof window === "undefined") return 0;
+
+  try {
+    const stored = localStorage.getItem(COST_STORAGE_KEY);
+    if (!stored) return 0;
+
+    const data = JSON.parse(stored);
+    const currentDate = getCurrentDate();
+
+    // Reset if it's a new day
+    if (data.date !== currentDate) {
+      localStorage.removeItem(COST_STORAGE_KEY);
+      return 0;
+    }
+
+    return data.costUsed || 0;
+  } catch (error) {
+    console.warn("Error reading local cost usage:", error);
+    return 0;
+  }
+}
+
+/**
+ * Add cost usage to localStorage for anonymous users
+ */
+async function addLocalCostUsage(cost: number): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const currentDate = getCurrentDate();
+    const existingCost = await getLocalCostUsage();
+    const newTotal = existingCost + cost;
+
+    const data = {
+      date: currentDate,
+      costUsed: newTotal,
+    };
+
+    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Error storing local cost usage:", error);
+  }
+}
 
 interface UsageData {
   costUsed: number; // in dollars
@@ -29,7 +91,10 @@ export function calculateCost(tokens: number, model: ModelName): number {
 /**
  * Calculate percentage of daily limit used
  */
-export function calculateUsagePercentage(costUsed: number, dailyLimit: number): number {
+export function calculateUsagePercentage(
+  costUsed: number,
+  dailyLimit: number
+): number {
   return Math.min(100, Math.round((costUsed / dailyLimit) * 100));
 }
 
@@ -38,37 +103,36 @@ export function calculateUsagePercentage(costUsed: number, dailyLimit: number): 
  */
 export async function getUserUsageData(): Promise<UsageData> {
   const supabase = createClient();
-  
+
   try {
     // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
-      // Anonymous user - use localStorage (convert tokens to estimated cost)
-      const tokens = await getLocalTokenUsage();
-      // Estimate cost assuming mixed usage (avg of GPT-4 and GPT-3.5)
-      const estimatedCost = calculateCost(tokens, 'gpt-3.5-turbo');
-      
+      // Anonymous user - use cost-based localStorage tracking
+      const costUsed = await getLocalCostUsage();
       return {
-        costUsed: estimatedCost,
+        costUsed,
         isAuthenticated: false,
         dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
       };
     }
 
-    // Authenticated user - use Supabase
-    const today = new Date().toISOString().split('T')[0];
-    
+    // Authenticated user - use Supabase with current date
+    const today = getCurrentDate();
+
     // Get or create today's usage record
     const { data: usage, error } = await supabase
-      .from('daily_usage')
-      .select('cost_used')
-      .eq('user_id', user.id)
-      .eq('date', today)
+      .from("daily_usage")
+      .select("cost_used")
+      .eq("user_id", user.id)
+      .eq("date", today)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.warn('Error fetching usage data:', error);
+    if (error && error.code !== "PGRST116") {
+      console.warn("Error fetching usage data:", error);
       // Fallback to 0 if there's an error
       return {
         costUsed: 0,
@@ -83,13 +147,12 @@ export async function getUserUsageData(): Promise<UsageData> {
       dailyLimit: AUTHENTICATED_DAILY_COST_LIMIT,
     };
   } catch (error) {
-    console.warn('Error in getUserUsageData:', error);
+    console.warn("Error in getUserUsageData:", error);
     // Fallback to anonymous usage
-    const tokens = await getLocalTokenUsage();
-    const estimatedCost = calculateCost(tokens, 'gpt-3.5-turbo');
-    
+    const costUsed = await getLocalCostUsage();
+
     return {
-      costUsed: estimatedCost,
+      costUsed,
       isAuthenticated: false,
       dailyLimit: ANONYMOUS_DAILY_COST_LIMIT,
     };
@@ -99,67 +162,77 @@ export async function getUserUsageData(): Promise<UsageData> {
 /**
  * Add cost to the user's daily usage
  */
-export async function addCostUsage(tokens: number, model: ModelName): Promise<void> {
+export async function addCostUsage(
+  tokens: number,
+  model: ModelName
+): Promise<void> {
   const cost = calculateCost(tokens, model);
   const supabase = createClient();
-  
+
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
-      // Anonymous user - use localStorage (store tokens for backward compatibility)
-      await addLocalTokenUsage(tokens);
+      // Anonymous user - use cost-based localStorage
+      await addLocalCostUsage(cost);
       return;
     }
 
-    // Authenticated user - use Supabase
-    const today = new Date().toISOString().split('T')[0];
-    
+    // Authenticated user - use Supabase with current date
+    const today = getCurrentDate();
+
     // First, try to get existing usage
     const { data: existingUsage, error: selectError } = await supabase
-      .from('daily_usage')
-      .select('cost_used')
-      .eq('user_id', user.id)
-      .eq('date', today)
+      .from("daily_usage")
+      .select("cost_used")
+      .eq("user_id", user.id)
+      .eq("date", today)
       .single();
 
-    if (selectError && selectError.code !== 'PGRST116') {
-      console.warn('Error fetching existing usage:', selectError);
+    if (selectError && selectError.code !== "PGRST116") {
+      console.warn("Error fetching existing usage:", selectError);
       // Fallback to localStorage
-      await addLocalTokenUsage(tokens);
+      await addLocalCostUsage(cost);
       return;
     }
 
-    const newTotal = (existingUsage?.cost_used || 0) + cost;
+    const existingCost = existingUsage?.cost_used || 0;
+    const newTotal = existingCost + cost;
 
     // Upsert with the new total
-    const { error } = await supabase
-      .from('daily_usage')
-      .upsert({
+    const { error } = await supabase.from("daily_usage").upsert(
+      {
         user_id: user.id,
         date: today,
         cost_used: newTotal,
-      }, {
-        onConflict: 'user_id,date',
+      },
+      {
+        onConflict: "user_id,date",
         ignoreDuplicates: false,
-      });
+      }
+    );
 
     if (error) {
-      console.warn('Error updating usage in Supabase:', error);
+      console.warn("Error updating usage in Supabase:", error);
       // Fallback to localStorage
-      await addLocalTokenUsage(tokens);
+      await addLocalCostUsage(cost);
     }
   } catch (error) {
-    console.warn('Error in addCostUsage:', error);
+    console.warn("Error in addCostUsage:", error);
     // Fallback to localStorage
-    await addLocalTokenUsage(tokens);
+    await addLocalCostUsage(cost);
   }
 }
 
 /**
  * Legacy function for backward compatibility - now uses cost-based tracking
  */
-export async function addTokenUsage(tokens: number, model: ModelName = 'gpt-3.5-turbo'): Promise<void> {
+export async function addTokenUsage(
+  tokens: number,
+  model: ModelName = "gpt-3.5-turbo"
+): Promise<void> {
   await addCostUsage(tokens, model);
 }
 
@@ -174,10 +247,13 @@ export async function isTokenLimitReached(): Promise<boolean> {
 /**
  * Check if a request would exceed the daily cost limit
  */
-export async function wouldExceedTokenLimit(estimatedTokens: number, model: ModelName = 'gpt-4'): Promise<boolean> {
+export async function wouldExceedTokenLimit(
+  estimatedTokens: number,
+  model: ModelName = "gpt-4"
+): Promise<boolean> {
   const { costUsed, dailyLimit } = await getUserUsageData();
   const estimatedCost = calculateCost(estimatedTokens, model);
-  return (costUsed + estimatedCost) > dailyLimit;
+  return costUsed + estimatedCost > dailyLimit;
 }
 
 /**
@@ -216,8 +292,11 @@ export async function getUserStatus(): Promise<{
 }> {
   const data = await getUserUsageData();
   const remainingCost = Math.max(0, data.dailyLimit - data.costUsed);
-  const usagePercentage = calculateUsagePercentage(data.costUsed, data.dailyLimit);
-  
+  const usagePercentage = calculateUsagePercentage(
+    data.costUsed,
+    data.dailyLimit
+  );
+
   return {
     ...data,
     remainingCost,
