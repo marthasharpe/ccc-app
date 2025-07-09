@@ -78,7 +78,8 @@ Time: ${new Date().toISOString()}
     
     // Log detailed SendGrid error
     if (error && typeof error === 'object' && 'response' in error) {
-      console.error("SendGrid error details:", error.response?.body);
+      const errorWithResponse = error as { response?: { body?: unknown } };
+      console.error("SendGrid error details:", errorWithResponse.response?.body);
     }
     
     return NextResponse.json(
