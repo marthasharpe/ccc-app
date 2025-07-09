@@ -11,6 +11,7 @@ const baseTabs = [
   { href: "/search", label: "Search" },
   { href: "/plans", label: "Plans" },
   { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 const accountTab = { href: "/account", label: "Account" };
