@@ -13,7 +13,14 @@ interface SearchResponse {
 
 export default function SearchPage() {
   const router = useRouter();
-  const { searchState, setQuery, setResults, setIsLoading, setShouldFocusInput, clearSearch } = useSearch();
+  const {
+    searchState,
+    setQuery,
+    setResults,
+    setIsLoading,
+    setShouldFocusInput,
+    clearSearch,
+  } = useSearch();
   const { query, results, isLoading, shouldFocusInput } = searchState;
 
   const handleSearch = async (searchQuery: string) => {
@@ -74,13 +81,22 @@ export default function SearchPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">Search the Catechism</h1>
           <p className="text-lg">
-            Find passages from the Catechism of the Catholic Church
+            Find passages from the Catechism of the Catholic Church{" "}
+            <a 
+              href="/about" 
+              className="inline-flex items-center text-primary hover:text-primary/80 ml-1"
+              title="Learn more about the Catechism"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </a>
           </p>
         </div>
 
         <div className="mb-8">
-          <SearchBar 
-            onSearch={handleSearch} 
+          <SearchBar
+            onSearch={handleSearch}
             isLoading={isLoading}
             showNewSearchButton={results.length > 0 && !isLoading}
             onNewSearch={handleNewSearch}
@@ -89,50 +105,47 @@ export default function SearchPage() {
           />
         </div>
 
-            {isLoading && (
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-2 text-muted-foreground">Searching...</p>
-              </div>
-            )}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="mt-2 text-muted-foreground">Searching...</p>
+          </div>
+        )}
 
-            {query && !isLoading && (
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground">
-                  {results.length > 0
-                    ? `Top results for "${query}"`
-                    : `No results found for "${query}"`}
-                </p>
-              </div>
-            )}
+        {query && !isLoading && (
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground">
+              {results.length > 0
+                ? `Top results for "${query}"`
+                : `No results found for "${query}"`}
+            </p>
+          </div>
+        )}
 
-            {results.length > 0 && (
-              <div className="space-y-6">
-                {results.map((result) => (
-                  <div
-                    key={result.id}
-                    className="border rounded-lg p-6 bg-card hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() =>
-                      handleParagraphClick(result.paragraph_number)
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-primary">
-                        CCC {result.paragraph_number}
-                      </span>
-                    </div>
-                    <div className="text-foreground leading-relaxed">
-                      <FormatCCCContent
-                        content={result.content}
-                        onCCCClick={handleCCCClick}
-                        searchQuery={query}
-                      />
-                    </div>
-                  </div>
-                ))}
+        {results.length > 0 && (
+          <div className="space-y-6">
+            {results.map((result) => (
+              <div
+                key={result.id}
+                className="border rounded-lg p-6 bg-card hover:bg-muted/50 cursor-pointer transition-colors"
+                onClick={() => handleParagraphClick(result.paragraph_number)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-primary">
+                    CCC {result.paragraph_number}
+                  </span>
+                </div>
+                <div className="text-foreground leading-relaxed">
+                  <FormatCCCContent
+                    content={result.content}
+                    onCCCClick={handleCCCClick}
+                    searchQuery={query}
+                  />
+                </div>
               </div>
-            )}
-
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -35,15 +35,16 @@ export async function POST(request: NextRequest) {
     const sendGrid = getSendGrid();
 
     // Get recipient email from environment
-    const toEmail = process.env.CONTACT_EMAIL || process.env.SENDGRID_FROM_EMAIL;
+    const toEmail =
+      process.env.CONTACT_EMAIL || process.env.SENDGRID_FROM_EMAIL;
     if (!toEmail) {
       throw new Error("CONTACT_EMAIL or SENDGRID_FROM_EMAIL is not configured");
     }
 
     // Prepare email content
-    const emailSubject = `[TruthMeUp Contact] ${type}`;
+    const emailSubject = `Truth Me Up ${type}`;
     const emailBody = `
-New contact form submission from TruthMeUp:
+New contact form submission from Truth Me Up:
 
 Name: ${name}
 Email: ${email}
@@ -53,7 +54,7 @@ Message:
 ${message}
 
 ---
-Sent from TruthMeUp Contact Form
+Sent from Truth Me Up Contact Form
 Time: ${new Date().toISOString()}
 `;
 
@@ -62,7 +63,7 @@ Time: ${new Date().toISOString()}
       from: process.env.SENDGRID_FROM_EMAIL!,
       subject: emailSubject,
       text: emailBody,
-      html: emailBody.replace(/\n/g, '<br>'),
+      html: emailBody.replace(/\n/g, "<br>"),
       replyTo: email, // Allow easy reply to the sender
     };
 
@@ -75,13 +76,16 @@ Time: ${new Date().toISOString()}
     );
   } catch (error) {
     console.error("Error sending contact form:", error);
-    
+
     // Log detailed SendGrid error
-    if (error && typeof error === 'object' && 'response' in error) {
+    if (error && typeof error === "object" && "response" in error) {
       const errorWithResponse = error as { response?: { body?: unknown } };
-      console.error("SendGrid error details:", errorWithResponse.response?.body);
+      console.error(
+        "SendGrid error details:",
+        errorWithResponse.response?.body
+      );
     }
-    
+
     return NextResponse.json(
       { error: "Failed to send message. Please try again later." },
       { status: 500 }

@@ -142,7 +142,16 @@ export default function ChatPage() {
             Ask About Catholic Teaching
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
-            Get answers based on the Catechism of the Catholic Church
+            Get answers based on the Catechism of the Catholic Church{" "}
+            <a 
+              href="/about" 
+              className="inline-flex items-center text-primary hover:text-primary/80 ml-1"
+              title="Learn more about the Catechism"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </a>
           </p>
         </div>
 

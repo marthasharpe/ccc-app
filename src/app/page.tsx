@@ -19,18 +19,13 @@ export default function Home() {
           Learn About Catholic Teaching
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8">
-          Get answers about Catholic faith, morals, and spirituality.
-          <br className="hidden sm:block" />
-          <span className="sm:hidden"> </span>
-          Ask an AI assistant trained on the Catechism of the Catholic Church.
+          Get answers about faith, morals, and spirituality according to the
+          Catechism of the Catholic Church.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/chat">
-            <Button
-              size="sm"
-              className="text-lg px-8 py-3 w-full sm:w-76"
-            >
+            <Button size="sm" className="text-lg px-8 py-3 w-full sm:w-76">
               Ask a Question
             </Button>
           </Link>

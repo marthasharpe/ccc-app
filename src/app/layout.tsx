@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TruthMeUp - An Interactive Catechism",
+  title: "Truth Me Up - An Interactive Catechism",
   description:
     "Ask questions about Catholic doctrine and get answers based on the Catechism of the Catholic Church",
   icons: {
