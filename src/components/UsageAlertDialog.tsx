@@ -41,7 +41,7 @@ export function UsageAlertDialog({
               <li>Browse and search the Catechism (no usage limit)</li>
               {!userStatus?.isAuthenticated && (
                 <li>
-                  <strong>Sign in to get more usage</strong>
+                  <strong>Login to get more usage</strong>
                 </li>
               )}
               <li>Wait until tomorrow for your usage to reset</li>
@@ -52,7 +52,7 @@ export function UsageAlertDialog({
         <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
           {!userStatus?.isAuthenticated ? (
             <AlertDialogAction asChild>
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/auth/login">Login</Link>
             </AlertDialogAction>
           ) : (
             <AlertDialogAction asChild>

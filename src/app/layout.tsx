@@ -53,12 +53,12 @@ export default function RootLayout({
                 <div className="flex items-center">
                   <Image
                     src="/icon-transparent.svg"
-                    alt="TruthMeUp logo"
+                    alt="Truth Me Up logo"
                     width={40}
                     height={40}
                     className="w-10 h-10"
                   />
-                  <h1 className="text-lg">TruthMeUp</h1>
+                  <h1 className="text-lg">Truth Me Up</h1>
                 </div>
               </Link>
 

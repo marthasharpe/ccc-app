@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -81,7 +80,6 @@ export default function SearchBar({
             disabled={isLoading}
             className="w-full sm:w-auto shrink-0"
           >
-            <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
             Search
           </Button>
         )}

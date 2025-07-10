@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabaseService } from '@/lib/supabase';
+import { useState, useEffect } from "react";
+import { supabaseService } from "@/lib/supabase";
 
 export interface User {
   id: string;
@@ -16,17 +16,21 @@ export function useAuth() {
     // Get initial session
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabaseService.auth.getSession();
+        const {
+          data: { session },
+        } = await supabaseService.auth.getSession();
         if (session?.user) {
           setUser({
             id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
+            email: session.user.email || "",
+            name:
+              session.user.user_metadata?.name ||
+              session.user.user_metadata?.full_name,
           });
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error("Error getting session:", error);
       } finally {
         setIsLoading(false);
       }
@@ -35,22 +39,24 @@ export function useAuth() {
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabaseService.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.user_metadata?.full_name,
-          });
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-        setIsLoading(false);
+    const {
+      data: { subscription },
+    } = supabaseService.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || "",
+          name:
+            session.user.user_metadata?.name ||
+            session.user.user_metadata?.full_name,
+        });
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
-    );
+      setIsLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -69,7 +75,7 @@ export function useAuth() {
 
       return { user: data.user, error: null };
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error("Login error:", error);
       return { user: null, error: error as Error };
     } finally {
       setIsLoading(false);
@@ -96,7 +102,7 @@ export function useAuth() {
 
       return { user: data.user, error: null };
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error("Sign up error:", error);
       return { user: null, error: error as Error };
     } finally {
       setIsLoading(false);
@@ -107,7 +113,7 @@ export function useAuth() {
     try {
       setIsLoading(true);
       const { error } = await supabaseService.auth.signOut();
-      
+
       if (error) {
         throw error;
       }
@@ -116,7 +122,7 @@ export function useAuth() {
       setIsAuthenticated(false);
       return { error: null };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       return { error: error as Error };
     } finally {
       setIsLoading(false);

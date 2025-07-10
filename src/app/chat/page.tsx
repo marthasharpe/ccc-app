@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 // import {
 //   Select,
 //   SelectContent,
@@ -20,7 +21,6 @@ import {
   estimateTokens,
 } from "@/lib/usageTracking";
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
-import { cn } from "@/lib/utils";
 
 export default function ChatPage() {
   const {
@@ -42,15 +42,15 @@ export default function ChatPage() {
     remainingTokens: number;
     usagePercentage: number;
   } | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const handleClearQuestion = () => {
     clearChat();
-    // Focus the textarea after clearing
+    // Focus the input after clearing
     setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
+      if (inputRef.current) {
+        inputRef.current.focus();
       }
     }, 0);
   };
@@ -139,10 +139,10 @@ export default function ChatPage() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
-            Catholic Teaching Assistant
+            Ask About Catholic Teaching
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
-            AI responses are based on the Catechism of the Catholic Church
+            Get answers based on the Catechism of the Catholic Church
           </p>
         </div>
 
@@ -187,17 +187,11 @@ export default function ChatPage() {
                   ) : (
                     <>
                       <Button
-                        className="px-8"
-                        onClick={() => (window.location.href = "/auth/signup")}
-                      >
-                        Sign Up
-                      </Button>
-                      <Button
                         variant="outline"
                         className="px-8"
                         onClick={() => (window.location.href = "/auth/login")}
                       >
-                        Sign In
+                        Login
                       </Button>
                     </>
                   )}
@@ -206,77 +200,40 @@ export default function ChatPage() {
             ) : (
               /* Normal question input form */
               <form onSubmit={handleSubmit}>
-                {/* Text Input Area */}
-                <div className="mb-4">
-                  <textarea
-                    ref={textareaRef}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    ref={inputRef}
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Ask a question..."
                     disabled={isLoading}
-                    className={cn(
-                      "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex w-full min-w-0 rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                      "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-                      "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                      "min-h-[40px] max-h-[200px] resize-none"
-                    )}
                     maxLength={500}
-                    rows={3}
+                    className="flex-1"
                   />
-                </div>
-
-                {/* Bottom Controls */}
-                <div className="flex items-center justify-between">
-                  {/* Model Selector - Bottom Left */}
-                  {/* <div className="flex items-center gap-2 whitespace-nowrap">
-                    <Select
-                      value={selectedModel}
-                      onValueChange={(value) =>
-                        setSelectedModel(value as "gpt-4" | "gpt-3.5-turbo")
-                      }
+                  {question.trim() && (
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full sm:w-auto shrink-0"
                     >
-                      <SelectTrigger className="w-32" tabIndex={-1}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-3.5-turbo">
-                          short and sweet
-                        </SelectItem>
-                        <SelectItem value="gpt-4">more in-depth</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div> */}
-
-                  {/* Ask Button - Bottom Right */}
-                  <div className="flex items-center gap-2">
-                    {question.trim() && (
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        size="sm"
-                        className="px-6"
-                        tabIndex={0}
-                      >
-                        {isLoading ? (
-                          <svg
-                            className="w-4 h-4 animate-spin"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                          </svg>
-                        ) : (
-                          "Ask"
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                      {isLoading ? (
+                        <svg
+                          className="w-4 h-4 animate-spin mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      ) : null}
+                      Ask
+                    </Button>
+                  )}
                 </div>
               </form>
             )}

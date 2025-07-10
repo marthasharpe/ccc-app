@@ -4,7 +4,6 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -33,23 +32,44 @@ export default function LoginPage() {
     setIsLoading(false);
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // Try sign-in first
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      setError(error.message);
-    } else {
+    if (!signInError) {
       setMessage("Login successful! Redirecting...");
       router.push("/");
+      setIsLoading(false);
+      return;
     }
+
+    // If sign-in fails with "Invalid login credentials", try sign-up
+    if (signInError.message.includes("Invalid login credentials")) {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        setMessage("Account created! Check your email to verify your account.");
+      }
+    } else {
+      setError(signInError.message);
+    }
+
     setIsLoading(false);
   };
 
@@ -83,7 +103,9 @@ export default function LoginPage() {
     <div className="container mx-auto px-6 sm:px-4 py-16">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-4">Sign In</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-4">
+            Log In or Create an Account
+          </h1>
         </div>
 
         {error && (
@@ -139,14 +161,14 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          <form onSubmit={handleEmailAuth} className="space-y-4">
             <div>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
+                placeholder={"Email"}
                 required
               />
             </div>
@@ -156,16 +178,20 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={"Password"}
                 required
+                minLength={6}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Password must be at least 6 characters
+              </p>
             </div>
             <Button
               type="submit"
               disabled={isLoading}
               className="w-full cursor-pointer"
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
 
@@ -180,18 +206,6 @@ export default function LoginPage() {
               </button>
             </div>
           )}
-
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="text-primary hover:underline"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

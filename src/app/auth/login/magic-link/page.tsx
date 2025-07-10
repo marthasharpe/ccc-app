@@ -26,10 +26,10 @@ export default function MagicLinkPage() {
           <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-primary">
             Check Your Email!
           </h1>
-          
+
           <p className="text-muted-foreground mb-6">
-            We&apos;ve sent you a magic link. Click the link in your email to 
-            sign in instantly - no password required.
+            We&apos;ve sent you a magic link. Click the link in your email to
+            log in instantly - no password required.
           </p>
 
           <div className="bg-muted/30 border rounded-lg p-4 mb-6 text-sm">
@@ -37,23 +37,22 @@ export default function MagicLinkPage() {
             <ol className="text-left space-y-1 text-muted-foreground">
               <li>1. Check your email inbox</li>
               <li>2. Look for an email with your login link</li>
-              <li>3. Click the magic link to sign in</li>
-              <li>4. You&apos;ll be automatically signed in</li>
+              <li>3. Click the magic link to login</li>
+              <li>4. You&apos;ll be automatically logged in</li>
             </ol>
           </div>
 
           <p className="text-xs text-muted-foreground mb-6">
-            Don&apos;t see the email? Check your spam folder or try requesting another magic link.
+            Don&apos;t see the email? Check your spam folder or try requesting
+            another magic link.
           </p>
         </div>
 
         <div className="space-y-3">
           <Link href="/auth/login" className="block">
-            <Button className="w-full cursor-pointer">
-              Back to Sign In
-            </Button>
+            <Button className="w-full cursor-pointer">Back to Login</Button>
           </Link>
-          
+
           <Link href="/" className="block">
             <Button variant="outline" className="w-full cursor-pointer">
               Continue Browsing
