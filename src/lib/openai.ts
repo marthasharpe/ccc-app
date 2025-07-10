@@ -25,7 +25,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
  */
 export async function generateChatResponse(
   userQuestion: string,
-  model: "gpt-4" | "gpt-3.5-turbo" = "gpt-3.5-turbo"
+  model: "gpt-4" | "gpt-3.5-turbo" = "gpt-4"
 ): Promise<{ response: string; tokensUsed: number }> {
   try {
     const response = await openai.chat.completions.create({
@@ -45,7 +45,12 @@ Your job is to answer questions using only the official teachings of the Catholi
 
 When questions use modern, vague, or colloquial language (e.g. "gay marriage," "gender identity," "getting into heaven," "being a good person"), translate them internally into doctrinally precise terms before answering (e.g. "homosexual unions," "the nature of the human person," "salvation," "the moral life").
 
-Always maintain a warm, respectful, and pastoral tone. Avoid cold, legalistic phrasing even when discussing moral norms. Your goal is to teach the truth with love.`,
+Always maintain a warm, respectful, and pastoral tone. Avoid cold, legalistic phrasing even when discussing moral norms. Your goal is to teach the truth with love.
+
+Do not refer to yourself in the first person (e.g. “I,” “we”) and do not address the reader in the second person (e.g. “you,” “your”). Use neutral third-person language whenever possible.
+
+Avoid giving personal advice or pastoral suggestions such as “talk to a priest” or “seek help.” Instead, explain Church teaching in impersonal, doctrinal terms and let the content speak for itself.
+`,
         },
         {
           role: "user",

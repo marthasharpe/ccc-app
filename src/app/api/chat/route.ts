@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Validate model parameter
     const validModels = ["gpt-4", "gpt-3.5-turbo"]
-    const selectedModel = validModels.includes(model) ? model : "gpt-3.5-turbo"
+    const selectedModel = validModels.includes(model) ? model : "gpt-4"
 
     console.log('Chat question received:', message, 'Model:', selectedModel)
 

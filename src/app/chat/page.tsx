@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
 import {
   isTokenLimitReached,
-  addCostUsage,
+  addTokenUsage,
   wouldExceedTokenLimit,
   getUserStatus,
   estimateTokens,
@@ -35,13 +35,11 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [usagePercentage, setUsagePercentage] = useState(0);
-  const [estimatedTokensForRequest, setEstimatedTokensForRequest] = useState(0);
   const [userStatus, setUserStatus] = useState<{
     isAuthenticated: boolean;
     dailyLimit: number;
-    costUsed: number;
-    remainingCost: number;
+    tokensUsed: number;
+    remainingTokens: number;
     usagePercentage: number;
   } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -78,33 +76,23 @@ export default function ChatPage() {
     const limitReached = await isTokenLimitReached();
 
     setUserStatus(status);
-    setUsagePercentage(status.usagePercentage);
     setIsLimitReached(limitReached);
   };
-
-  useEffect(() => {
-    if (question.trim()) {
-      const estimated = estimateTokens(question);
-      setEstimatedTokensForRequest(estimated + 300);
-    } else {
-      setEstimatedTokensForRequest(0);
-    }
-  }, [question]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!question.trim() || isLoading) return;
 
-    // Prevent GPT-4 usage for MVP - force switch to GPT-3.5
-    if (selectedModel === "gpt-4") {
-      setSelectedModel("gpt-3.5-turbo");
+    // Default to GPT-4 for all users
+    if (selectedModel === "gpt-3.5-turbo") {
+      setSelectedModel("gpt-4");
       return;
     }
 
     // Check if request would exceed daily cost limit
     const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
-    const wouldExceed = await wouldExceedTokenLimit(estimated, selectedModel);
+    const wouldExceed = await wouldExceedTokenLimit(estimated);
     if (wouldExceed) {
       setShowLimitDialog(true);
       return;
@@ -133,7 +121,7 @@ export default function ChatPage() {
       setAnswer(data.response);
       // Add actual cost usage after successful response
       if (data.tokensUsed) {
-        await addCostUsage(data.tokensUsed, selectedModel);
+        await addTokenUsage(data.tokensUsed);
       }
       await updateUsageCount();
     } catch (error) {
@@ -240,7 +228,7 @@ export default function ChatPage() {
                 {/* Bottom Controls */}
                 <div className="flex items-center justify-between">
                   {/* Model Selector - Bottom Left */}
-                  <div className="flex items-center gap-2">
+                  {/* <div className="flex items-center gap-2 whitespace-nowrap">
                     <Select
                       value={selectedModel}
                       onValueChange={(value) =>
@@ -251,15 +239,13 @@ export default function ChatPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5</SelectItem>
-                        <SelectItem value="gpt-4" disabled>
-                          GPT-4.0
-                          <br />
-                          (Pro Plan)
+                        <SelectItem value="gpt-3.5-turbo">
+                          short and sweet
                         </SelectItem>
+                        <SelectItem value="gpt-4">more in-depth</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
 
                   {/* Ask Button - Bottom Right */}
                   <div className="flex items-center gap-2">
@@ -315,7 +301,9 @@ export default function ChatPage() {
         {isLoading && (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-muted-foreground">Thinking...</p>
+            <p className="mt-2 text-muted-foreground">
+              Consulting Catholic teaching...
+            </p>
           </div>
         )}
 
@@ -360,13 +348,6 @@ export default function ChatPage() {
         isOpen={showLimitDialog}
         onOpenChange={setShowLimitDialog}
         userStatus={userStatus}
-        selectedModel={selectedModel}
-        estimatedTokensForRequest={estimatedTokensForRequest}
-        usagePercentage={usagePercentage}
-        onSwitchToGPT35={() => {
-          setSelectedModel("gpt-3.5-turbo");
-          setShowLimitDialog(false);
-        }}
       />
     </div>
   );

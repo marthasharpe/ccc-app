@@ -74,13 +74,6 @@ export default function PlansPage() {
       maxUsers: "1 person",
     },
     {
-      name: "Advanced",
-      price: "$19.99",
-      period: "per month",
-      description: "Get more in-depth responses from GPT-4.0",
-      maxUsers: "1 person",
-    },
-    {
       name: "Small Group",
       price: "$39.99",
       period: "per month",
@@ -116,7 +109,7 @@ export default function PlansPage() {
         </div>
 
         {/* Plans Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map((plan) => (
             <div
               key={plan.name}

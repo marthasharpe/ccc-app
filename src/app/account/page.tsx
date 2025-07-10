@@ -13,8 +13,8 @@ export default function AccountPage() {
   const [userStatus, setUserStatus] = useState<{
     isAuthenticated: boolean;
     dailyLimit: number;
-    costUsed: number;
-    remainingCost: number;
+    tokensUsed: number;
+    remainingTokens: number;
     usagePercentage: number;
   } | null>(null);
   const router = useRouter();
