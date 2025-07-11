@@ -19,10 +19,11 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
 
@@ -53,11 +54,12 @@ export default function LoginPage() {
 
     // If sign-in fails with "Invalid login credentials", try sign-up
     if (signInError.message.includes("Invalid login credentials")) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${baseUrl}/auth/callback`,
         },
       });
 
@@ -83,10 +85,11 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(null);
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${baseUrl}/auth/callback`,
       },
     });
 
