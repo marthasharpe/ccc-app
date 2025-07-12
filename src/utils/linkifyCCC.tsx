@@ -80,7 +80,15 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
           display: 'inline',
           font: 'inherit',
           lineHeight: 'inherit',
-          verticalAlign: 'baseline'
+          verticalAlign: 'baseline',
+          fontSize: 'inherit',
+          fontFamily: 'inherit',
+          textDecoration: 'inherit',
+          outline: 'none',
+          WebkitAppearance: 'none',
+          appearance: 'none',
+          minHeight: 'auto',
+          height: 'auto'
         }}
         title={`Click to read CCC ${numberPart}`}
       >

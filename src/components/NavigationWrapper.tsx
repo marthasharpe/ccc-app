@@ -9,12 +9,13 @@ import { MobileNav } from "./MobileNav";
 const baseTabs = [
   { href: "/chat", label: "Ask" },
   { href: "/search", label: "Search" },
-  { href: "/plans", label: "Plans" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
-const accountTab = { href: "/account", label: "Account" };
+const authedTabs = [
+  { href: "/account", label: "Account" },
+];
 
 export function NavigationWrapper() {
   const [user, setUser] = useState<User | null>(null);
@@ -42,7 +43,7 @@ export function NavigationWrapper() {
   }, [supabase.auth]);
 
   // Add account tab only if user is authenticated
-  const tabs = user ? [...baseTabs, accountTab] : baseTabs;
+  const tabs = user ? [...baseTabs, ...authedTabs] : baseTabs;
 
   return (
     <>

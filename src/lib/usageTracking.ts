@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 
 // Daily token limits
-const ANONYMOUS_DAILY_TOKEN_LIMIT = 1500;
-const AUTHENTICATED_DAILY_TOKEN_LIMIT = 1500;
+const ANONYMOUS_DAILY_TOKEN_LIMIT = 3000;
+const AUTHENTICATED_DAILY_TOKEN_LIMIT = 3000;
 const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid plans
 
 // Anonymous user storage key
@@ -111,17 +111,17 @@ export async function getUserUsageData(): Promise<UsageData> {
       };
     }
 
-    // Check for active subscription
+    // Check for active subscription (includes "canceling" status since they keep access until period end)
     const { data: subscription } = await supabase
       .from("user_subscriptions")
       .select("plan_name, status")
       .eq("user_id", user.id)
-      .eq("status", "active")
+      .in("status", ["active", "canceling"])
       .single();
 
     const hasActiveSubscription = !!subscription;
-    const dailyLimit = hasActiveSubscription 
-      ? UNLIMITED_DAILY_TOKEN_LIMIT 
+    const dailyLimit = hasActiveSubscription
+      ? UNLIMITED_DAILY_TOKEN_LIMIT
       : AUTHENTICATED_DAILY_TOKEN_LIMIT;
 
     // Authenticated user - use Supabase with current date
@@ -136,7 +136,14 @@ export async function getUserUsageData(): Promise<UsageData> {
       .single();
 
     if (error && error.code !== "PGRST116") {
-      console.warn("Error fetching usage data:", error);
+      console.warn("Error fetching usage data:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        error,
+      });
+      // Handle RLS permission errors (406) and other database errors
       // Fallback to 0 if there's an error
       return {
         tokensUsed: 0,
@@ -171,9 +178,7 @@ export async function getUserUsageData(): Promise<UsageData> {
 /**
  * Add tokens to the user's daily usage
  */
-export async function addTokenUsage(
-  tokens: number
-): Promise<void> {
+export async function addTokenUsage(tokens: number): Promise<void> {
   const supabase = createClient();
 
   try {

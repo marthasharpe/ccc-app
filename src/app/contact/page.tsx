@@ -34,7 +34,11 @@ export default function ContactPage() {
 
         <div className="text-center text-lg space-y-6">
           <p className="mb-6">Have a question, feedback, or bug report?</p>
-          <Button onClick={handleEmailClick} className="w-full max-w-40">
+          <Button
+            size="sm"
+            onClick={handleEmailClick}
+            className="w-full max-w-40"
+          >
             Send Email
           </Button>
         </div>

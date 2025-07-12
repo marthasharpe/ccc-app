@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getRedirectFromQuery } from "@/lib/redirectUtils";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,8 +13,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string>("/");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    // Get redirect URL from query parameters
+    const redirect = getRedirectFromQuery(searchParams);
+    if (redirect) {
+      setRedirectUrl(redirect);
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -23,7 +34,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
       },
     });
 
@@ -47,7 +58,7 @@ export default function LoginPage() {
 
     if (!signInError) {
       setMessage("Login successful! Redirecting...");
-      router.push("/");
+      router.push(redirectUrl);
       setIsLoading(false);
       return;
     }
@@ -59,7 +70,7 @@ export default function LoginPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${baseUrl}/auth/callback`,
+          emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
         },
       });
 
@@ -89,7 +100,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${baseUrl}/auth/callback`,
+        emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
       },
     });
 
@@ -164,8 +175,8 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-4">
-            <div>
+          <form onSubmit={handleEmailAuth} className="space-y-4" suppressHydrationWarning>
+            <div suppressHydrationWarning>
               <Input
                 id="email"
                 type="email"
@@ -173,9 +184,10 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={"Email"}
                 required
+                autoComplete="email"
               />
             </div>
-            <div>
+            <div suppressHydrationWarning>
               <Input
                 id="password"
                 type="password"
@@ -184,6 +196,7 @@ export default function LoginPage() {
                 placeholder={"Password"}
                 required
                 minLength={6}
+                autoComplete="current-password"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Password must be at least 6 characters

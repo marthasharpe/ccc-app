@@ -5,19 +5,35 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { createLoginUrl } from "@/lib/redirectUtils";
+import { getUserStatus } from "@/lib/usageTracking";
 
 export default function PlansPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    // Get initial user
+    // Get initial user and subscription status
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
+
+      if (user) {
+        // Check subscription status
+        const status = await getUserStatus();
+        setHasActiveSubscription(status.hasActiveSubscription);
+        setCurrentPlanName(status.planName || null);
+      } else {
+        setHasActiveSubscription(false);
+        setCurrentPlanName(null);
+      }
+      setIsLoading(false);
     };
 
     getUser();
@@ -25,8 +41,19 @@ export default function PlansPage() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+
+      if (session?.user) {
+        // Check subscription status when user changes
+        const status = await getUserStatus();
+        setHasActiveSubscription(status.hasActiveSubscription);
+        setCurrentPlanName(status.planName || null);
+      } else {
+        setHasActiveSubscription(false);
+        setCurrentPlanName(null);
+      }
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -35,8 +62,12 @@ export default function PlansPage() {
   const handleGetStarted = async (planName: string) => {
     if (!user) {
       // Redirect to login with current page as redirect parameter
-      const currentUrl = window.location.pathname;
-      router.push(`/auth/login?redirect=${encodeURIComponent(currentUrl)}`);
+      router.push(createLoginUrl());
+      return;
+    }
+
+    // Don't allow new subscriptions if user already has one
+    if (hasActiveSubscription) {
       return;
     }
 
@@ -89,23 +120,64 @@ export default function PlansPage() {
     },
   ];
 
+  const getButtonText = (planName: string) => {
+    return planName === "Individual" ? "Get Started" : "Coming Soon";
+  };
+
+  const isButtonDisabled = (planName: string) => {
+    return planName !== "Individual";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="animate-pulse space-y-8">
+            <div className="text-center">
+              <div className="h-8 bg-muted rounded w-1/3 mx-auto mb-4"></div>
+              <div className="h-6 bg-muted rounded w-2/3 mx-auto"></div>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-64 bg-muted rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold mb-4">Choose Your Plan</h1>
-          <p className="text-lg max-w-2xl mx-auto">
-            This feature is coming soon. Want to support this project?{" "}
-            <a
-              href="https://coff.ee/marthasharpe"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              Donate to the developer
-            </a>
-          </p>
+          {hasActiveSubscription ? (
+            <p className="text-lg max-w-2xl mx-auto">
+              To change plans, please cancel your current subscription from your{" "}
+              <button
+                onClick={() => router.push("/account")}
+                className="text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer"
+              >
+                account
+              </button>{" "}
+              page.
+            </p>
+          ) : (
+            <p className="text-lg max-w-2xl mx-auto">
+              This feature is coming soon. Want to support this project?{" "}
+              <a
+                href="https://coff.ee/marthasharpe"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                Donate to the developer
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Plans Cards */}
@@ -113,10 +185,19 @@ export default function PlansPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className="relative rounded-lg border border-primary bg-primary/5 shadow-lg scale-105 p-8"
+              className={`relative rounded-lg border shadow-lg scale-105 p-8 flex flex-col border-primary`}
             >
+              {/* Current Plan Badge */}
+              {hasActiveSubscription && currentPlanName === plan.name && (
+                <div className="absolute top-4 right-4">
+                  <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                    Current
+                  </span>
+                </div>
+              )}
+
               {/* Plan Header */}
-              <div className="text-center mb-6">
+              <div className="text-center mb-6 flex-grow">
                 <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                 <p className="text-muted-foreground mb-4">{plan.description}</p>
                 <div className="mb-2">
@@ -129,13 +210,19 @@ export default function PlansPage() {
               </div>
 
               {/* CTA Button */}
-              <Button
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled
-                onClick={() => handleGetStarted(plan.name)}
-              >
-                Coming Soon
-              </Button>
+              {!hasActiveSubscription && (
+                <Button
+                  className={`w-full mt-auto ${
+                    hasActiveSubscription && currentPlanName === plan.name
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-primary hover:bg-primary/90"
+                  }`}
+                  disabled={isButtonDisabled(plan.name)}
+                  onClick={() => handleGetStarted(plan.name)}
+                >
+                  {getButtonText(plan.name)}
+                </Button>
+              )}
             </div>
           ))}
         </div>

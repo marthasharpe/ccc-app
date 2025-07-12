@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 // Initialize Stripe only if the secret key is available
 const getStripe = () => {
@@ -37,7 +37,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    // Create Supabase client with service role for webhook operations (bypasses RLS)
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
 
     // Handle the event
     switch (event.type) {
@@ -62,8 +72,6 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error("Failed to update user subscription:", error);
-          } else {
-            console.log("User subscription updated successfully");
           }
         }
         break;
@@ -71,11 +79,17 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.updated":
         const subscription = event.data.object as Stripe.Subscription;
 
+        // Determine the appropriate status
+        let dbStatus: string = subscription.status;
+        if (subscription.cancel_at_period_end && subscription.status === 'active') {
+          dbStatus = 'canceling'; // Active but set to cancel at period end
+        }
+
         // Update subscription status in database
         const { error: updateError } = await supabase
           .from("user_subscriptions")
           .update({
-            status: subscription.status,
+            status: dbStatus,
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
@@ -98,10 +112,7 @@ export async function POST(request: NextRequest) {
           .eq("stripe_subscription_id", deletedSubscription.id);
 
         if (deleteError) {
-          console.error(
-            "Failed to mark subscription as cancelled:",
-            deleteError
-          );
+          console.error("Failed to mark subscription as cancelled:", deleteError);
         }
         break;
 
