@@ -1,30 +1,19 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getRedirectFromQuery } from "@/lib/redirectUtils";
+import { useRouter } from "next/navigation";
 
-function LoginForm() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [redirectUrl, setRedirectUrl] = useState<string>("/");
   const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = createClient();
-
-  useEffect(() => {
-    // Get redirect URL from query parameters
-    const redirect = getRedirectFromQuery(searchParams);
-    if (redirect) {
-      setRedirectUrl(redirect);
-    }
-  }, [searchParams]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -34,7 +23,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
 
@@ -58,7 +47,7 @@ function LoginForm() {
 
     if (!signInError) {
       setMessage("Login successful! Redirecting...");
-      router.push(redirectUrl);
+      router.push("/");
       setIsLoading(false);
       return;
     }
@@ -70,7 +59,7 @@ function LoginForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
+          emailRedirectTo: `${baseUrl}/auth/callback`,
         },
       });
 
@@ -100,7 +89,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`,
+        emailRedirectTo: `${baseUrl}/auth/callback`,
       },
     });
 
@@ -225,26 +214,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="container mx-auto px-6 sm:px-4 py-16">
-        <div className="max-w-md mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-2/3 mx-auto"></div>
-            <div className="space-y-4">
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
   );
 }

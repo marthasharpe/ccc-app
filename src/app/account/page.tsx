@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import { getUserStatus } from "@/lib/usageTracking";
-import { createLoginUrl } from "@/lib/redirectUtils";
 
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +34,7 @@ export default function AccountPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push(createLoginUrl());
+        router.push("/auth/login");
         return;
       }
       setUser(user);

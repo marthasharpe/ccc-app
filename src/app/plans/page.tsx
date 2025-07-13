@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { createLoginUrl } from "@/lib/redirectUtils";
 import { getUserStatus } from "@/lib/usageTracking";
 
 export default function PlansPage() {
@@ -61,8 +60,8 @@ export default function PlansPage() {
 
   const handleGetStarted = async (planName: string) => {
     if (!user) {
-      // Redirect to login with current page as redirect parameter
-      router.push(createLoginUrl());
+      // Redirect to login
+      router.push("/auth/login");
       return;
     }
 
