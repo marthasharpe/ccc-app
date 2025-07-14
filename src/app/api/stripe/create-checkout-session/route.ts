@@ -24,10 +24,23 @@ const getPlanPriceIds = () => {
 export async function POST(request: NextRequest) {
   try {
     const { planName } = await request.json();
+    
+    console.log("Creating checkout session for plan:", planName);
+
+    // Validate required environment variables
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error("STRIPE_SECRET_KEY is missing");
+      return NextResponse.json(
+        { error: "Stripe configuration error" },
+        { status: 500 }
+      );
+    }
 
     // Initialize Stripe and get price IDs
     const stripe = getStripe();
     const PLAN_PRICE_IDS = getPlanPriceIds();
+    
+    console.log("Available price IDs:", Object.keys(PLAN_PRICE_IDS));
 
     // Get the authenticated user
     const supabase = await createClient();
@@ -37,18 +50,24 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error("Authentication error:", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    console.log("User authenticated:", user.id);
 
     // Get the price ID for the selected plan
     const priceId = PLAN_PRICE_IDS[planName as keyof typeof PLAN_PRICE_IDS];
 
     if (!priceId) {
+      console.error("Price ID not found for plan:", planName, "Available plans:", Object.keys(PLAN_PRICE_IDS));
       return NextResponse.json(
-        { error: "Invalid plan selected" },
+        { error: `Invalid plan selected: ${planName}` },
         { status: 400 }
       );
     }
+
+    console.log("Using price ID:", priceId);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -106,11 +125,33 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log("Checkout session created successfully:", session.id);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Error creating checkout session:", error);
+    
+    // Enhanced error logging for different error types
+    if (error instanceof Error) {
+      console.error("Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
+    
+    // Check if it's a Stripe-specific error
+    if (error && typeof error === 'object' && 'type' in error) {
+      const stripeError = error as { type?: string; code?: string; message?: string };
+      console.error("Stripe error type:", stripeError.type);
+      console.error("Stripe error code:", stripeError.code);
+      console.error("Stripe error message:", stripeError.message);
+    }
+    
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { 
+        error: "Failed to create checkout session",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
