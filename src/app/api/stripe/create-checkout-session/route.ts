@@ -24,23 +24,10 @@ const getPlanPriceIds = () => {
 export async function POST(request: NextRequest) {
   try {
     const { planName } = await request.json();
-    
-    console.log("Creating checkout session for plan:", planName);
-
-    // Validate required environment variables
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error("STRIPE_SECRET_KEY is missing");
-      return NextResponse.json(
-        { error: "Stripe configuration error" },
-        { status: 500 }
-      );
-    }
 
     // Initialize Stripe and get price IDs
     const stripe = getStripe();
     const PLAN_PRICE_IDS = getPlanPriceIds();
-    
-    console.log("Available price IDs:", Object.keys(PLAN_PRICE_IDS));
 
     // Get the authenticated user
     const supabase = await createClient();
@@ -50,24 +37,18 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error("Authentication error:", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    console.log("User authenticated:", user.id);
 
     // Get the price ID for the selected plan
     const priceId = PLAN_PRICE_IDS[planName as keyof typeof PLAN_PRICE_IDS];
 
     if (!priceId) {
-      console.error("Price ID not found for plan:", planName, "Available plans:", Object.keys(PLAN_PRICE_IDS));
       return NextResponse.json(
-        { error: `Invalid plan selected: ${planName}` },
+        { error: "Invalid plan selected" },
         { status: 400 }
       );
     }
-
-    console.log("Using price ID:", priceId);
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -84,14 +65,6 @@ export async function POST(request: NextRequest) {
       metadata: {
         userId: user.id,
         planName: planName,
-      },
-      payment_intent_data: {
-        description: `Truth Me Up ${planName} Plan Subscription`,
-        metadata: {
-          app_name: 'Truth Me Up',
-          plan_type: planName,
-          user_id: user.id,
-        },
       },
       subscription_data: {
         description: `Truth Me Up ${planName} Plan`,
@@ -125,7 +98,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("Checkout session created successfully:", session.id);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Error creating checkout session:", error);
