@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       .select("id, user_id, prompt, response, tokens_used, created_at")
       .eq("user_id", user.id)
       .textSearch("tsv", query, {
-        type: "plainto",
+        type: "plain",
         config: "english",
       })
       .order("created_at", { ascending: false })
