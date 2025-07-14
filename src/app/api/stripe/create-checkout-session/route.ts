@@ -66,6 +66,44 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         planName: planName,
       },
+      payment_intent_data: {
+        description: `Truth Me Up ${planName} Plan Subscription`,
+        metadata: {
+          app_name: 'Truth Me Up',
+          plan_type: planName,
+          user_id: user.id,
+        },
+      },
+      subscription_data: {
+        description: `Truth Me Up ${planName} Plan`,
+        metadata: {
+          app_name: 'Truth Me Up',
+          plan_type: planName,
+          user_id: user.id,
+          user_email: user.email || '',
+        },
+      },
+      custom_text: {
+        submit: { 
+          message: `Thank you for subscribing to Truth Me Up! You're supporting Catholic education and deepening your faith journey.` 
+        },
+      },
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: `Truth Me Up ${planName} Plan Subscription`,
+          custom_fields: [
+            { name: 'Service', value: 'Truth Me Up - Interactive Catechism' },
+            { name: 'Plan Type', value: planName },
+          ],
+          footer: 'Thank you for supporting Catholic education with Truth Me Up!',
+          metadata: {
+            app_name: 'Truth Me Up',
+            plan_type: planName,
+            user_id: user.id,
+          },
+        },
+      },
     });
 
     return NextResponse.json({ url: session.url });

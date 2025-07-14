@@ -19,9 +19,6 @@ export default function AccountPage() {
     hasActiveSubscription: boolean;
     planName?: string;
   } | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
-    null
-  );
   const [isCanceling, setIsCanceling] = useState(false);
   const [cancelMessage, setCancelMessage] = useState<string | null>(null);
   const router = useRouter();
@@ -43,16 +40,6 @@ export default function AccountPage() {
       console.log("status", status);
       setUserStatus(status);
 
-      // Get detailed subscription status
-      if (status.hasActiveSubscription) {
-        const { data: subscription } = await supabase
-          .from("user_subscriptions")
-          .select("status")
-          .eq("user_id", user.id)
-          .in("status", ["active", "canceling"])
-          .single();
-        setSubscriptionStatus(subscription?.status || "active");
-      }
 
       setIsLoading(false);
     };
@@ -156,35 +143,25 @@ export default function AccountPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      {subscriptionStatus === "canceling" ? (
-                        <div className="text-sm text-orange-600 font-medium">
-                          ⏳ Canceling
-                        </div>
-                      ) : (
-                        <div className="text-sm text-green-600 font-medium">
-                          ✓ Active
-                        </div>
-                      )}
+                      <div className="text-sm text-green-600 font-medium">
+                        ✓ Active
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-primary/20">
                     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
                       <div className="text-sm text-muted-foreground">
-                        {subscriptionStatus === "canceling"
-                          ? "Plan will cancel at the end of your billing period"
-                          : "Manage your subscription"}
+                        Manage your subscription
                       </div>
-                      {subscriptionStatus !== "canceling" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCancelSubscription}
-                          disabled={isCanceling}
-                          className="text-destructive hover:text-destructive cursor-pointer"
-                        >
-                          {isCanceling ? "Canceling..." : "Cancel Plan"}
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelSubscription}
+                        disabled={isCanceling}
+                        className="text-destructive hover:text-destructive cursor-pointer"
+                      >
+                        {isCanceling ? "Canceling..." : "Cancel Plan"}
+                      </Button>
                     </div>
                   </div>
                 </div>

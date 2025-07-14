@@ -111,12 +111,12 @@ export async function getUserUsageData(): Promise<UsageData> {
       };
     }
 
-    // Check for active subscription (includes "canceling" status since they keep access until period end)
+    // Check for active subscription
     const { data: subscription } = await supabase
       .from("user_subscriptions")
       .select("plan_name, status")
       .eq("user_id", user.id)
-      .in("status", ["active", "canceling"])
+      .eq("status", "active")
       .single();
 
     const hasActiveSubscription = !!subscription;

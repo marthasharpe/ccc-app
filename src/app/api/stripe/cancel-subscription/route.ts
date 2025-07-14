@@ -43,19 +43,16 @@ export async function POST() {
     // Initialize Stripe
     const stripe = getStripe();
 
-    // Cancel the subscription at period end (so user keeps access until billing cycle ends)
-    const canceledSubscription = await stripe.subscriptions.update(
-      subscription.stripe_subscription_id,
-      {
-        cancel_at_period_end: true,
-      }
+    // Cancel the subscription immediately
+    await stripe.subscriptions.cancel(
+      subscription.stripe_subscription_id
     );
 
-    // Update subscription status in database to 'canceling'
+    // Update subscription status in database to 'cancelled'
     const { error: updateError } = await supabase
       .from("user_subscriptions")
       .update({
-        status: "canceling",
+        status: "cancelled",
         updated_at: new Date().toISOString(),
       })
       .eq("stripe_subscription_id", subscription.stripe_subscription_id);
@@ -67,8 +64,8 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: `Your ${subscription.plan_name} plan will be canceled at the end of your current billing period.`,
-      cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
+      message: `Your ${subscription.plan_name} plan has been canceled immediately.`,
+      canceled: true,
     });
   } catch (error) {
     console.error("Error canceling subscription:", error);

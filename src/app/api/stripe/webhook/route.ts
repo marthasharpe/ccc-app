@@ -79,17 +79,11 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.updated":
         const subscription = event.data.object as Stripe.Subscription;
 
-        // Determine the appropriate status
-        let dbStatus: string = subscription.status;
-        if (subscription.cancel_at_period_end && subscription.status === 'active') {
-          dbStatus = 'canceling'; // Active but set to cancel at period end
-        }
-
-        // Update subscription status in database
+        // Update subscription status in database (direct mapping from Stripe status)
         const { error: updateError } = await supabase
           .from("user_subscriptions")
           .update({
-            status: dbStatus,
+            status: subscription.status, // active, canceled, past_due, etc.
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_subscription_id", subscription.id);
