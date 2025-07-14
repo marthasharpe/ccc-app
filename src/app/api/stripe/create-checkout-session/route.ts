@@ -50,6 +50,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate price ID format (should start with price_)
+    if (!priceId.startsWith('price_')) {
+      return NextResponse.json(
+        { error: "Invalid price ID configuration" },
+        { status: 500 }
+      );
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -61,7 +69,7 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       success_url: `${request.nextUrl.origin}/account?success=true`,
       cancel_url: `${request.nextUrl.origin}/plans?canceled=true`,
-      customer_email: user.email,
+      customer_email: user.email || undefined,
       metadata: {
         userId: user.id,
         planName: planName,
