@@ -82,10 +82,6 @@ export default function ParagraphPage() {
     }
   };
 
-  const handleBackToSearch = () => {
-    router.push("/search");
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -161,12 +157,6 @@ export default function ParagraphPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button onClick={handleBackToSearch} variant="outline" size="sm">
-              ← Back to Search
-            </Button>
-          </div>
-
           <div className="border rounded-lg p-6 bg-card">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-semibold text-primary">

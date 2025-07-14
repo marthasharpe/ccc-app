@@ -12,27 +12,37 @@ export default function PlansPage() {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
     // Get initial user and subscription status
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
 
-      if (user) {
-        // Check subscription status
-        const status = await getUserStatus();
-        setHasActiveSubscription(status.hasActiveSubscription);
-        setCurrentPlanName(status.planName || null);
-      } else {
+        if (user) {
+          // Check subscription status
+          const status = await getUserStatus();
+          setHasActiveSubscription(status.hasActiveSubscription);
+          setCurrentPlanName(status.planName || null);
+        } else {
+          setHasActiveSubscription(false);
+          setCurrentPlanName(null);
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        // Set defaults on error
         setHasActiveSubscription(false);
         setCurrentPlanName(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     getUser();
@@ -41,18 +51,25 @@ export default function PlansPage() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
+      try {
+        setUser(session?.user ?? null);
 
-      if (session?.user) {
-        // Check subscription status when user changes
-        const status = await getUserStatus();
-        setHasActiveSubscription(status.hasActiveSubscription);
-        setCurrentPlanName(status.planName || null);
-      } else {
+        if (session?.user) {
+          // Check subscription status when user changes
+          const status = await getUserStatus();
+          setHasActiveSubscription(status.hasActiveSubscription);
+          setCurrentPlanName(status.planName || null);
+        } else {
+          setHasActiveSubscription(false);
+          setCurrentPlanName(null);
+        }
+      } catch (error) {
+        console.error("Error in auth state change:", error);
         setHasActiveSubscription(false);
         setCurrentPlanName(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -70,6 +87,9 @@ export default function PlansPage() {
       return;
     }
 
+    setCheckoutLoading(planName);
+    setError(null);
+
     try {
       // Create Stripe checkout session
       const response = await fetch("/api/stripe/create-checkout-session", {
@@ -86,12 +106,17 @@ export default function PlansPage() {
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        console.error("Failed to create checkout session:", data.error);
-        // TODO: Show error message to user
+        setError(
+          data.error || "Failed to create checkout session. Please try again."
+        );
       }
     } catch (error) {
-      console.error("Error starting subscription:", error);
-      // TODO: Show error message to user
+      console.error("Error creating checkout session:", error);
+      setError(
+        "Something went wrong while setting up your subscription. Please check your connection and try again."
+      );
+    } finally {
+      setCheckoutLoading(null);
     }
   };
 
@@ -105,14 +130,14 @@ export default function PlansPage() {
     },
     {
       name: "Small Group",
-      price: "$39.99",
+      price: "$24.99",
       period: "per month",
       description: "Ideal for Bible studies, families, or small groups",
       maxUsers: "Up to 10 people",
     },
     {
       name: "Large Group",
-      price: "$299.99",
+      price: "$149.99",
       period: "per month",
       description: "Designed for parishes, schools, and organizations",
       maxUsers: "Up to 100 people",
@@ -166,7 +191,9 @@ export default function PlansPage() {
             </p>
           ) : (
             <p className="text-lg max-w-2xl mx-auto">
-              This feature is coming soon. Want to support this project?{" "}
+              Get unlimited usage and other features.
+              <br />
+              Want to support this project?{" "}
               <a
                 href="https://coff.ee/marthasharpe"
                 target="_blank"
@@ -178,6 +205,39 @@ export default function PlansPage() {
             </p>
           )}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-8 max-w-2xl mx-auto">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5 text-destructive"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <p className="text-destructive font-medium">Payment Error</p>
+              </div>
+              <p className="text-destructive/80 mt-1">{error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setError(null)}
+                className="mt-3 border-destructive/20 text-destructive hover:bg-destructive/10"
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Plans Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -216,10 +276,19 @@ export default function PlansPage() {
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
-                  disabled={isButtonDisabled(plan.name)}
+                  disabled={
+                    isButtonDisabled(plan.name) || checkoutLoading !== null
+                  }
                   onClick={() => handleGetStarted(plan.name)}
                 >
-                  {getButtonText(plan.name)}
+                  {checkoutLoading === plan.name ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    getButtonText(plan.name)
+                  )}
                 </Button>
               )}
             </div>

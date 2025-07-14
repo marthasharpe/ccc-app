@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Bookmark, BookmarkCheck, Copy, Check } from "lucide-react";
 // import {
 //   Select,
 //   SelectContent,
@@ -21,6 +22,7 @@ import {
   estimateTokens,
 } from "@/lib/usageTracking";
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
+import { copyResponseToClipboard } from "@/utils/copyResponse";
 
 export default function ChatPage() {
   const {
@@ -42,11 +44,19 @@ export default function ChatPage() {
     remainingTokens: number;
     usagePercentage: number;
   } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const handleClearQuestion = () => {
     clearChat();
+    setIsSaved(false);
+    setIsSaving(false);
+    setIsCopied(false);
+    setIsCopying(false);
     // Focus the input after clearing
     setTimeout(() => {
       if (inputRef.current) {
@@ -77,6 +87,57 @@ export default function ChatPage() {
 
     setUserStatus(status);
     setIsLimitReached(limitReached);
+  };
+
+  const saveResponse = async () => {
+    if (!submittedQuestion || !answer || isSaving || isSaved) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/user-responses/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: submittedQuestion,
+          response: answer,
+          tokensUsed: 0, // We don't have this data in chat context
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save response");
+      }
+
+      if (data.success) {
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error("Error saving response:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const copyResponse = async () => {
+    if (!submittedQuestion || !answer || isCopying) return;
+
+    setIsCopying(true);
+    try {
+      const success = await copyResponseToClipboard(submittedQuestion, answer);
+      if (success) {
+        setIsCopied(true);
+        // Reset copied state after 2 seconds
+        setTimeout(() => setIsCopied(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error copying response:", error);
+    } finally {
+      setIsCopying(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,19 +204,29 @@ export default function ChatPage() {
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
             Get answers based on the Catechism of the Catholic Church{" "}
-            <a 
-              href="/about" 
+            <a
+              href="/about"
               className="inline-flex items-center text-primary hover:text-primary/80 ml-1"
               title="Learn more about the Catechism"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </a>
           </p>
         </div>
 
-        {/* Question Input - New Layout (only show when no answer) */}
+        {/* Question Input (only show when no answer) */}
         {!answer && (
           <div className="mb-8 w-full max-w-2xl mx-auto">
             {isLimitReached ? (
@@ -225,21 +296,6 @@ export default function ChatPage() {
                       disabled={isLoading}
                       className="w-full sm:w-auto shrink-0"
                     >
-                      {isLoading ? (
-                        <svg
-                          className="w-4 h-4 animate-spin mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                      ) : null}
                       Ask
                     </Button>
                   )}
@@ -291,10 +347,44 @@ export default function ChatPage() {
 
               {/* Response Section */}
               <div>
-                <div className="flex items-center mb-3">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-primary">
                     Response:
                   </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyResponse}
+                      disabled={isCopying}
+                      className="h-8 w-8 p-0 hover:bg-muted"
+                      title={isCopied ? "Copied!" : "Copy response"}
+                    >
+                      {isCopying ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      ) : isCopied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={saveResponse}
+                      disabled={isSaving || isSaved}
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                      title={isSaved ? "Response saved" : "Save response"}
+                    >
+                      {isSaving ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      ) : isSaved ? (
+                        <BookmarkCheck className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Bookmark className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="text-foreground leading-relaxed">
                   {hasCCCReferences(answer) ? (

@@ -14,6 +14,7 @@ const baseTabs = [
 ];
 
 const authedTabs = [
+  { href: "/saved-responses", label: "Saved" },
   { href: "/account", label: "Account" },
 ];
 

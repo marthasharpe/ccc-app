@@ -27,7 +27,6 @@ interface CCCResponse {
 
 export default function ParagraphDisplay({
   reference,
-  onBackToSearch,
   onCCCClick,
 }: ParagraphDisplayProps) {
   const [data, setData] = useState<CCCResponse | null>(null);
@@ -168,27 +167,6 @@ export default function ParagraphDisplay({
             </div>
           )}
         </div>
-
-        <Button
-          variant="outline"
-          onClick={onBackToSearch}
-          className="flex items-center space-x-2 cursor-pointer"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          <span>Back to Search</span>
-        </Button>
       </div>
 
       {/* Content */}
@@ -224,14 +202,6 @@ export default function ParagraphDisplay({
                 <span className="text-red-700 text-sm font-medium">Error</span>
               </div>
               <p className="text-red-600 text-sm mt-1">{error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onBackToSearch}
-                className="mt-3 cursor-pointer"
-              >
-                Back to Search
-              </Button>
             </div>
           </div>
         )}
