@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Clock, Trash2, Copy, Check } from "lucide-react";
+import {
+  Clock,
+  Trash2,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { UserResponse } from "@/lib/userResponses";
@@ -27,6 +34,9 @@ export default function SavedResponsesPage() {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [copyingIds, setCopyingIds] = useState<Set<string>>(new Set());
   const [copiedIds, setCopiedIds] = useState<Set<string>>(new Set());
+  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(
+    new Set()
+  );
   const router = useRouter();
 
   // Load recent responses on component mount
@@ -213,6 +223,18 @@ export default function SavedResponsesPage() {
     router.push(`/paragraph/${reference}`);
   };
 
+  const toggleResponseExpansion = (responseId: string) => {
+    setExpandedResponses((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(responseId)) {
+        newSet.delete(responseId);
+      } else {
+        newSet.add(responseId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -249,7 +271,7 @@ export default function SavedResponsesPage() {
         {isLoading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-2">Searching...</p>
+            <p className="text-muted-foreground mt-2">Searching questions...</p>
           </div>
         )}
 
@@ -338,13 +360,43 @@ export default function SavedResponsesPage() {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="prose prose-sm max-w-none">
-                    <p className="leading-relaxed whitespace-pre-wrap">
-                      <LinkifyCCC
-                        text={response.response}
-                        onCCCClick={handleCCCClick}
-                      />
-                    </p>
+                  {/* View Response Toggle */}
+                  <div className="mb-3">
+                    <div
+                      onClick={() => toggleResponseExpansion(response.id)}
+                      className="flex items-center gap-2 p-0 h-auto font-medium text-primary hover:text-primary/80 cursor-pointer"
+                      title="Toggle response view"
+                    >
+                      {expandedResponses.has(response.id) ? (
+                        <>
+                          Response
+                          <ChevronUp className="h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          Response
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expandable Response Content */}
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      expandedResponses.has(response.id)
+                        ? "max-h-[2000px] opacity-100"
+                        : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="prose prose-sm max-w-none">
+                      <p className="leading-relaxed whitespace-pre-wrap">
+                        <LinkifyCCC
+                          text={response.response}
+                          onCCCClick={handleCCCClick}
+                        />
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

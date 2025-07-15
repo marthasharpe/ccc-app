@@ -173,15 +173,6 @@ export default function AccountPage() {
                     <p className="text-sm">{cancelMessage}</p>
                   </div>
                 )}
-                <div>
-                  <Button
-                    size="sm"
-                    onClick={() => router.push("/options")}
-                    className="w-full sm:w-auto cursor-pointer mt-4"
-                  >
-                    View Options
-                  </Button>
-                </div>
               </div>
             </>
           ) : (
@@ -205,6 +196,13 @@ export default function AccountPage() {
                     {100 - (userStatus?.usagePercentage || 0)}% remaining
                   </span>
                 </div>
+                <Button
+                  size="sm"
+                  onClick={() => router.push("/options")}
+                  className="w-full sm:w-auto cursor-pointer mt-8"
+                >
+                  Get Unlimited Usage
+                </Button>
               </div>
             </>
           )}
