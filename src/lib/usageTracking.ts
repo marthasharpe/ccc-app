@@ -1,12 +1,34 @@
 import { createClient } from "@/lib/supabase/client";
 
 // Daily token limits
-const ANONYMOUS_DAILY_TOKEN_LIMIT = 3000;
-const AUTHENTICATED_DAILY_TOKEN_LIMIT = 3000;
+const ANONYMOUS_DAILY_TOKEN_LIMIT = 2000;
+const AUTHENTICATED_DAILY_TOKEN_LIMIT = 2000;
 const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid options
 
 // Anonymous user storage key
 const TOKEN_STORAGE_KEY = "cathcat_daily_token_usage";
+
+// Test users list - these users get access to experimental features
+const TEST_USER_IDS = [
+  "c1954f79-1823-4a4b-ab3e-722880cfe3fb",
+  // Add more test user IDs here as needed
+];
+
+/**
+ * Check if a user ID is in the test users list
+ */
+export function isTestUser(userId: string | null): boolean {
+  if (!userId) return false;
+  return TEST_USER_IDS.includes(userId);
+}
+
+/**
+ * Check if the current authenticated user is a test user
+ */
+export async function isCurrentUserTestUser(): Promise<boolean> {
+  const { isTestUser: testUser } = await getUserStatus();
+  return testUser;
+}
 
 /**
  * Get the current date for daily resets at midnight local time
@@ -14,8 +36,8 @@ const TOKEN_STORAGE_KEY = "cathcat_daily_token_usage";
 function getCurrentDate(): string {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -77,6 +99,7 @@ interface UsageData {
   dailyLimit: number; // in tokens
   hasActiveSubscription: boolean;
   planName?: string;
+  isTestUser: boolean;
 }
 
 type ModelName = "gpt-4" | "gpt-3.5-turbo";
@@ -111,6 +134,7 @@ export async function getUserUsageData(): Promise<UsageData> {
         isAuthenticated: false,
         dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
         hasActiveSubscription: false,
+        isTestUser: false,
       };
     }
 
@@ -154,6 +178,7 @@ export async function getUserUsageData(): Promise<UsageData> {
         dailyLimit,
         hasActiveSubscription,
         planName: subscription?.plan_name,
+        isTestUser: isTestUser(user.id),
       };
     }
 
@@ -163,6 +188,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       dailyLimit,
       hasActiveSubscription,
       planName: subscription?.plan_name,
+      isTestUser: isTestUser(user.id),
     };
   } catch (error) {
     console.warn("Error in getUserUsageData:", error);
@@ -174,6 +200,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       isAuthenticated: false,
       dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
       hasActiveSubscription: false,
+      isTestUser: false,
     };
   }
 }
@@ -305,6 +332,7 @@ export async function getUserStatus(): Promise<{
   usagePercentage: number;
   hasActiveSubscription: boolean;
   planName?: string;
+  isTestUser: boolean;
 }> {
   const data = await getUserUsageData();
   const remainingTokens = Math.max(0, data.dailyLimit - data.tokensUsed);
