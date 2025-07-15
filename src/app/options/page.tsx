@@ -32,7 +32,6 @@ export default function OptionsPage() {
         if (user) {
           // Check membership status
           const status = await getUserStatus();
-          console.log("status", status);
           setHasActiveMembership(status.hasActiveSubscription);
           setCurrentOptionName(status.planName || null);
         } else {
@@ -279,7 +278,7 @@ export default function OptionsPage() {
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
-                  disabled={true}
+                  disabled={option.name !== "Personal"}
                   onClick={() => handleGetStarted(option.name)}
                   data-lastpass-ignore
                 >

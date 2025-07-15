@@ -45,7 +45,7 @@ export function UsageAlertDialog({
                 </li>
               )}
               <li>Wait until tomorrow for your usage to reset</li>
-              <li>View paid plans for unlimited usage</li>
+              <li>View paid study options for unlimited usage</li>
             </ul>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function UsageAlertDialog({
             </AlertDialogAction>
           ) : (
             <AlertDialogAction asChild>
-              <Link href="/plans">View Plans</Link>
+              <Link href="/optionss">View Options</Link>
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

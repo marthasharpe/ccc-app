@@ -6,11 +6,11 @@
 - Stripe CLI installed (`brew install stripe/stripe-cli/stripe` on macOS)
 - Your current `.env.local` already has test keys configured
 
-## Step 1: Enable Plans Page
+## Step 1: Enable Options Page
 
-Your plans page is currently disabled. To enable for testing:
+Your options page is currently disabled. To enable for testing:
 
-1. Edit `src/app/plans/page.tsx`
+1. Edit `src/app/options/page.tsx`
 2. Change `disabled` to `disabled={false}` on the buttons
 3. Remove the "Coming Soon" text
 
@@ -18,20 +18,20 @@ Your plans page is currently disabled. To enable for testing:
 
 In your Stripe Dashboard (test mode):
 
-1. **Individual Plan**
+1. **Personal Option**
 
-   - Create product: "Individual Plan"
+   - Create product: "Personal Option"
    - Create price: $4.99/month recurring
    - Copy price ID to `STRIPE_INDIVIDUAL_PRICE_ID`
 
-2. **Small Group Plan**
+2. **Small Group Option**
 
-   - Create product: "Small Group Plan"
+   - Create product: "Small Group Option"
    - Create price: $24.99/month recurring
    - Copy price ID to `STRIPE_SMALL_GROUP_PRICE_ID`
 
-3. **Large Group Plan**
-   - Create product: "Large Group Plan"
+3. **Large Group Option**
+   - Create product: "Large Group Option"
    - Create price: $149.99/month recurring
    - Copy price ID to `STRIPE_LARGE_GROUP_PRICE_ID`
 
@@ -42,7 +42,7 @@ In your Stripe Dashboard (test mode):
 stripe login
 
 # Forward webhooks to your local server
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:3000/api/billing/webhook
 
 # This will give you a webhook signing secret - add it to .env.local as:
 # STRIPE_WEBHOOK_SECRET=whsec_...
@@ -52,7 +52,7 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 1. Start your app: `npm run dev`
 2. Sign in with a test account
-3. Go to `/plans` page
+3. Go to `/options` page
 4. Click a plan button
 5. Use Stripe test card: `4242 4242 4242 4242`
 6. Complete checkout

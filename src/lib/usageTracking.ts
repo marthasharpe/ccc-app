@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 // Daily token limits
 const ANONYMOUS_DAILY_TOKEN_LIMIT = 3000;
 const AUTHENTICATED_DAILY_TOKEN_LIMIT = 3000;
-const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid plans
+const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid options
 
 // Anonymous user storage key
 const TOKEN_STORAGE_KEY = "cathcat_daily_token_usage";
@@ -304,7 +304,6 @@ export async function getUserStatus(): Promise<{
   planName?: string;
 }> {
   const data = await getUserUsageData();
-  console.log("data", data);
   const remainingTokens = Math.max(0, data.dailyLimit - data.tokensUsed);
   const usagePercentage = calculateUsagePercentage(
     data.tokensUsed,

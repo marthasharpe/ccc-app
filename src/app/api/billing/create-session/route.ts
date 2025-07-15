@@ -14,7 +14,7 @@ const getStripe = () => {
 
 const getPlanPriceIds = () => {
   return {
-    Individual: process.env.STRIPE_INDIVIDUAL_PRICE_ID!,
+    Personal: process.env.STRIPE_PERSONAL_PRICE_ID!,
     Advanced: process.env.STRIPE_ADVANCED_PRICE_ID!,
     "Small Group": process.env.STRIPE_SMALL_GROUP_PRICE_ID!,
     "Large Group": process.env.STRIPE_LARGE_GROUP_PRICE_ID!,

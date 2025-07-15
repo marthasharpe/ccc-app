@@ -66,7 +66,6 @@ export default function ChatPage() {
   useEffect(() => {
     const checkUsage = async () => {
       const status = await getUserStatus();
-      console.log("status", status);
       const limitReached = await isTokenLimitReached();
       setUserStatus(status);
       setIsLimitReached(limitReached);

@@ -37,9 +37,7 @@ export default function AccountPage() {
       setUser(user);
 
       const status = await getUserStatus();
-      console.log("status", status);
       setUserStatus(status);
-
 
       setIsLoading(false);
     };
@@ -130,9 +128,12 @@ export default function AccountPage() {
 
           {userStatus?.hasActiveSubscription ? (
             <>
-              <h2 className="text-2xl font-bold mb-6">Current Plan</h2>
+              <h2 className="text-2xl font-bold mb-6">Current Study Option</h2>
               <div className="mb-6">
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-6" data-lastpass-ignore>
+                <div
+                  className="bg-primary/10 border border-primary/20 rounded-lg p-6"
+                  data-lastpass-ignore
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-primary">
@@ -150,9 +151,6 @@ export default function AccountPage() {
                   </div>
                   <div className="mt-4 pt-4 border-t border-primary/20">
                     <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                      <div className="text-sm text-muted-foreground">
-                        Manage your subscription
-                      </div>
                       <Button
                         variant="outline"
                         size="sm"
@@ -161,7 +159,7 @@ export default function AccountPage() {
                         className="text-destructive hover:text-destructive cursor-pointer"
                         data-lastpass-ignore
                       >
-                        {isCanceling ? "Canceling..." : "Cancel Plan"}
+                        {isCanceling ? "Canceling..." : "Cancel"}
                       </Button>
                     </div>
                   </div>
@@ -180,10 +178,10 @@ export default function AccountPage() {
                 <div>
                   <Button
                     size="sm"
-                    onClick={() => router.push("/plans")}
+                    onClick={() => router.push("/options")}
                     className="w-full sm:w-auto cursor-pointer mt-4"
                   >
-                    View Plans
+                    View Options
                   </Button>
                 </div>
               </div>
