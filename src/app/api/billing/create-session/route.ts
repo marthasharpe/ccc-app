@@ -45,13 +45,17 @@ export async function POST(request: NextRequest) {
 
     if (!priceId) {
       return NextResponse.json(
-        { error: "Invalid plan selected" },
+        {
+          error: "Invalid plan selected",
+          receivedPlan: planName,
+          availablePlans: Object.keys(PLAN_PRICE_IDS),
+        },
         { status: 400 }
       );
     }
 
     // Validate price ID format (should start with price_)
-    if (!priceId.startsWith('price_')) {
+    if (!priceId.startsWith("price_")) {
       return NextResponse.json(
         { error: "Invalid price ID configuration" },
         { status: 500 }
@@ -77,15 +81,15 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         description: `Truth Me Up ${planName} Plan`,
         metadata: {
-          app_name: 'Truth Me Up',
+          app_name: "Truth Me Up",
           plan_type: planName,
           user_id: user.id,
-          user_email: user.email || '',
+          user_email: user.email || "",
         },
       },
       custom_text: {
-        submit: { 
-          message: `Thank you for joining Truth Me Up! You're supporting Catholic education and deepening your faith journey.` 
+        submit: {
+          message: `Thank you for joining Truth Me Up!`,
         },
       },
     });
@@ -93,28 +97,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Error creating checkout session:", error);
-    
+
     // Enhanced error logging for different error types
     if (error instanceof Error) {
       console.error("Error details:", {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
-    
+
     // Check if it's a Stripe-specific error
-    if (error && typeof error === 'object' && 'type' in error) {
-      const stripeError = error as { type?: string; code?: string; message?: string };
+    if (error && typeof error === "object" && "type" in error) {
+      const stripeError = error as {
+        type?: string;
+        code?: string;
+        message?: string;
+      };
       console.error("Stripe error type:", stripeError.type);
       console.error("Stripe error code:", stripeError.code);
       console.error("Stripe error message:", stripeError.message);
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: "Failed to create checkout session",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );

@@ -139,12 +139,28 @@ export async function getUserUsageData(): Promise<UsageData> {
     }
 
     // Check for active subscription
-    const { data: subscription } = await supabase
+    const { data: subscription, error: subscriptionError } = await supabase
       .from("user_subscriptions")
       .select("plan_name, status")
       .eq("user_id", user.id)
       .eq("status", "active")
-      .single();
+      .maybeSingle();
+
+    console.log("Subscription query result:", {
+      data: subscription,
+      error: subscriptionError,
+      userId: user.id,
+    });
+
+    if (subscriptionError) {
+      console.warn("Error fetching subscription data:", {
+        message: subscriptionError.message,
+        code: subscriptionError.code,
+        details: subscriptionError.details,
+        hint: subscriptionError.hint,
+        userId: user.id,
+      });
+    }
 
     const hasActiveSubscription = !!subscription;
     const dailyLimit = hasActiveSubscription
@@ -160,7 +176,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       .select("tokens_used")
       .eq("user_id", user.id)
       .eq("date", today)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
       console.warn("Error fetching usage data:", {
