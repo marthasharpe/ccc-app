@@ -54,7 +54,8 @@ export default function LoginPage() {
 
     // If sign-in fails with "Invalid login credentials", try sign-up
     if (signInError.message.includes("Invalid login credentials")) {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -164,7 +165,11 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form onSubmit={handleEmailAuth} className="space-y-4" suppressHydrationWarning>
+          <form
+            onSubmit={handleEmailAuth}
+            className="space-y-4"
+            suppressHydrationWarning
+          >
             <div suppressHydrationWarning>
               <Input
                 id="email"
@@ -205,7 +210,7 @@ export default function LoginPage() {
               <button
                 onClick={handleMagicLink}
                 disabled={isLoading}
-                className="text-sm text-primary hover:underline disabled:opacity-50"
+                className="text-primary hover:underline disabled:opacity-50"
               >
                 Send magic link instead
               </button>

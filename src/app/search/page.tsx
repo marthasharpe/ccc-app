@@ -82,13 +82,23 @@ export default function SearchPage() {
           <h1 className="text-3xl font-bold mb-4">Search the Catechism</h1>
           <p className="text-lg">
             Find passages from the Catechism of the Catholic Church{" "}
-            <a 
-              href="/about" 
+            <a
+              href="/about"
               className="inline-flex items-center text-primary hover:text-primary/80 ml-1"
               title="Learn more about the Catechism"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </a>
           </p>
@@ -114,7 +124,7 @@ export default function SearchPage() {
 
         {query && !isLoading && (
           <div className="mb-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               {results.length > 0
                 ? `Top results for "${query}"`
                 : `No results found for "${query}"`}
@@ -131,7 +141,7 @@ export default function SearchPage() {
                 onClick={() => handleParagraphClick(result.paragraph_number)}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-primary">
+                  <span className="font-medium text-primary">
                     CCC {result.paragraph_number}
                   </span>
                 </div>

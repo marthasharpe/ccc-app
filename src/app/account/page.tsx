@@ -139,14 +139,12 @@ export default function AccountPage() {
                       <h3 className="text-lg font-semibold text-primary">
                         {userStatus.planName || "Enhanced Membership"}
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground">
                         Unlimited daily usage
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-green-600 font-medium">
-                        ✓ Active
-                      </div>
+                      <div className="text-green-600 font-medium">✓ Active</div>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-primary/20">

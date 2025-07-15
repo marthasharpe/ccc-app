@@ -37,7 +37,7 @@ export function UsageAlertDialog({
         <div className="space-y-4">
           <div>
             <p className="font-medium mb-2">You can:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
+            <ul className="list-disc list-inside space-y-1">
               <li>Browse and search the Catechism (no usage limit)</li>
               {!userStatus?.isAuthenticated && (
                 <li>

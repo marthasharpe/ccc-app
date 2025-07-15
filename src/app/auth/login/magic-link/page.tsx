@@ -32,7 +32,7 @@ export default function MagicLinkPage() {
             log in instantly - no password required.
           </p>
 
-          <div className="bg-muted/30 border rounded-lg p-4 mb-6 text-sm">
+          <div className="bg-muted/30 border rounded-lg p-4 mb-6">
             <p className="font-medium mb-2">What to do next:</p>
             <ol className="text-left space-y-1 text-muted-foreground">
               <li>1. Check your email inbox</li>
