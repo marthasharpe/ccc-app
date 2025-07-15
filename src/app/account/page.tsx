@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import { getUserStatus } from "@/lib/usageTracking";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -21,6 +31,7 @@ export default function AccountPage() {
   } | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
   const [cancelMessage, setCancelMessage] = useState<string | null>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -50,17 +61,13 @@ export default function AccountPage() {
     router.push("/");
   };
 
-  const handleCancelSubscription = async () => {
+  const handleCancelSubscription = () => {
     if (!user || !userStatus?.hasActiveSubscription) return;
+    setShowCancelDialog(true);
+  };
 
-    const confirmed = window.confirm(
-      `Are you sure you want to cancel your ${
-        userStatus.planName || "Enhanced"
-      } membership?\n\nYou'll keep access until the end of your current billing period.`
-    );
-
-    if (!confirmed) return;
-
+  const confirmCancelSubscription = async () => {
+    setShowCancelDialog(false);
     setIsCanceling(true);
     setCancelMessage(null);
 
@@ -225,6 +232,31 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Subscription Confirmation Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Membership</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your {userStatus?.planName || ""}{" "}
+              study plan? You will lose unlimited usage and return to the daily
+              limit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowCancelDialog(false)}>
+              Keep Membership
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancelSubscription}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Membership
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

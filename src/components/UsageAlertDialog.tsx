@@ -56,7 +56,7 @@ export function UsageAlertDialog({
             </AlertDialogAction>
           ) : (
             <AlertDialogAction asChild>
-              <Link href="/optionss">View Options</Link>
+              <Link href="/optionss">Get Unlimited Usage</Link>
             </AlertDialogAction>
           )}
         </AlertDialogFooter>

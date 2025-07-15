@@ -8,7 +8,6 @@ import { User } from "@supabase/supabase-js";
 
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
@@ -18,7 +17,6 @@ export function AuthButton() {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
-      setIsLoading(false);
     };
 
     getUser();
@@ -28,15 +26,10 @@ export function AuthButton() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
-
-  if (isLoading) {
-    return <div className="w-20 h-9 bg-muted animate-pulse rounded-md"></div>;
-  }
 
   if (!user) {
     return (

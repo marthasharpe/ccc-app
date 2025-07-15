@@ -16,6 +16,16 @@ import {
 } from "@/lib/usageTracking";
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
 import { copyResponseToClipboard } from "@/utils/copyResponse";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ChatPage() {
   const {
@@ -41,6 +51,7 @@ export default function ChatPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -84,6 +95,13 @@ export default function ChatPage() {
 
   const saveResponse = async () => {
     if (!submittedQuestion || !answer || isSaving || isSaved) return;
+
+    // Check if user is authenticated
+    if (!userStatus?.isAuthenticated) {
+      // Show login dialog
+      setShowLoginDialog(true);
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -131,6 +149,11 @@ export default function ChatPage() {
     } finally {
       setIsCopying(false);
     }
+  };
+
+  const handleLoginDialogAction = () => {
+    setShowLoginDialog(false);
+    router.push("/auth/login");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -244,8 +267,8 @@ export default function ChatPage() {
                   </h3>
                   <p className="mb-4">
                     {userStatus?.isAuthenticated
-                      ? "Enhance your account to ask unlimited questions or come back tomorrow."
-                      : "Create an account to keep asking questions or come back tomorrow."}
+                      ? "View study plans to keep asking questions or come back tomorrow."
+                      : "Login to keep asking questions or come back tomorrow."}
                   </p>
                 </div>
 
@@ -255,7 +278,7 @@ export default function ChatPage() {
                       className="px-8"
                       onClick={() => router.push("/options")}
                     >
-                      View Options
+                      Get Unlimited Usage
                     </Button>
                   ) : (
                     <>
@@ -350,7 +373,7 @@ export default function ChatPage() {
                       size="sm"
                       onClick={copyResponse}
                       disabled={isCopying}
-                      className="h-8 w-8 p-0 hover:bg-muted"
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
                       title={isCopied ? "Copied!" : "Copy response"}
                     >
                       {isCopying ? (
@@ -398,6 +421,27 @@ export default function ChatPage() {
         onOpenChange={setShowLimitDialog}
         userStatus={userStatus}
       />
+
+      {/* Login Required Dialog */}
+      <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Login Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              You need to be logged in to save responses. Would you like to
+              login now?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowLoginDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleLoginDialogAction}>
+              Login
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
