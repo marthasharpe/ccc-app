@@ -26,7 +26,6 @@ export default function OptionsPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        console.log("user", user);
         setUser(user);
 
         if (user) {
@@ -278,7 +277,7 @@ export default function OptionsPage() {
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
-                  disabled={option.name !== "Personal"}
+                  disabled={true}
                   onClick={() => handleGetStarted(option.name)}
                   data-lastpass-ignore
                 >
