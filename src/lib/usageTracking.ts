@@ -112,12 +112,18 @@ export async function getUserUsageData(): Promise<UsageData> {
     }
 
     // Check for active subscription
-    const { data: subscription } = await supabase
+    const { data: subscription, error: subError } = await supabase
       .from("user_subscriptions")
       .select("plan_name, status")
       .eq("user_id", user.id)
       .eq("status", "active")
       .single();
+
+    if (subError && subError.code !== "PGRST116") {
+      console.warn("Error fetching subscription:", subError);
+    }
+
+    console.log("Subscription check for user", user.id, ":", { subscription, subError });
 
     const hasActiveSubscription = !!subscription;
     const dailyLimit = hasActiveSubscription

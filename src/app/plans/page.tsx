@@ -145,11 +145,13 @@ export default function PlansPage() {
   ];
 
   const getButtonText = (planName: string) => {
-    return planName === "Individual" ? "Get Started" : "Coming Soon";
+    console.log("planName", planName);
+    return "Coming Soon";
   };
 
   const isButtonDisabled = (planName: string) => {
-    return planName !== "Individual";
+    console.log("planName", planName);
+    return true;
   };
 
   if (isLoading) {

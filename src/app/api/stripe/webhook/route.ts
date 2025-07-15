@@ -53,26 +53,39 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object as Stripe.Checkout.Session;
+        
+        console.log("Checkout session completed:", {
+          sessionId: session.id,
+          mode: session.mode,
+          paymentStatus: session.payment_status,
+          subscriptionId: session.subscription
+        });
 
         // Get the subscription ID from the session
         const subscriptionId = session.subscription as string;
         const userId = session.metadata?.userId;
         const planName = session.metadata?.planName;
 
+        console.log("Extracted metadata:", { userId, planName, subscriptionId });
+
         if (userId && subscriptionId) {
           // Update user's subscription in database
-          const { error } = await supabase.from("user_subscriptions").upsert({
+          const { data, error } = await supabase.from("user_subscriptions").upsert({
             user_id: userId,
             stripe_subscription_id: subscriptionId,
             plan_name: planName,
             status: "active",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-          });
+          }).select();
 
           if (error) {
             console.error("Failed to update user subscription:", error);
+          } else {
+            console.log("Successfully created/updated subscription:", data);
           }
+        } else {
+          console.error("Missing required data:", { userId, subscriptionId, planName });
         }
         break;
 
