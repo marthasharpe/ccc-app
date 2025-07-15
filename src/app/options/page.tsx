@@ -147,11 +147,7 @@ export default function OptionsPage() {
   ];
 
   const getButtonText = (optionName: string) => {
-    return optionName === "Personal" ? "Get Started" : "Coming Soon";
-  };
-
-  const isButtonDisabled = (optionName: string) => {
-    return optionName !== "Personal";
+    return optionName === "Personal" ? "Coming Soon" : "Coming Soon";
   };
 
   if (isLoading) {
@@ -283,9 +279,7 @@ export default function OptionsPage() {
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
-                  disabled={
-                    isButtonDisabled(option.name) || checkoutLoading !== null
-                  }
+                  disabled={true}
                   onClick={() => handleGetStarted(option.name)}
                   data-lastpass-ignore
                 >
