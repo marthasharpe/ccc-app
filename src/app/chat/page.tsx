@@ -4,13 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bookmark, BookmarkCheck, Copy, Check } from "lucide-react";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
 import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
@@ -73,6 +66,7 @@ export default function ChatPage() {
   useEffect(() => {
     const checkUsage = async () => {
       const status = await getUserStatus();
+      console.log("status", status);
       const limitReached = await isTokenLimitReached();
       setUserStatus(status);
       setIsLimitReached(limitReached);
@@ -251,7 +245,7 @@ export default function ChatPage() {
                   </h3>
                   <p className="mb-4">
                     {userStatus?.isAuthenticated
-                      ? "Upgrade your account to ask unlimited questions or come back tomorrow."
+                      ? "Enhance your account to ask unlimited questions or come back tomorrow."
                       : "Create an account to keep asking questions or come back tomorrow."}
                   </p>
                 </div>
@@ -260,9 +254,9 @@ export default function ChatPage() {
                   {userStatus?.isAuthenticated ? (
                     <Button
                       className="px-8"
-                      onClick={() => router.push("/plans")}
+                      onClick={() => router.push("/options")}
                     >
-                      View Pricing
+                      View Options
                     </Button>
                   ) : (
                     <>
@@ -279,7 +273,7 @@ export default function ChatPage() {
               </div>
             ) : (
               /* Normal question input form */
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} data-lastpass-ignore>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Input
                     ref={inputRef}

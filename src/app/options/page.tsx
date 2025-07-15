@@ -7,10 +7,12 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { getUserStatus } from "@/lib/usageTracking";
 
-export default function PlansPage() {
+export default function OptionsPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
-  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [hasActiveMembership, setHasActiveMembership] = useState(false);
+  const [currentOptionName, setCurrentOptionName] = useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,22 +26,24 @@ export default function PlansPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        console.log("user", user);
         setUser(user);
 
         if (user) {
-          // Check subscription status
+          // Check membership status
           const status = await getUserStatus();
-          setHasActiveSubscription(status.hasActiveSubscription);
-          setCurrentPlanName(status.planName || null);
+          console.log("status", status);
+          setHasActiveMembership(status.hasActiveSubscription);
+          setCurrentOptionName(status.planName || null);
         } else {
-          setHasActiveSubscription(false);
-          setCurrentPlanName(null);
+          setHasActiveMembership(false);
+          setCurrentOptionName(null);
         }
       } catch (error) {
         console.error("Error loading user data:", error);
         // Set defaults on error
-        setHasActiveSubscription(false);
-        setCurrentPlanName(null);
+        setHasActiveMembership(false);
+        setCurrentOptionName(null);
       } finally {
         setIsLoading(false);
       }
@@ -55,18 +59,18 @@ export default function PlansPage() {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Check subscription status when user changes
+          // Check membership status when user changes
           const status = await getUserStatus();
-          setHasActiveSubscription(status.hasActiveSubscription);
-          setCurrentPlanName(status.planName || null);
+          setHasActiveMembership(status.hasActiveSubscription);
+          setCurrentOptionName(status.planName || null);
         } else {
-          setHasActiveSubscription(false);
-          setCurrentPlanName(null);
+          setHasActiveMembership(false);
+          setCurrentOptionName(null);
         }
       } catch (error) {
         console.error("Error in auth state change:", error);
-        setHasActiveSubscription(false);
-        setCurrentPlanName(null);
+        setHasActiveMembership(false);
+        setCurrentOptionName(null);
       } finally {
         setIsLoading(false);
       }
@@ -75,29 +79,29 @@ export default function PlansPage() {
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
 
-  const handleGetStarted = async (planName: string) => {
+  const handleGetStarted = async (optionName: string) => {
     if (!user) {
       // Redirect to login
       router.push("/auth/login");
       return;
     }
 
-    // Don't allow new subscriptions if user already has one
-    if (hasActiveSubscription) {
+    // Don't allow new memberships if user already has one
+    if (hasActiveMembership) {
       return;
     }
 
-    setCheckoutLoading(planName);
+    setCheckoutLoading(optionName);
     setError(null);
 
     try {
-      // Create Stripe checkout session
-      const response = await fetch("/api/stripe/create-checkout-session", {
+      // Create billing session
+      const response = await fetch("/api/billing/create-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ planName }),
+        body: JSON.stringify({ planName: optionName }),
       });
 
       const data = await response.json();
@@ -106,23 +110,21 @@ export default function PlansPage() {
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
-        setError(
-          data.error || "Failed to create checkout session. Please try again."
-        );
+        setError(data.error || "Failed to create session. Please try again.");
       }
     } catch (error) {
-      console.error("Error creating checkout session:", error);
+      console.error("Error creating session:", error);
       setError(
-        "Something went wrong while setting up your subscription. Please check your connection and try again."
+        "Something went wrong while setting up your membership. Please check your connection and try again."
       );
     } finally {
       setCheckoutLoading(null);
     }
   };
 
-  const plans = [
+  const options = [
     {
-      name: "Individual",
+      name: "Personal",
       price: "$4.99",
       period: "per month",
       description: "Perfect for personal study and learning",
@@ -144,14 +146,12 @@ export default function PlansPage() {
     },
   ];
 
-  const getButtonText = (planName: string) => {
-    console.log("planName", planName);
-    return "Coming Soon";
+  const getButtonText = (optionName: string) => {
+    return optionName === "Personal" ? "Get Started" : "Coming Soon";
   };
 
-  const isButtonDisabled = (planName: string) => {
-    console.log("planName", planName);
-    return true;
+  const isButtonDisabled = (optionName: string) => {
+    return optionName !== "Personal";
   };
 
   if (isLoading) {
@@ -175,14 +175,14 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12" data-lastpass-ignore>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold mb-4">Choose Your Plan</h1>
-          {hasActiveSubscription ? (
+          <h1 className="text-3xl font-bold mb-4">Choose Your Study Option</h1>
+          {hasActiveMembership ? (
             <p className="text-lg max-w-2xl mx-auto">
-              To change plans, please cancel your current subscription from your{" "}
+              To change options, please cancel your current membership from your{" "}
               <button
                 onClick={() => router.push("/account")}
                 className="text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer"
@@ -226,7 +226,7 @@ export default function PlansPage() {
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
                   />
                 </svg>
-                <p className="text-destructive font-medium">Payment Error</p>
+                <p className="text-destructive font-medium">Error</p>
               </div>
               <p className="text-destructive/80 mt-1">{error}</p>
               <Button
@@ -241,15 +241,16 @@ export default function PlansPage() {
           </div>
         )}
 
-        {/* Plans Cards */}
+        {/* Options Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {plans.map((plan) => (
+          {options.map((option) => (
             <div
-              key={plan.name}
+              key={option.name}
               className={`relative rounded-lg border shadow-lg scale-105 p-8 flex flex-col border-primary`}
+              data-lastpass-ignore
             >
-              {/* Current Plan Badge */}
-              {hasActiveSubscription && currentPlanName === plan.name && (
+              {/* Current Option Badge */}
+              {hasActiveMembership && currentOptionName === option.name && (
                 <div className="absolute top-4 right-4">
                   <span className="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
                     Current
@@ -257,39 +258,44 @@ export default function PlansPage() {
                 </div>
               )}
 
-              {/* Plan Header */}
+              {/* Option Header */}
               <div className="text-center mb-6 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-muted-foreground mb-4">{plan.description}</p>
+                <h3 className="text-2xl font-bold mb-2">{option.name}</h3>
+                <p className="text-muted-foreground mb-4">
+                  {option.description}
+                </p>
                 <div className="mb-2">
-                  <div className="text-4xl font-bold">{plan.price}</div>
+                  <div className="text-4xl font-bold">{option.price}</div>
                   <div className="text-muted-foreground ml-1">
-                    {plan.period}
+                    {option.period}
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{plan.maxUsers}</p>
+                <p className="text-sm text-muted-foreground">
+                  {option.maxUsers}
+                </p>
               </div>
 
               {/* CTA Button */}
-              {!hasActiveSubscription && (
+              {!hasActiveMembership && (
                 <Button
                   className={`w-full mt-auto ${
-                    hasActiveSubscription && currentPlanName === plan.name
+                    hasActiveMembership && currentOptionName === option.name
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
                   disabled={
-                    isButtonDisabled(plan.name) || checkoutLoading !== null
+                    isButtonDisabled(option.name) || checkoutLoading !== null
                   }
-                  onClick={() => handleGetStarted(plan.name)}
+                  onClick={() => handleGetStarted(option.name)}
+                  data-lastpass-ignore
                 >
-                  {checkoutLoading === plan.name ? (
+                  {checkoutLoading === option.name ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Processing...
                     </div>
                   ) : (
-                    getButtonText(plan.name)
+                    getButtonText(option.name)
                   )}
                 </Button>
               )}
@@ -300,8 +306,8 @@ export default function PlansPage() {
         {/* FAQ Section */}
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            You can upgrade or downgrade your plan at any time. Changes take
-            effect immediately.
+            You can upgrade or downgrade your membership at any time. Changes
+            take effect immediately.
           </p>
         </div>
       </div>

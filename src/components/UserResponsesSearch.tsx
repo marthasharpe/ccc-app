@@ -233,7 +233,7 @@ export function UserResponsesSearch() {
             </Button>
           </div>
         ) : (
-          <form onSubmit={(e) => { e.preventDefault(); performSearch(); }}>
+          <form onSubmit={(e) => { e.preventDefault(); performSearch(); }} data-lastpass-ignore>
             <div className="flex flex-col sm:flex-row gap-3">
               <Input
                 placeholder="Enter a keyword or topic..."

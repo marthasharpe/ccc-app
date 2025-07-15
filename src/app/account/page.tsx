@@ -57,8 +57,8 @@ export default function AccountPage() {
 
     const confirmed = window.confirm(
       `Are you sure you want to cancel your ${
-        userStatus.planName || "Premium"
-      } plan?\n\nYou'll keep access until the end of your current billing period.`
+        userStatus.planName || "Enhanced"
+      } membership?\n\nYou'll keep access until the end of your current billing period.`
     );
 
     if (!confirmed) return;
@@ -67,7 +67,7 @@ export default function AccountPage() {
     setCancelMessage(null);
 
     try {
-      const response = await fetch("/api/stripe/cancel-subscription", {
+      const response = await fetch("/api/billing/cancel-membership", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8" data-lastpass-ignore>
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
           <h2 className="text-2xl font-bold mb-6">Account Information</h2>
@@ -132,11 +132,11 @@ export default function AccountPage() {
             <>
               <h2 className="text-2xl font-bold mb-6">Current Plan</h2>
               <div className="mb-6">
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-6" data-lastpass-ignore>
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-primary">
-                        {userStatus.planName || "Premium Plan"}
+                        {userStatus.planName || "Enhanced Membership"}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Unlimited daily usage
@@ -159,6 +159,7 @@ export default function AccountPage() {
                         onClick={handleCancelSubscription}
                         disabled={isCanceling}
                         className="text-destructive hover:text-destructive cursor-pointer"
+                        data-lastpass-ignore
                       >
                         {isCanceling ? "Canceling..." : "Cancel Plan"}
                       </Button>
@@ -222,6 +223,7 @@ export default function AccountPage() {
                 size="sm"
                 onClick={handleSignOut}
                 className="w-full sm:w-auto cursor-pointer"
+                data-lastpass-ignore
               >
                 Sign Out
               </Button>

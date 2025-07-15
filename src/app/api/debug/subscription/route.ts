@@ -13,8 +13,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get all subscriptions for this user (not just active ones)
-    const { data: subscriptions, error: subError } = await supabase
+    // Get all memberships for this user (not just active ones)
+    const { data: memberships, error: subError } = await supabase
       .from("user_subscriptions")
       .select("*")
       .eq("user_id", user.id);
@@ -24,7 +24,7 @@ export async function GET() {
     }
 
     // Also check if the table exists and has the right structure
-    const { data: tableInfo, error: tableError } = await supabase
+    const { error: tableError } = await supabase
       .from("user_subscriptions")
       .select("*")
       .limit(1);
@@ -32,8 +32,8 @@ export async function GET() {
     return NextResponse.json({
       userId: user.id,
       userEmail: user.email,
-      subscriptions,
-      subscriptionCount: subscriptions?.length || 0,
+      memberships,
+      membershipCount: memberships?.length || 0,
       tableAccessible: !tableError,
       tableError: tableError?.message
     });

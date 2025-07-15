@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       },
       custom_text: {
         submit: { 
-          message: `Thank you for subscribing to Truth Me Up! You're supporting Catholic education and deepening your faith journey.` 
+          message: `Thank you for joining Truth Me Up! You're supporting Catholic education and deepening your faith journey.` 
         },
       },
     });
