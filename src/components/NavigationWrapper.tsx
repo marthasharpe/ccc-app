@@ -9,7 +9,6 @@ import { MobileNav } from "./MobileNav";
 const baseTabs = [
   { href: "/chat", label: "Ask" },
   { href: "/search", label: "Search" },
-  { href: "/options", label: "Options" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
