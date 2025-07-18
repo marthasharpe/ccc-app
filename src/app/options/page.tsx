@@ -10,7 +10,6 @@ import { getUserStatus } from "@/lib/usageTracking";
 export default function OptionsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [hasActiveMembership, setHasActiveMembership] = useState(false);
-  const [isTestUser, setIsTestUser] = useState(false);
   const [currentOptionName, setCurrentOptionName] = useState<string | null>(
     null
   );
@@ -32,18 +31,15 @@ export default function OptionsPage() {
         if (user) {
           // Check membership status
           const status = await getUserStatus();
-          setIsTestUser(status.isTestUser);
           setHasActiveMembership(status.hasActiveSubscription);
           setCurrentOptionName(status.planName || null);
         } else {
-          setIsTestUser(false);
           setHasActiveMembership(false);
           setCurrentOptionName(null);
         }
       } catch (error) {
         console.error("Error loading user data:", error);
         // Set defaults on error
-        setIsTestUser(false);
         setHasActiveMembership(false);
         setCurrentOptionName(null);
       } finally {
@@ -149,7 +145,7 @@ export default function OptionsPage() {
   ];
 
   const getButtonText = (optionName: string) => {
-    return optionName === "Personal" ? "Coming Soon" : "Coming Soon";
+    return optionName === "Personal" ? "Get Started" : "Coming Soon";
   };
 
   if (isLoading) {
@@ -281,7 +277,7 @@ export default function OptionsPage() {
                       ? "bg-green-500 hover:bg-green-600"
                       : "bg-primary hover:bg-primary/90"
                   }`}
-                  disabled={!isTestUser}
+                  disabled={option.name !== "Personal"}
                   onClick={() => handleGetStarted(option.name)}
                   data-lastpass-ignore
                 >
