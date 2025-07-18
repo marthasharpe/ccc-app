@@ -30,7 +30,9 @@ export function LinkifyCCC({ text, onCCCClick }: LinkifyCCCProps) {
 
     if (match[2]) {
       // CCC reference match (group 2 contains "CCC 1234" or "CCC 1234-1236")
-      numberPart = match[2].replace('CCC ', '') // "1234" or "1234-1236"
+      const fullReference = match[2].replace('CCC ', '') // "1234" or "1234-1236"
+      // For ranges, extract just the first number
+      numberPart = fullReference.includes('-') ? fullReference.split('-')[0] : fullReference
       
       // Check if the match has parentheses around it
       if (match[0].startsWith('(') && match[0].endsWith(')')) {

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FormatCCCContent } from "@/utils/formatCCCContent";
+import { Copy, Check } from "lucide-react";
+import { copyParagraphToClipboard } from "@/utils/copyResponse";
 
 interface CCCParagraph {
   paragraph_number: number;
@@ -29,6 +31,8 @@ export default function ParagraphPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
+  const [isCopying, setIsCopying] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (reference) {
@@ -82,6 +86,24 @@ export default function ParagraphPage() {
     }
   };
 
+  const copyParagraph = async (paragraphNumber: number, content: string) => {
+    if (isCopying) return;
+
+    setIsCopying(true);
+    try {
+      const success = await copyParagraphToClipboard(paragraphNumber, content);
+      if (success) {
+        setIsCopied(true);
+        // Reset copied state after 2 seconds
+        setTimeout(() => setIsCopied(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error copying paragraph:", error);
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -119,6 +141,22 @@ export default function ParagraphPage() {
               <h1 className="text-xl font-semibold text-primary">
                 CCC {data.paragraph_number}
               </h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyParagraph(data.paragraph_number!, data.content!)}
+                disabled={isCopying}
+                className="h-8 w-8 p-0 hover:bg-primary/10"
+                title={isCopied ? "Copied!" : "Copy paragraph"}
+              >
+                {isCopying ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                ) : isCopied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                )}
+              </Button>
             </div>
             <div className="text-foreground leading-relaxed">
               <FormatCCCContent
@@ -162,29 +200,47 @@ export default function ParagraphPage() {
               <h1 className="text-xl font-semibold text-primary">
                 CCC {currentParagraph.paragraph_number}
               </h1>
-              {totalParagraphs > 1 && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handlePreviousParagraph}
-                    disabled={currentParagraphIndex === 0}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground px-2">
-                    {currentParagraphIndex + 1} of {totalParagraphs}
-                  </span>
-                  <Button
-                    onClick={handleNextParagraph}
-                    disabled={currentParagraphIndex === totalParagraphs - 1}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyParagraph(currentParagraph.paragraph_number, currentParagraph.content)}
+                  disabled={isCopying}
+                  className="h-8 w-8 p-0 hover:bg-primary/10"
+                  title={isCopied ? "Copied!" : "Copy paragraph"}
+                >
+                  {isCopying ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  ) : isCopied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  )}
+                </Button>
+                {totalParagraphs > 1 && (
+                  <>
+                    <Button
+                      onClick={handlePreviousParagraph}
+                      disabled={currentParagraphIndex === 0}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-2">
+                      {currentParagraphIndex + 1} of {totalParagraphs}
+                    </span>
+                    <Button
+                      onClick={handleNextParagraph}
+                      disabled={currentParagraphIndex === totalParagraphs - 1}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
             <div className="text-foreground leading-relaxed">
               <FormatCCCContent
