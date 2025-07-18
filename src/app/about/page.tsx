@@ -3,14 +3,21 @@ export default function AboutPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
-          <h2 className="text-2xl font-bold mb-6">
-            What is the Catechism of the Catholic Church?
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">What is the Catechism?</h2>
           <p className="text-lg leading-relaxed mb-6">
-            The Catechism of the Catholic Church is a book that summarizes the
-            essential teachings of the Catholic faith. It was first published in
-            1992 under Pope John Paul II to serve as a clear and comprehensive
-            guide to what the Church believes and teaches around the world.
+            The{" "}
+            <a
+              href="https://www.vatican.va/archive/ENG0015/_INDEX.HTM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Catechism of the Catholic Church (CCC)
+            </a>{" "}
+            is a book that summarizes the essential teachings of the Catholic
+            faith. It was first published in 1992 under Pope John Paul II to
+            serve as a clear and comprehensive guide to what the Church believes
+            and teaches around the world.
           </p>
 
           <p className="text-lg leading-relaxed">
@@ -75,7 +82,7 @@ export default function AboutPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          <h2 className="text-2xl font-bold mb-6">Why It Matters</h2>
+          <h2 className="text-2xl font-bold mb-6">Who Is It For?</h2>
 
           <p className="text-lg mb-6">
             The Catechism is not just for theologians or priests. It is written
@@ -83,26 +90,26 @@ export default function AboutPage() {
             why. Whether you&apos;re Catholic or just curious, it can help you:
           </p>
 
-          <ul className="space-y-3 mb-6">
+          <ul className="space-y-3 mb-6 text-lg">
             <li className="flex items-start">
-              <span className="text-primary mr-3 mt-1">•</span>
+              <span className="text-primary mr-3">•</span>
               <span>Understand the meaning and coherence of the faith</span>
             </li>
             <li className="flex items-start">
-              <span className="text-primary mr-3 mt-1">•</span>
+              <span className="text-primary mr-3">•</span>
               <span>
                 See how the Church&apos;s teachings are rooted in Scripture and
                 Tradition
               </span>
             </li>
             <li className="flex items-start">
-              <span className="text-primary mr-3 mt-1">•</span>
+              <span className="text-primary mr-3">•</span>
               <span>
                 Find clear answers to difficult or confusing questions
               </span>
             </li>
             <li className="flex items-start">
-              <span className="text-primary mr-3 mt-1">•</span>
+              <span className="text-primary mr-3">•</span>
               <span>Deepen your relationship with God and the Church</span>
             </li>
           </ul>
@@ -114,28 +121,29 @@ export default function AboutPage() {
           </p>
 
           <div className="border-t border-muted my-8"></div>
-
           <h2 className="text-2xl font-bold mb-6">
             Why an Interactive Catechism?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
             Sometimes finding out what the Catholic Church actually teaches can
-            be difficult. The Catechism is a definitive guide but it can be
-            challenging to navigate or apply to specific questions. Even asking
-            a Catholic is not always helpful, as they may not know the answer or
-            may give their own interpretation rather than the Church&apos;s
-            teaching.
+            be difficult. Church documents can be challenging to navigate or
+            apply to specific questions. Asking other Catholics is not always
+            helpful, as they may not know the answer or give their own
+            interpretation rather than the Church&apos;s official teaching.
           </p>
           <p className="text-lg leading-relaxed mb-6">
-            This is why <strong>Truth Me Up</strong> uses the latest AI
-            technology (GPT‑4.0) to provide clear, trustworthy answers based
-            only on official Church sources - the Catechism and other approved
-            magisterial documents. Each answer includes direct links to the
-            relevant Catechism passages. By combining the authority of Church
-            teaching with the accessibility of modern technology, it supports
-            the Church&apos;s mission in a digital world:
+            <strong>Truth Me Up</strong> strives to bridge this gap by using the
+            latest AI technology (GPT‑4.0) to provide clear, trustworthy answers
+            based only on official Church sources - the Catechism and other
+            approved magisterial documents. Each answer includes direct links to
+            the relevant Catechism passages for further study.
           </p>
           <p className="text-lg leading-relaxed mb-6">
+            By combining the authority of Church teaching with the accessibility
+            of modern technology, <strong>Truth Me Up</strong> is helping the
+            Church&apos;s mission of spreading the Gospel in a digital world:
+          </p>
+          <p className="text-lg leading-relaxed mb-6 border-l-4 border-primary pl-6">
             <em>
               The Church must learn to cope with and benefit from the marvels of
               technology in order to proclaim the Gospel to all.
@@ -147,7 +155,7 @@ export default function AboutPage() {
           <div className="border-t border-muted my-8"></div>
 
           <p className="text-lg leading-relaxed mb-6">
-            Want to support Truth Me Up?{" "}
+            Want to support <strong>Truth Me Up</strong>?{" "}
             <a
               href="https://coff.ee/marthasharpe"
               target="_blank"
