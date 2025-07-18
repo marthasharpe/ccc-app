@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
+export const runtime = 'nodejs';
+export const preferredRegion = 'auto';
+
 // Initialize Stripe only if the secret key is available
 const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
