@@ -7,6 +7,7 @@ import { NavigationWrapper } from "@/components/NavigationWrapper";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { SearchProvider } from "@/contexts/SearchContext";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -70,6 +71,7 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+        <Analytics />
         <ScrollToTop />
         <ChatProvider>
           <SearchProvider>
