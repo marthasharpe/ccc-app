@@ -13,6 +13,11 @@ const baseTabs = [
   { href: "/contact", label: "Contact" },
 ];
 
+const mobileHeaderTabs = [
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
 const authedTabs = [
   { href: "/saved-responses", label: "Saved" },
   { href: "/account", label: "Account" },
@@ -44,15 +49,16 @@ export function NavigationWrapper() {
   }, [supabase.auth]);
 
   // Add account tab only if user is authenticated
-  const tabs = user ? [...baseTabs, ...authedTabs] : baseTabs;
+  const desktopTabs = user ? [...baseTabs, ...authedTabs] : baseTabs;
+  const mobileTabs = mobileHeaderTabs;
 
   return (
     <>
       <div className="hidden md:block">
-        <NavTabs tabs={tabs} />
+        <NavTabs tabs={desktopTabs} />
       </div>
       <div className="md:hidden">
-        <MobileNav tabs={tabs} />
+        <MobileNav tabs={mobileTabs} />
       </div>
     </>
   );

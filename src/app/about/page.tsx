@@ -3,14 +3,69 @@ export default function AboutPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
-          <h2 className="text-2xl font-bold mb-6">What is the Catechism?</h2>
+          {/* Table of Contents */}
+          <h2 className="text-2xl font-bold mb-6">Table of Contents</h2>
+          <ul className="space-y-3 mb-6 text-lg">
+            <li className="flex items-start">
+              <span className="text-primary mr-3">•</span>
+              <a
+                href="#what-is-catechism"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                What is the Catechism?
+              </a>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-3">•</span>
+              <a
+                href="#four-pillars"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Structure of the Catechism: The Four Pillars
+              </a>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-3">•</span>
+              <a
+                href="#who-is-it-for"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Who Is It For?
+              </a>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-3">•</span>
+              <a
+                href="#interactive-catechism"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Why an Interactive Catechism?
+              </a>
+            </li>
+            <li className="flex items-start">
+              <span className="text-primary mr-3">•</span>
+              <a
+                href="#support"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Support Truth Me Up
+              </a>
+            </li>
+          </ul>
+          <div className="border-t border-muted my-8"></div>
+
+          {/* Main Content */}
+
+          <h2 id="what-is-catechism" className="text-2xl font-bold mb-6">
+            What is the Catechism?
+          </h2>
           <p className="text-lg leading-relaxed mb-6">
             The{" "}
             <a
               href="https://www.vatican.va/archive/ENG0015/_INDEX.HTM"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="items-center justify-center font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Catechism of the Catholic Church (CCC)
             </a>{" "}
@@ -30,7 +85,7 @@ export default function AboutPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 id="four-pillars" className="text-2xl font-bold mb-6">
             Structure of the Catechism: The Four Pillars
           </h2>
 
@@ -82,7 +137,9 @@ export default function AboutPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          <h2 className="text-2xl font-bold mb-6">Who Is It For?</h2>
+          <h2 id="who-is-it-for" className="text-2xl font-bold mb-6">
+            Who Is It For?
+          </h2>
 
           <p className="text-lg mb-6">
             The Catechism is not just for theologians or priests. It is written
@@ -121,7 +178,7 @@ export default function AboutPage() {
           </p>
 
           <div className="border-t border-muted my-8"></div>
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 id="interactive-catechism" className="text-2xl font-bold mb-6">
             Why an Interactive Catechism?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
@@ -154,6 +211,9 @@ export default function AboutPage() {
 
           <div className="border-t border-muted my-8"></div>
 
+          <h2 id="support" className="text-2xl font-bold mb-6">
+            Support Truth Me Up
+          </h2>
           <p className="text-lg leading-relaxed mb-6">
             Want to support <strong>Truth Me Up</strong>?{" "}
             <a

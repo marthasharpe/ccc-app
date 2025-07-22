@@ -207,6 +207,16 @@
       font-size: 16px; /* Ensure 16px minimum for mobile */
     }
 
+    /* Prevent zoom on input focus (iOS) */
+    input[type="text"],
+    input[type="search"],
+    textarea,
+    select,
+    input[data-slot="input"] {
+      font-size: 16px !important;
+      transform-origin: center;
+    }
+
     /* Ensure minimum text sizes */
     .text-xs {
       font-size: 0.875rem !important; /* 14px instead of 12px */
@@ -224,14 +234,24 @@
     input,
     select,
     textarea {
-      min-height: 44px;
-      min-width: 44px;
+      min-height: 48px;
+      min-width: 48px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Exception for inline CCC link buttons - don't apply min-height/width */
+    button[style*="display: inline"] {
+      min-height: auto !important;
+      min-width: auto !important;
+      height: auto !important;
+      width: auto !important;
     }
 
     /* Better mobile padding */
     .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
 
     /* Prevent horizontal scrolling */
@@ -245,6 +265,19 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
     }
+
+    /* Mobile-optimized cards */
+    .mobile-card {
+      margin: 0.5rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+  }
+
+  /* Smooth scrolling for anchor links with header offset */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Adjust for sticky header height */
   }
 
   /* Tablet specific adjustments */

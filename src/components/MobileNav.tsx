@@ -57,7 +57,7 @@ export function MobileNav({ tabs }: MobileNavProps) {
       </button>
 
       {isOpen && (
-        <div className="fixed left-0 right-0 top-full mt-2 mx-4 bg-background border rounded-md shadow-lg z-50">
+        <div className="fixed left-0 right-0 top-full bg-background border shadow-lg z-50 text-right">
           <div className="py-2">
             {tabs.map((tab) => {
               const isActive = pathname === tab.href;

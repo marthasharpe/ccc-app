@@ -121,13 +121,6 @@ export default function AccountPage() {
     <div className="container mx-auto px-4 py-8" data-lastpass-ignore>
       <div className="max-w-4xl mx-auto">
         <div className="prose prose-slate max-w-none">
-          <h2 className="text-2xl font-bold mb-6">Account Information</h2>
-          <p className="text-lg leading-relaxed mb-6">
-            Manage your account settings and view your usage
-          </p>
-
-          <div className="border-t border-muted my-8"></div>
-
           <h2 className="text-2xl font-bold mb-6">Email Address</h2>
           <p className="text-lg leading-relaxed mb-6">{user.email}</p>
 

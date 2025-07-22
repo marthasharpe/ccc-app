@@ -25,7 +25,7 @@ export default function SearchBar({
   onNewSearch,
   shouldFocus = false,
   onFocused,
-  placeholder = "Enter a search term or paragraph number",
+  placeholder = "Keyword or paragraph number...",
   showSearchIcon = false,
   initialQuery = "",
   className = "",
@@ -72,7 +72,11 @@ export default function SearchBar({
 
   // Show normal search form
   return (
-    <form onSubmit={handleSubmit} className={`w-full max-w-2xl mx-auto ${className}`} data-lastpass-ignore>
+    <form
+      onSubmit={handleSubmit}
+      className={`w-full max-w-2xl mx-auto ${className}`}
+      data-lastpass-ignore
+    >
       <div className="flex flex-col sm:flex-row gap-3">
         <Input
           ref={inputRef}

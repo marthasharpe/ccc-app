@@ -296,7 +296,7 @@ export default function ChatPage() {
             ) : (
               /* Normal question input form */
               <form onSubmit={handleSubmit} data-lastpass-ignore>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
                   <Input
                     ref={inputRef}
                     value={question}
@@ -304,13 +304,13 @@ export default function ChatPage() {
                     placeholder="Ask a question..."
                     disabled={isLoading}
                     maxLength={500}
-                    className="flex-1"
+                    className="flex-1 w-full"
                   />
                   {question.trim() && (
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full sm:w-auto shrink-0"
+                      className="w-full sm:w-auto shrink-0 min-w-[100px]"
                     >
                       Ask
                     </Button>

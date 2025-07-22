@@ -237,7 +237,7 @@ export default function SavedResponsesPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Search Header */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">Search Your Bookmarks</h1>
