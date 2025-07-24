@@ -298,8 +298,7 @@ export default function OptionsPage() {
         {/* FAQ Section */}
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            You can upgrade or downgrade your membership at any time. Changes
-            take effect immediately.
+            You can cancel your membership at any time.
           </p>
         </div>
       </div>

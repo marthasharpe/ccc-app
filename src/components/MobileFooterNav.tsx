@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { MessageCircle, Search, Bookmark, User } from "lucide-react";
+import {
+  MessageCircle,
+  Search,
+  Bookmark,
+  User,
+  HelpCircleIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { User as AuthUser } from "@supabase/supabase-js";
@@ -25,25 +31,33 @@ const baseNavItems = [
 
 const authNavItems = [
   {
-    name: "Saved",
-    href: "/saved-responses",
-    icon: Bookmark,
-    requiresAuth: true,
-  },
-  {
     name: "Account",
     href: "/account",
     icon: User,
     requiresAuth: true,
   },
+  {
+    name: "Saved",
+    href: "/saved-responses",
+    icon: Bookmark,
+    requiresAuth: true,
+  },
 ];
 
-const loginNavItem = {
-  name: "Login",
-  href: "/auth/login",
-  icon: User,
-  requiresAuth: false,
-};
+const unauthNavItems = [
+  {
+    name: "Login",
+    href: "/auth/login",
+    icon: User,
+    requiresAuth: false,
+  },
+  {
+    name: "About",
+    href: "/about",
+    icon: HelpCircleIcon,
+    requiresAuth: false,
+  },
+];
 
 export function MobileFooterNav() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -73,8 +87,8 @@ export function MobileFooterNav() {
 
   // Build navigation items based on auth state
   const navItems = user
-    ? [...baseNavItems, ...authNavItems]
-    : [...baseNavItems, loginNavItem];
+    ? [...authNavItems, ...baseNavItems]
+    : [...unauthNavItems, ...baseNavItems];
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t md:hidden">
@@ -83,7 +97,7 @@ export function MobileFooterNav() {
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href === "/chat" && pathname === "/") ||
+              (item.href === "/chat" && pathname === "/chat") ||
               (item.href === "/saved-responses" &&
                 pathname.startsWith("/saved-responses"));
 

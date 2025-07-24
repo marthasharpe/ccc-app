@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
 
 // Daily token limits
-const ANONYMOUS_DAILY_TOKEN_LIMIT = 2000;
-const AUTHENTICATED_DAILY_TOKEN_LIMIT = 2000;
+const ANONYMOUS_DAILY_TOKEN_LIMIT = 4000;
+const AUTHENTICATED_DAILY_TOKEN_LIMIT = 4000;
 const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid options
 
 // Anonymous user storage key
@@ -146,12 +146,6 @@ export async function getUserUsageData(): Promise<UsageData> {
       .eq("status", "active")
       .maybeSingle();
 
-    console.log("Subscription query result:", {
-      data: subscription,
-      error: subscriptionError,
-      userId: user.id,
-    });
-
     if (subscriptionError) {
       console.warn("Error fetching subscription data:", {
         message: subscriptionError.message,
@@ -163,9 +157,10 @@ export async function getUserUsageData(): Promise<UsageData> {
     }
 
     const hasActiveSubscription = !!subscription;
-    const dailyLimit = hasActiveSubscription
-      ? UNLIMITED_DAILY_TOKEN_LIMIT
-      : AUTHENTICATED_DAILY_TOKEN_LIMIT;
+    const dailyLimit =
+      hasActiveSubscription || isTestUser(user.id)
+        ? UNLIMITED_DAILY_TOKEN_LIMIT
+        : AUTHENTICATED_DAILY_TOKEN_LIMIT;
 
     // Authenticated user - use Supabase with current date
     const today = getCurrentDate();
