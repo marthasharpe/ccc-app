@@ -222,7 +222,7 @@ export default function ChatPage() {
             Get answers based on the Catechism of the Catholic Church{" "}
             <a
               href="/about"
-              className="inline-flex items-center text-primary hover:text-primary/80 ml-1"
+              className="inline-flex items-center text-primary hover:text-primary/80 p-1"
               title="Learn more about the Catechism"
             >
               <svg

@@ -20,7 +20,26 @@ export default function Home() {
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground mb-8">
           Get answers about faith, morals, and spirituality according to the
-          Catechism of the Catholic Church.
+          Catechism of the Catholic Church{" "}
+          <a
+            href="/about"
+            className="inline-flex items-center text-primary hover:text-primary/80 p-1"
+            title="Learn more about the Catechism"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </a>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
