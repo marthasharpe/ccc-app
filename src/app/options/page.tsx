@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { getUserStatus } from "@/lib/usageTracking";
+import { GroupPlanDialog } from "@/components/GroupPlanDialog";
 
 export default function OptionsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -89,55 +90,60 @@ export default function OptionsPage() {
       return;
     }
 
-    setCheckoutLoading(optionName);
-    setError(null);
+    // For personal plan, proceed with Stripe checkout
+    if (optionName === "Personal") {
+      setCheckoutLoading(optionName);
+      setError(null);
 
-    try {
-      // Create billing session
-      const response = await fetch("/api/billing/create-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ planName: optionName }),
-      });
+      try {
+        // Create billing session
+        const response = await fetch("/api/billing/create-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ planName: optionName }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok && data.url) {
-        // Redirect to Stripe checkout
-        window.location.href = data.url;
-      } else {
-        setError(data.error || "Failed to create session. Please try again.");
+        if (response.ok && data.url) {
+          // Redirect to Stripe checkout
+          window.location.href = data.url;
+        } else {
+          setError(data.error || "Failed to create session. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error creating session:", error);
+        setError(
+          "Something went wrong while setting up your membership. Please check your connection and try again."
+        );
+      } finally {
+        setCheckoutLoading(null);
       }
-    } catch (error) {
-      console.error("Error creating session:", error);
-      setError(
-        "Something went wrong while setting up your membership. Please check your connection and try again."
-      );
-    } finally {
-      setCheckoutLoading(null);
     }
+    // For group plans, this function won't be called directly
+    // The dialog will handle the logic
   };
 
   const options = [
     {
       name: "Personal",
-      price: "$4.99",
+      price: "$2.99",
       period: "per month",
       description: "Perfect for personal study and learning",
       maxUsers: "1 person",
     },
     {
       name: "Small Group",
-      price: "$24.99",
+      price: "$11.99",
       period: "per month",
       description: "Ideal for Bible studies, families, or small groups",
       maxUsers: "Up to 10 people",
     },
     {
       name: "Large Group",
-      price: "$149.99",
+      price: "$49.99",
       period: "per month",
       description: "Designed for parishes, schools, and organizations",
       maxUsers: "Up to 100 people",
@@ -145,7 +151,75 @@ export default function OptionsPage() {
   ];
 
   const getButtonText = (optionName: string) => {
-    return optionName === "Personal" ? "Get Started" : "Coming Soon";
+    if (optionName === "Personal") return "Get Started";
+    if (optionName === "Small Group" || optionName === "Large Group")
+      return "Get Started";
+    return "Coming Soon";
+  };
+
+  const renderActionButton = (option: { name: string }) => {
+    if (hasActiveMembership) {
+      return null; // Don't show buttons if user already has membership
+    }
+
+    // If user is not authenticated, use handleGetStarted (which redirects to login)
+    if (!user) {
+      return (
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+        >
+          {getButtonText(option.name)}
+        </Button>
+      );
+    }
+
+    if (option.name === "Personal") {
+      return (
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+          data-lastpass-ignore
+        >
+          {checkoutLoading === option.name ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Processing...
+            </div>
+          ) : (
+            getButtonText(option.name)
+          )}
+        </Button>
+      );
+    }
+
+    if (option.name === "Small Group" || option.name === "Large Group") {
+      const planType = option.name === "Small Group" ? "small" : "large";
+      const maxMembers = option.name === "Small Group" ? 10 : 100;
+
+      // If user is authenticated, show the dialog
+      return (
+        <GroupPlanDialog
+          planType={planType}
+          planName={option.name}
+          maxMembers={maxMembers}
+          trigger={
+            <Button className="w-full mt-auto bg-primary hover:bg-primary/90">
+              {getButtonText(option.name)}
+            </Button>
+          }
+        />
+      );
+    }
+
+    return (
+      <Button
+        className="w-full mt-auto bg-primary hover:bg-primary/90"
+        disabled={true}
+      >
+        {getButtonText(option.name)}
+      </Button>
+    );
   };
 
   if (isLoading) {
@@ -270,27 +344,7 @@ export default function OptionsPage() {
               </div>
 
               {/* CTA Button */}
-              {!hasActiveMembership && (
-                <Button
-                  className={`w-full mt-auto ${
-                    hasActiveMembership && currentOptionName === option.name
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "bg-primary hover:bg-primary/90"
-                  }`}
-                  disabled={option.name !== "Personal"}
-                  onClick={() => handleGetStarted(option.name)}
-                  data-lastpass-ignore
-                >
-                  {checkoutLoading === option.name ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Processing...
-                    </div>
-                  ) : (
-                    getButtonText(option.name)
-                  )}
-                </Button>
-              )}
+              {renderActionButton(option)}
             </div>
           ))}
         </div>
