@@ -62,6 +62,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine success URL based on plan type
+    const isGroupPlan = planName === "Small Group" || planName === "Large Group";
+    const successUrl = isGroupPlan 
+      ? `${request.nextUrl.origin}/groups?success=true`
+      : `${request.nextUrl.origin}/account?success=true`;
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -71,7 +77,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "subscription",
-      success_url: `${request.nextUrl.origin}/account?success=true`,
+      success_url: successUrl,
       cancel_url: `${request.nextUrl.origin}/options?canceled=true`,
       customer_email: user.email || undefined,
       metadata: {

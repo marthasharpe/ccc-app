@@ -87,6 +87,81 @@ export async function POST(request: NextRequest) {
           } else {
             console.log("Successfully created/updated membership:", data);
           }
+
+          // If this is a group plan, create the actual group plan
+          if (planName === "Small Group" || planName === "Large Group") {
+            const maxMembers = planName === "Small Group" ? 10 : 100;
+            const planType = planName === "Small Group" ? "small" : "large";
+            
+            // Generate unique join code
+            const generateJoinCode = () => {
+              const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+              const numbers = '23456789';
+              let result = '';
+              
+              // First 4 characters are letters
+              for (let i = 0; i < 4; i++) {
+                result += letters.charAt(Math.floor(Math.random() * letters.length));
+              }
+              
+              // Last 4 characters are numbers
+              for (let i = 0; i < 4; i++) {
+                result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+              }
+              
+              return result;
+            };
+
+            let joinCode = generateJoinCode();
+            let attempts = 0;
+            
+            // Ensure join code is unique
+            while (attempts < 10) {
+              const { data: existingPlan } = await supabase
+                .from('group_plans')
+                .select('id')
+                .eq('join_code', joinCode)
+                .single();
+              
+              if (!existingPlan) break;
+              joinCode = generateJoinCode();
+              attempts++;
+            }
+
+            // Create the group plan
+            const { data: groupPlan, error: groupError } = await supabase
+              .from('group_plans')
+              .insert({
+                owner_id: userId,
+                plan_type: planType,
+                max_members: maxMembers,
+                join_code: joinCode,
+                active: true,
+              })
+              .select()
+              .single();
+
+            if (groupError) {
+              console.error("Failed to create group plan:", groupError);
+            } else {
+              console.log("Successfully created group plan:", groupPlan);
+              
+              // Add the owner as the first member with admin role
+              const { error: memberError } = await supabase
+                .from('group_plan_memberships')
+                .insert({
+                  group_plan_id: groupPlan.id,
+                  user_id: userId,
+                  role: 'admin',
+                });
+
+              if (memberError) {
+                console.error("Failed to add owner as group member:", memberError);
+              } else {
+                console.log("Successfully added owner as group admin");
+              }
+            }
+          }
         } else {
           console.error("Missing required data:", { userId, subscriptionId, planName });
         }

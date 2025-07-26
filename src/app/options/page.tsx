@@ -89,6 +89,7 @@ export default function OptionsPage() {
       return;
     }
 
+    // For all plans, proceed with Stripe checkout
     setCheckoutLoading(optionName);
     setError(null);
 
@@ -123,21 +124,21 @@ export default function OptionsPage() {
   const options = [
     {
       name: "Personal",
-      price: "$4.99",
+      price: "$2.99",
       period: "per month",
-      description: "Perfect for personal study and learning",
+      description: "Perfect for individual study and learning",
       maxUsers: "1 person",
     },
     {
       name: "Small Group",
-      price: "$24.99",
+      price: "$11.99",
       period: "per month",
       description: "Ideal for Bible studies, families, or small groups",
       maxUsers: "Up to 10 people",
     },
     {
       name: "Large Group",
-      price: "$149.99",
+      price: "$49.99",
       period: "per month",
       description: "Designed for parishes, schools, and organizations",
       maxUsers: "Up to 100 people",
@@ -145,7 +146,76 @@ export default function OptionsPage() {
   ];
 
   const getButtonText = (optionName: string) => {
-    return optionName === "Personal" ? "Get Started" : "Coming Soon";
+    if (optionName === "Personal") return "Get Started";
+    if (optionName === "Small Group" || optionName === "Large Group")
+      return "Get Started";
+    return "Coming Soon";
+  };
+
+  const renderActionButton = (option: { name: string }) => {
+    if (hasActiveMembership) {
+      return null; // Don't show buttons if user already has membership
+    }
+
+    // If user is not authenticated, use handleGetStarted (which redirects to login)
+    if (!user) {
+      return (
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+        >
+          {getButtonText(option.name)}
+        </Button>
+      );
+    }
+
+    if (option.name === "Personal") {
+      return (
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+          data-lastpass-ignore
+        >
+          {checkoutLoading === option.name ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Processing...
+            </div>
+          ) : (
+            getButtonText(option.name)
+          )}
+        </Button>
+      );
+    }
+
+    if (option.name === "Small Group" || option.name === "Large Group") {
+      // For group plans, go directly to Stripe checkout
+      return (
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+          data-lastpass-ignore
+        >
+          {checkoutLoading === option.name ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Processing...
+            </div>
+          ) : (
+            getButtonText(option.name)
+          )}
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        className="w-full mt-auto bg-primary hover:bg-primary/90"
+        disabled={true}
+      >
+        {getButtonText(option.name)}
+      </Button>
+    );
   };
 
   if (isLoading) {
@@ -186,19 +256,23 @@ export default function OptionsPage() {
               page.
             </p>
           ) : (
-            <p className="text-lg max-w-2xl mx-auto">
-              Get unlimited usage and other features.
-              <br />
-              Want to support this project?{" "}
-              <a
-                href="https://coff.ee/marthasharpe"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                Donate to the developer
-              </a>
-            </p>
+            <>
+              <p className="text-lg max-w-2xl mx-auto">
+                Get unlimited usage and other features.
+              </p>
+
+              <p className="text-lg max-w-2xl mx-auto">
+                Want to support this project?{" "}
+                <a
+                  href="https://coff.ee/marthasharpe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Donate to the developer
+                </a>
+              </p>
+            </>
           )}
         </div>
 
@@ -254,43 +328,21 @@ export default function OptionsPage() {
 
               {/* Option Header */}
               <div className="text-center mb-6 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">{option.name}</h3>
-                <p className="text-muted-foreground mb-4">
-                  {option.description}
-                </p>
-                <div className="mb-2">
+                <h3 className="text-3xl font-bold">{option.name}</h3>
+                <p className="text-muted-foreground mb-6">{option.maxUsers}</p>
+                <div className="mb-6">
                   <div className="text-4xl font-bold">{option.price}</div>
                   <div className="text-muted-foreground ml-1">
                     {option.period}
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {option.maxUsers}
+                <p className="text-muted-foreground text-lg mb-1">
+                  {option.description}
                 </p>
               </div>
 
               {/* CTA Button */}
-              {!hasActiveMembership && (
-                <Button
-                  className={`w-full mt-auto ${
-                    hasActiveMembership && currentOptionName === option.name
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "bg-primary hover:bg-primary/90"
-                  }`}
-                  disabled={option.name !== "Personal"}
-                  onClick={() => handleGetStarted(option.name)}
-                  data-lastpass-ignore
-                >
-                  {checkoutLoading === option.name ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Processing...
-                    </div>
-                  ) : (
-                    getButtonText(option.name)
-                  )}
-                </Button>
-              )}
+              {renderActionButton(option)}
             </div>
           ))}
         </div>
