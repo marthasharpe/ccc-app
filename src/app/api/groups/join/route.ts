@@ -50,19 +50,41 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user is already a member
-    const { data: existingMembership } = await supabase
+    // Check if user already has an active subscription
+    const { data: existingSubscription } = await supabase
+      .from('memberships')
+      .select('stripe_subscription_id, active')
+      .eq('user_id', user.id)
+      .eq('active', true)
+      .single();
+
+    if (existingSubscription) {
+      return NextResponse.json(
+        { success: false, error: 'You already have an active subscription' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is already a member of any group
+    const { data: anyGroupMembership } = await supabase
       .from('group_plan_memberships')
-      .select('user_id')
-      .eq('group_plan_id', groupPlan.id)
+      .select('group_plan_id')
       .eq('user_id', user.id)
       .single();
 
-    if (existingMembership) {
-      return NextResponse.json(
-        { success: false, error: 'You are already a member of this group' },
-        { status: 400 }
-      );
+    if (anyGroupMembership) {
+      // If it's the same group, give specific message
+      if (anyGroupMembership.group_plan_id === groupPlan.id) {
+        return NextResponse.json(
+          { success: false, error: 'You are already a member of this group' },
+          { status: 400 }
+        );
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'You are already a member of another group plan' },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if the group has reached maximum capacity

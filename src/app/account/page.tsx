@@ -265,7 +265,7 @@ export default function AccountPage() {
           <h2 className="text-2xl font-bold mb-6">Daily Usage</h2>
           {userStatus?.hasActiveSubscription || groupMembership ? (
             <p className="text-lg mb-6">
-              You have unlimited daily usage as part of your study plan.
+              You have unlimited daily usage as part of your study pack.
             </p>
           ) : (
             <div className="mb-6">
@@ -298,7 +298,7 @@ export default function AccountPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          <h2 className="text-2xl font-bold mb-6">Current Study Plan</h2>
+          <h2 className="text-2xl font-bold mb-6">Current Study Pack</h2>
 
           {userStatus?.hasActiveSubscription ? (
             <div className="mb-6">
@@ -309,7 +309,7 @@ export default function AccountPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-xl font-semibold text-primary">
-                      {userStatus.planName || "Enhanced Membership"}
+                      {userStatus.planName || "Enhanced Study Pack"}
                     </h3>
                     {isGroupOwner && (
                       <Badge variant="secondary" className="text-xs">
@@ -347,7 +347,7 @@ export default function AccountPage() {
                       className="text-destructive hover:text-destructive cursor-pointer"
                       data-lastpass-ignore
                     >
-                      {isCanceling ? "Canceling..." : "Cancel Plan"}
+                      {isCanceling ? "Canceling..." : "Cancel Study Pack"}
                     </Button>
                   </div>
                 </div>
@@ -381,7 +381,7 @@ export default function AccountPage() {
                   </Badge>
                 </div>
                 <p className="text-lg text-muted-foreground">
-                  Unlimited daily usage as part of group plan
+                  Unlimited daily usage as part of a group study pack
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Joined{" "}
@@ -422,10 +422,10 @@ export default function AccountPage() {
               >
                 <div className="">
                   <h3 className="text-xl font-semibold text-primary mb-2">
-                    No Current Plan
+                    No Current Study Pack
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Get unlimited daily usage with a subscription
+                    Get unlimited daily usage with a study pack
                   </p>
                   <div className="mt-4 pt-4 border-t" />
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -434,7 +434,7 @@ export default function AccountPage() {
                       onClick={() => router.push("/options")}
                       className="cursor-pointer"
                     >
-                      See Study Plans
+                      See Study Packs
                     </Button>
                     <Button
                       variant="outline"
@@ -442,7 +442,7 @@ export default function AccountPage() {
                       onClick={handleJoinGroup}
                       className="cursor-pointer"
                     >
-                      Join Existing Plan
+                      Join Existing Group
                     </Button>
                   </div>
                 </div>
@@ -473,10 +473,10 @@ export default function AccountPage() {
       <AlertDialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Join Existing Plan</AlertDialogTitle>
+            <AlertDialogTitle>Join Existing Program</AlertDialogTitle>
             <AlertDialogDescription>
               Enter the join code provided by the group owner to join their
-              plan.
+              program.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <form onSubmit={confirmJoinGroup} className="space-y-4">

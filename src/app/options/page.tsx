@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { getUserStatus } from "@/lib/usageTracking";
+import { getMyMembership } from "@/lib/groupPlanUtils";
 
 export default function OptionsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -31,7 +32,11 @@ export default function OptionsPage() {
         if (user) {
           // Check membership status
           const status = await getUserStatus();
-          setHasActiveMembership(status.hasActiveSubscription);
+          const membershipResponse = await getMyMembership();
+          setHasActiveMembership(
+            status.hasActiveSubscription ||
+              !!(membershipResponse.success && membershipResponse.data)
+          );
           setCurrentOptionName(status.planName || null);
         } else {
           setHasActiveMembership(false);
@@ -243,10 +248,11 @@ export default function OptionsPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold mb-4">Choose Your Study Option</h1>
+          <h1 className="text-3xl font-bold mb-4">Choose Your Study Pack</h1>
           {hasActiveMembership ? (
             <p className="text-lg max-w-2xl mx-auto">
-              To change options, please cancel your current membership from your{" "}
+              You already have a study pack. To create a new one, please cancel
+              your current pack from your{" "}
               <button
                 onClick={() => router.push("/account")}
                 className="text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer"
@@ -350,7 +356,7 @@ export default function OptionsPage() {
         {/* FAQ Section */}
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            You can cancel your membership at any time.
+            You can cancel your study pack at any time.
           </p>
         </div>
       </div>

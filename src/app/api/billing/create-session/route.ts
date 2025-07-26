@@ -40,6 +40,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user already has an active subscription
+    const { data: existingSubscription } = await supabase
+      .from('memberships')
+      .select('stripe_subscription_id, active')
+      .eq('user_id', user.id)
+      .eq('active', true)
+      .single();
+
+    if (existingSubscription) {
+      return NextResponse.json(
+        { error: "You already have an active subscription" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is already a member of a group
+    const { data: existingMembership } = await supabase
+      .from('group_plan_memberships')
+      .select('group_plan_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingMembership) {
+      return NextResponse.json(
+        { error: "You are already a member of a group plan" },
+        { status: 400 }
+      );
+    }
+
     // Get the price ID for the selected plan
     const priceId = PLAN_PRICE_IDS[planName as keyof typeof PLAN_PRICE_IDS];
 
