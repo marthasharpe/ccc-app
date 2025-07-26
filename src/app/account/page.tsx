@@ -13,6 +13,8 @@ import {
   leaveGroup,
 } from "@/lib/groupPlanUtils";
 import { Crown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { joinGroup, cleanJoinCode } from "@/lib/groupPlanUtils";
 
 interface GroupMembership {
   id: string;
@@ -61,6 +63,10 @@ export default function AccountPage() {
     null
   );
   const [showLeaveGroupDialog, setShowLeaveGroupDialog] = useState(false);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinMessage, setJoinMessage] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -92,7 +98,6 @@ export default function AccountPage() {
           ? (membershipResponse.data as GroupMembership)
           : null
       );
-      console.log("membershipResponse", membershipResponse);
       setIsLoading(false);
     };
 
@@ -169,6 +174,65 @@ export default function AccountPage() {
     }
   };
 
+  const handleJoinGroup = () => {
+    setShowJoinDialog(true);
+  };
+
+  const handleJoinCodeChange = (value: string) => {
+    // Auto-format as user types (add dash after 4 characters)
+    const cleaned = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    if (cleaned.length <= 8) {
+      const formatted =
+        cleaned.length > 4
+          ? `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`
+          : cleaned;
+      setJoinCode(formatted);
+    }
+  };
+
+  const confirmJoinGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!joinCode.trim()) {
+      setJoinMessage("Please enter a join code");
+      return;
+    }
+
+    setIsJoining(true);
+    setJoinMessage(null);
+
+    try {
+      const cleanedCode = cleanJoinCode(joinCode);
+      const response = await joinGroup({ join_code: cleanedCode });
+
+      if (response.success) {
+        setJoinMessage("Successfully joined the group!");
+        setTimeout(() => {
+          setShowJoinDialog(false);
+          // Refresh data
+          const refreshData = async () => {
+            const status = await getUserStatus();
+            setUserStatus(status);
+            const membershipResponse = await getMyMembership();
+            setGroupMembership(
+              membershipResponse.success && membershipResponse.data
+                ? (membershipResponse.data as GroupMembership)
+                : null
+            );
+          };
+          refreshData();
+        }, 1500);
+      } else {
+        setJoinMessage(`Error: ${response.error}`);
+      }
+    } catch (error) {
+      console.error("Error joining group:", error);
+      setJoinMessage("Network error. Please try again.");
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-6 sm:px-4 py-16">
@@ -198,170 +262,192 @@ export default function AccountPage() {
 
           <div className="border-t border-muted my-8"></div>
 
-          {userStatus?.hasActiveSubscription ? (
-            <>
-              <h2 className="text-2xl font-bold mb-6">Current Study Option</h2>
-              <div className="mb-6">
-                <div
-                  className="bg-primary/10 border border-primary/20 rounded-lg p-6"
-                  data-lastpass-ignore
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-xl font-semibold text-primary">
-                          {userStatus.planName || "Enhanced Membership"}
-                        </h3>
-                        {isGroupOwner && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Crown className="h-3 w-3 mr-1" />
-                            Owner
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground">
-                        Unlimited daily usage{" "}
-                        {userStatus.planName === "Small Group"
-                          ? "for up to 10 members"
-                          : userStatus.planName === "Large Group"
-                          ? "for up to 100 members"
-                          : null}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-green-600 font-medium">✓ Active</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-primary/20">
-                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                      <div className="flex gap-3">
-                        {isGroupOwner && (
-                          <Button
-                            size="sm"
-                            onClick={() => router.push("/groups")}
-                            className="cursor-pointer"
-                          >
-                            Manage Group
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleCancelSubscription}
-                          disabled={isCanceling}
-                          className="text-destructive hover:text-destructive cursor-pointer"
-                          data-lastpass-ignore
-                        >
-                          {isCanceling ? "Canceling..." : "Cancel Plan"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {cancelMessage && (
-                  <div
-                    className={`mt-4 p-3 rounded-md ${
-                      cancelMessage.startsWith("Error")
-                        ? "bg-destructive/10 border border-destructive/20 text-destructive"
-                        : "bg-green-50 border border-green-200 text-green-700"
-                    }`}
-                  >
-                    <p className="text-sm">{cancelMessage}</p>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : groupMembership ? (
-            <>
-              <h2 className="text-2xl font-bold mb-6">Group Membership</h2>
-              <div className="mb-6">
-                <div
-                  className="bg-primary/10 border border-primary/20 rounded-lg p-6"
-                  data-lastpass-ignore
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-xl font-semibold text-primary">
-                          {groupMembership.group_plan?.plan_type === "small"
-                            ? "Small Group"
-                            : "Large Group"}
-                        </h3>
-                        <Badge variant="secondary" className="text-xs">
-                          Member
-                        </Badge>
-                      </div>
-                      <p className="text-muted-foreground">
-                        Unlimited daily usage as part of group plan
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Joined{" "}
-                        {new Date(
-                          groupMembership.joined_at
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-green-600 font-medium">✓ Active</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-primary/20">
-                    <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleLeaveGroup}
-                        disabled={isLeavingGroup}
-                        className="text-destructive hover:text-destructive cursor-pointer"
-                      >
-                        {isLeavingGroup ? "Leaving..." : "Leave Group"}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                {leaveGroupMessage && (
-                  <div
-                    className={`mt-4 p-3 rounded-md ${
-                      leaveGroupMessage.startsWith("Error")
-                        ? "bg-destructive/10 border border-destructive/20 text-destructive"
-                        : "bg-green-50 border border-green-200 text-green-700"
-                    }`}
-                  >
-                    <p className="text-sm">{leaveGroupMessage}</p>
-                  </div>
-                )}
-              </div>
-            </>
+          <h2 className="text-2xl font-bold mb-6">Daily Usage</h2>
+          {userStatus?.hasActiveSubscription || groupMembership ? (
+            <p className="text-lg mb-6">
+              You have unlimited daily usage as part of your study plan.
+            </p>
           ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-6">Daily Usage</h2>
-              <div className="mb-6">
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(
-                        userStatus?.usagePercentage || 0,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>{userStatus?.usagePercentage || 0}% used</span>
-                  <span>
-                    {100 - (userStatus?.usagePercentage || 0)}% remaining
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => router.push("/options")}
-                  className="w-full sm:w-auto cursor-pointer mt-8"
-                >
-                  Get Unlimited Usage
-                </Button>
+            <div className="mb-6">
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min(
+                      userStatus?.usagePercentage || 0,
+                      100
+                    )}%`,
+                  }}
+                ></div>
               </div>
-            </>
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>{userStatus?.usagePercentage || 0}% used</span>
+                <span>
+                  {100 - (userStatus?.usagePercentage || 0)}% remaining
+                </span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => router.push("/options")}
+                className="w-full sm:w-auto cursor-pointer mt-8"
+              >
+                Get Unlimited Usage
+              </Button>
+            </div>
+          )}
+
+          <div className="border-t border-muted my-8"></div>
+
+          <h2 className="text-2xl font-bold mb-6">Current Study Plan</h2>
+
+          {userStatus?.hasActiveSubscription ? (
+            <div className="mb-6">
+              <div
+                className="bg-muted/30 border rounded-lg p-6"
+                data-lastpass-ignore
+              >
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-xl font-semibold text-primary">
+                      {userStatus.planName || "Enhanced Membership"}
+                    </h3>
+                    {isGroupOwner && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Crown className="h-3 w-3 mr-1" />
+                        Owner
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground">
+                    Unlimited daily usage{" "}
+                    {userStatus.planName === "Small Group"
+                      ? "for up to 10 members"
+                      : userStatus.planName === "Large Group"
+                      ? "for up to 100 members"
+                      : null}
+                  </p>
+                </div>
+                <div className="mt-4 pt-4 border-t" />
+                <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                  <div className="flex gap-3">
+                    {isGroupOwner && (
+                      <Button
+                        size="sm"
+                        onClick={() => router.push("/groups")}
+                        className="cursor-pointer"
+                      >
+                        Manage Group
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelSubscription}
+                      disabled={isCanceling}
+                      className="text-destructive hover:text-destructive cursor-pointer"
+                      data-lastpass-ignore
+                    >
+                      {isCanceling ? "Canceling..." : "Cancel Plan"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              {cancelMessage && (
+                <div
+                  className={`mt-4 p-3 rounded-md ${
+                    cancelMessage.startsWith("Error")
+                      ? "bg-destructive/10 border border-destructive/20 text-destructive"
+                      : "bg-green-50 border border-green-200 text-green-700"
+                  }`}
+                >
+                  <p className="text-sm">{cancelMessage}</p>
+                </div>
+              )}
+            </div>
+          ) : groupMembership ? (
+            <div className="mb-6">
+              <div
+                className="bg-muted/30 border rounded-lg p-6"
+                data-lastpass-ignore
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-2xl font-semibold text-primary">
+                    {groupMembership.group_plan?.plan_type === "small"
+                      ? "Small Group"
+                      : "Large Group"}
+                  </h3>
+                  <Badge variant="secondary" className="text-xs">
+                    Member
+                  </Badge>
+                </div>
+                <p className="text-lg text-muted-foreground">
+                  Unlimited daily usage as part of group plan
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Joined{" "}
+                  {new Date(groupMembership.joined_at).toLocaleDateString()}
+                </p>
+
+                <div className="mt-4 pt-4 border-t" />
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLeaveGroup}
+                    disabled={isLeavingGroup}
+                    className="text-destructive hover:text-destructive cursor-pointer"
+                  >
+                    {isLeavingGroup ? "Leaving..." : "Leave Group"}
+                  </Button>
+                </div>
+              </div>
+              {leaveGroupMessage && (
+                <div
+                  className={`mt-4 p-3 rounded-md ${
+                    leaveGroupMessage.startsWith("Error")
+                      ? "bg-destructive/10 border border-destructive/20 text-destructive"
+                      : "bg-green-50 border border-green-200 text-green-700"
+                  }`}
+                >
+                  <p className="text-sm">{leaveGroupMessage}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mb-6">
+              <div
+                className="bg-muted/30 border rounded-lg p-6"
+                data-lastpass-ignore
+              >
+                <div className="">
+                  <h3 className="text-xl font-semibold text-primary mb-2">
+                    No Current Plan
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Get unlimited daily usage with a subscription
+                  </p>
+                  <div className="mt-4 pt-4 border-t" />
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      size="sm"
+                      onClick={() => router.push("/options")}
+                      className="cursor-pointer"
+                    >
+                      See Study Plans
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleJoinGroup}
+                      className="cursor-pointer"
+                    >
+                      Join Existing Plan
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           <div className="border-t border-muted my-8"></div>
@@ -382,6 +468,74 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
+
+      {/* Join Plan Dialog */}
+      <AlertDialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Join Existing Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter the join code provided by the group owner to join their
+              plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <form onSubmit={confirmJoinGroup} className="space-y-4">
+            <div>
+              <label
+                htmlFor="joinCodeInput"
+                className="block text-sm font-medium mb-2"
+              >
+                Join Code
+              </label>
+              <Input
+                id="joinCodeInput"
+                type="text"
+                placeholder="XXXX-XXXX"
+                value={joinCode}
+                onChange={(e) => handleJoinCodeChange(e.target.value)}
+                className="font-mono text-center"
+                maxLength={9} // 8 characters + 1 dash
+                disabled={isJoining}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter the 8-character code (e.g., ABCD-1234)
+              </p>
+            </div>
+
+            {joinMessage && (
+              <div
+                className={`p-3 rounded-md ${
+                  joinMessage.startsWith("Error")
+                    ? "bg-destructive/10 border border-destructive/20 text-destructive"
+                    : joinMessage.includes("Successfully")
+                    ? "bg-green-50 border border-green-200 text-green-700"
+                    : "bg-yellow-50 border border-yellow-200 text-yellow-700"
+                }`}
+              >
+                <p className="text-sm">{joinMessage}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowJoinDialog(false);
+                  setJoinCode("");
+                  setJoinMessage(null);
+                }}
+                disabled={isJoining}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isJoining || !joinCode.trim()}>
+                {isJoining ? "Joining..." : "Join Plan"}
+              </Button>
+            </div>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Cancel Subscription Confirmation Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
@@ -418,8 +572,7 @@ export default function AccountPage() {
             <AlertDialogTitle>Leave Group</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to leave this group? You will lose access to
-              unlimited usage and return to the daily limit. You can rejoin
-              later if you have the group code.
+              unlimited usage and return to the daily limit.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

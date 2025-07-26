@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { getUserStatus } from "@/lib/usageTracking";
-import { GroupPlanDialog } from "@/components/GroupPlanDialog";
 
 export default function OptionsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -90,40 +89,36 @@ export default function OptionsPage() {
       return;
     }
 
-    // For personal plan, proceed with Stripe checkout
-    if (optionName === "Personal") {
-      setCheckoutLoading(optionName);
-      setError(null);
+    // For all plans, proceed with Stripe checkout
+    setCheckoutLoading(optionName);
+    setError(null);
 
-      try {
-        // Create billing session
-        const response = await fetch("/api/billing/create-session", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ planName: optionName }),
-        });
+    try {
+      // Create billing session
+      const response = await fetch("/api/billing/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ planName: optionName }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok && data.url) {
-          // Redirect to Stripe checkout
-          window.location.href = data.url;
-        } else {
-          setError(data.error || "Failed to create session. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error creating session:", error);
-        setError(
-          "Something went wrong while setting up your membership. Please check your connection and try again."
-        );
-      } finally {
-        setCheckoutLoading(null);
+      if (response.ok && data.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Failed to create session. Please try again.");
       }
+    } catch (error) {
+      console.error("Error creating session:", error);
+      setError(
+        "Something went wrong while setting up your membership. Please check your connection and try again."
+      );
+    } finally {
+      setCheckoutLoading(null);
     }
-    // For group plans, this function won't be called directly
-    // The dialog will handle the logic
   };
 
   const options = [
@@ -131,7 +126,7 @@ export default function OptionsPage() {
       name: "Personal",
       price: "$2.99",
       period: "per month",
-      description: "Perfect for personal study and learning",
+      description: "Perfect for individual study and learning",
       maxUsers: "1 person",
     },
     {
@@ -194,21 +189,22 @@ export default function OptionsPage() {
     }
 
     if (option.name === "Small Group" || option.name === "Large Group") {
-      const planType = option.name === "Small Group" ? "small" : "large";
-      const maxMembers = option.name === "Small Group" ? 10 : 100;
-
-      // If user is authenticated, show the dialog
+      // For group plans, go directly to Stripe checkout
       return (
-        <GroupPlanDialog
-          planType={planType}
-          planName={option.name}
-          maxMembers={maxMembers}
-          trigger={
-            <Button className="w-full mt-auto bg-primary hover:bg-primary/90">
-              {getButtonText(option.name)}
-            </Button>
-          }
-        />
+        <Button
+          className="w-full mt-auto bg-primary hover:bg-primary/90"
+          onClick={() => handleGetStarted(option.name)}
+          data-lastpass-ignore
+        >
+          {checkoutLoading === option.name ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Processing...
+            </div>
+          ) : (
+            getButtonText(option.name)
+          )}
+        </Button>
       );
     }
 
@@ -260,19 +256,23 @@ export default function OptionsPage() {
               page.
             </p>
           ) : (
-            <p className="text-lg max-w-2xl mx-auto">
-              Get unlimited usage and other features.
-              <br />
-              Want to support this project?{" "}
-              <a
-                href="https://coff.ee/marthasharpe"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                Donate to the developer
-              </a>
-            </p>
+            <>
+              <p className="text-lg max-w-2xl mx-auto">
+                Get unlimited usage and other features.
+              </p>
+
+              <p className="text-lg max-w-2xl mx-auto">
+                Want to support this project?{" "}
+                <a
+                  href="https://coff.ee/marthasharpe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Donate to the developer
+                </a>
+              </p>
+            </>
           )}
         </div>
 
@@ -328,18 +328,16 @@ export default function OptionsPage() {
 
               {/* Option Header */}
               <div className="text-center mb-6 flex-grow">
-                <h3 className="text-2xl font-bold mb-2">{option.name}</h3>
-                <p className="text-muted-foreground mb-4">
-                  {option.description}
-                </p>
-                <div className="mb-2">
+                <h3 className="text-3xl font-bold">{option.name}</h3>
+                <p className="text-muted-foreground mb-6">{option.maxUsers}</p>
+                <div className="mb-6">
                   <div className="text-4xl font-bold">{option.price}</div>
                   <div className="text-muted-foreground ml-1">
                     {option.period}
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {option.maxUsers}
+                <p className="text-muted-foreground text-lg mb-1">
+                  {option.description}
                 </p>
               </div>
 
