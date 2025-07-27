@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { GroupPlanResponse } from '@/lib/types/groups';
 
 export async function GET() {
@@ -54,13 +55,41 @@ export async function GET() {
       userEmailMap.set(authUser.id, authUser.email);
     });
 
-    // Add user info to memberships
+    // Fetch last activity for all members using service client to bypass RLS
+    const memberUserIds = groupPlan.memberships?.map((membership: { user_id: string }) => membership.user_id) || [];
+    
+    // Use service client for activity lookup to bypass RLS
+    const serviceSupabase = createServiceClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    
+    const { data: lastActivityData, error: activityError } = await serviceSupabase
+      .from('daily_usage')
+      .select('user_id, date')
+      .in('user_id', memberUserIds)
+      .order('date', { ascending: false });
+
+    if (activityError) {
+      console.error('Error fetching member activity:', activityError);
+    }
+
+    // Create a map of user IDs to their last activity date
+    const lastActivityMap = new Map();
+    lastActivityData?.forEach(activity => {
+      if (!lastActivityMap.has(activity.user_id)) {
+        lastActivityMap.set(activity.user_id, activity.date);
+      }
+    });
+
+    // Add user info and activity data to memberships
     const membershipsWithUsers = groupPlan.memberships?.map((membership: { user_id: string; [key: string]: unknown }) => ({
       ...membership,
       user: { 
         id: membership.user_id, 
         email: userEmailMap.get(membership.user_id) || null
       },
+      last_activity_date: lastActivityMap.get(membership.user_id) || null,
     })) || [];
 
     const response: GroupPlanResponse = {

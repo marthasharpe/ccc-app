@@ -22,6 +22,7 @@ export interface GroupPlanWithMembers extends GroupPlan {
       id: string;
       email?: string;
     };
+    last_activity_date?: string | null;
   })[];
   member_count: number;
 }
@@ -51,6 +52,7 @@ export type GroupMembersResponse = {
       id: string;
       email?: string;
     };
+    last_activity_date?: string | null;
   })[];
   error?: string;
 };

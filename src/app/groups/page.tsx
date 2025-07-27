@@ -18,14 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Users,
-  Copy,
-  UserMinus,
-  AlertCircle,
-  CheckCircle,
-  Crown,
-} from "lucide-react";
+import { Users, Copy, AlertCircle, CheckCircle, Crown } from "lucide-react";
 import { GroupPlanWithMembers } from "@/lib/types/groups";
 import {
   getMyGroupPlan,
@@ -34,6 +27,55 @@ import {
   formatMemberCount,
   getPlanTypeDisplayName,
 } from "@/lib/groupPlanUtils";
+
+// Helper function to get activity status
+function getActivityStatus(lastActivityDate: string | null): {
+  status: "active" | "inactive" | "never";
+  text: string;
+  color: string;
+  dotColor: string;
+} {
+  if (!lastActivityDate) {
+    return {
+      status: "never",
+      text: "Never used",
+      color: "text-muted-foreground",
+      dotColor: "bg-muted-foreground",
+    };
+  }
+
+  const lastActivity = new Date(lastActivityDate);
+  const now = new Date();
+  const daysDiff = Math.floor(
+    (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (daysDiff <= 10) {
+    return {
+      status: "active",
+      text:
+        daysDiff === 0
+          ? "Active today"
+          : `Active ${daysDiff} day${daysDiff === 1 ? "" : "s"} ago`,
+      color: "text-green-600",
+      dotColor: "bg-green-500",
+    };
+  } else if (daysDiff <= 30) {
+    return {
+      status: "inactive",
+      text: `Last used ${daysDiff} days ago`,
+      color: "text-yellow-600",
+      dotColor: "bg-yellow-500",
+    };
+  } else {
+    return {
+      status: "inactive",
+      text: `Inactive for ${daysDiff} days`,
+      color: "text-red-600",
+      dotColor: "bg-red-500",
+    };
+  }
+}
 
 function GroupsPageContent() {
   const searchParams = useSearchParams();
@@ -225,8 +267,7 @@ function GroupsPageContent() {
                     </div>
                     <div>
                       <div className="font-medium">
-                        {membership.user.email ||
-                          `User ${membership.user_id.slice(0, 8)}`}
+                        User {membership.user_id.slice(0, 8)}
                         {membership.role === "admin" && (
                           <Badge variant="secondary" className="ml-2">
                             <Crown className="h-3 w-3 mr-1" />
@@ -237,6 +278,26 @@ function GroupsPageContent() {
                       <div className="text-sm text-muted-foreground">
                         Joined{" "}
                         {new Date(membership.joined_at).toLocaleDateString()}
+                      </div>
+                      <div
+                        className={`text-xs flex items-center gap-1 ${
+                          getActivityStatus(
+                            membership.last_activity_date || null
+                          ).color
+                        }`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            getActivityStatus(
+                              membership.last_activity_date || null
+                            ).dotColor
+                          }`}
+                        ></div>
+                        {
+                          getActivityStatus(
+                            membership.last_activity_date || null
+                          ).text
+                        }
                       </div>
                     </div>
                   </div>
@@ -249,7 +310,6 @@ function GroupsPageContent() {
                           size="sm"
                           disabled={removingMember === membership.user_id}
                         >
-                          <UserMinus className="h-4 w-4 mr-1" />
                           Remove
                         </Button>
                       </AlertDialogTrigger>
@@ -258,7 +318,7 @@ function GroupsPageContent() {
                           <AlertDialogTitle>Remove Member</AlertDialogTitle>
                           <AlertDialogDescription>
                             Are you sure you want to remove this user from your
-                            group? They will lose access to group plan benefits
+                            group? They will lose access to group benefits
                             immediately.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
