@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { hasGroupPlanBenefits } from "@/lib/groupPlanUtils";
 
 // Daily token limits
 const ANONYMOUS_DAILY_TOKEN_LIMIT = 4000;
@@ -100,6 +101,7 @@ interface UsageData {
   hasActiveSubscription: boolean;
   planName?: string;
   isTestUser: boolean;
+  hasGroupPlanBenefits: boolean;
 }
 
 type ModelName = "gpt-4" | "gpt-3.5-turbo";
@@ -135,6 +137,7 @@ export async function getUserUsageData(): Promise<UsageData> {
         dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
         hasActiveSubscription: false,
         isTestUser: false,
+        hasGroupPlanBenefits: false,
       };
     }
 
@@ -157,8 +160,12 @@ export async function getUserUsageData(): Promise<UsageData> {
     }
 
     const hasActiveSubscription = !!subscription;
+    
+    // Check for group plan benefits
+    const userHasGroupPlanBenefits = await hasGroupPlanBenefits();
+    
     const dailyLimit =
-      hasActiveSubscription || isTestUser(user.id)
+      hasActiveSubscription || isTestUser(user.id) || userHasGroupPlanBenefits
         ? UNLIMITED_DAILY_TOKEN_LIMIT
         : AUTHENTICATED_DAILY_TOKEN_LIMIT;
 
@@ -190,6 +197,7 @@ export async function getUserUsageData(): Promise<UsageData> {
         hasActiveSubscription,
         planName: subscription?.plan_name,
         isTestUser: isTestUser(user.id),
+        hasGroupPlanBenefits: userHasGroupPlanBenefits,
       };
     }
 
@@ -200,6 +208,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       hasActiveSubscription,
       planName: subscription?.plan_name,
       isTestUser: isTestUser(user.id),
+      hasGroupPlanBenefits: userHasGroupPlanBenefits,
     };
   } catch (error) {
     console.warn("Error in getUserUsageData:", error);
@@ -212,6 +221,7 @@ export async function getUserUsageData(): Promise<UsageData> {
       dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
       hasActiveSubscription: false,
       isTestUser: false,
+      hasGroupPlanBenefits: false,
     };
   }
 }
@@ -344,6 +354,7 @@ export async function getUserStatus(): Promise<{
   hasActiveSubscription: boolean;
   planName?: string;
   isTestUser: boolean;
+  hasGroupPlanBenefits: boolean;
 }> {
   const data = await getUserUsageData();
   const remainingTokens = Math.max(0, data.dailyLimit - data.tokensUsed);
