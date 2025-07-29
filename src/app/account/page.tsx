@@ -56,6 +56,8 @@ export default function AccountPage() {
   const [groupMembership, setGroupMembership] =
     useState<GroupMembership | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isProcessingAccountStatus, setIsProcessingAccountStatus] =
+    useState(false);
   const [cancelMessage, setCancelMessage] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
@@ -70,6 +72,26 @@ export default function AccountPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Function to refresh user data
+  const refreshUserData = async () => {
+    const status = await getUserStatus();
+    setUserStatus(status);
+
+    // Check if user owns a group plan
+    const groupPlanResponse = await getMyGroupPlan();
+    setIsGroupOwner(
+      groupPlanResponse.success && groupPlanResponse.data !== null
+    );
+
+    // Check if user is a member of a group
+    const membershipResponse = await getMyMembership();
+    setGroupMembership(
+      membershipResponse.success && membershipResponse.data
+        ? (membershipResponse.data as GroupMembership)
+        : null
+    );
+  };
+
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -81,28 +103,13 @@ export default function AccountPage() {
         return;
       }
       setUser(user);
-
-      const status = await getUserStatus();
-      setUserStatus(status);
-
-      // Check if user owns a group plan
-      const groupPlanResponse = await getMyGroupPlan();
-      setIsGroupOwner(
-        groupPlanResponse.success && groupPlanResponse.data !== null
-      );
-
-      // Check if user is a member of a group
-      const membershipResponse = await getMyMembership();
-      setGroupMembership(
-        membershipResponse.success && membershipResponse.data
-          ? (membershipResponse.data as GroupMembership)
-          : null
-      );
+      await refreshUserData();
       setIsLoading(false);
     };
 
     getUser();
   }, [supabase.auth, router, supabase]);
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -131,9 +138,38 @@ export default function AccountPage() {
 
       if (response.ok) {
         setCancelMessage(data.message);
-        // Refresh user status to reflect cancellation
-        const status = await getUserStatus();
-        setUserStatus(status);
+        setIsProcessingAccountStatus(true); // Start loading state
+
+        // Poll for webhook completion by checking if group membership is gone
+        const pollForWebhookCompletion = async () => {
+          let attempts = 0;
+          const maxAttempts = 10; // Maximum 10 attempts (10 seconds)
+
+          while (attempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second
+            attempts++;
+
+            // Check if user is still a group member
+            const membershipResponse = await getMyMembership();
+            const hasGroupMembership =
+              membershipResponse.success && membershipResponse.data;
+
+            if (!hasGroupMembership) {
+              // Webhook has completed - refresh all data
+              await refreshUserData();
+              break;
+            }
+          }
+
+          // If still polling after max attempts, do a final refresh anyway
+          if (attempts >= maxAttempts) {
+            await refreshUserData();
+          }
+
+          setIsProcessingAccountStatus(false); // End loading state
+        };
+
+        pollForWebhookCompletion();
       } else {
         setCancelMessage(`Error: ${data.error}`);
       }
@@ -159,10 +195,10 @@ export default function AccountPage() {
 
       if (response.success) {
         setLeaveGroupMessage("Successfully left the group");
-        // Clear group membership and refresh data
-        setGroupMembership(null);
-        const status = await getUserStatus();
-        setUserStatus(status);
+        setIsProcessingAccountStatus(true); // Start loading state
+        // Refresh all user data
+        await refreshUserData();
+        setIsProcessingAccountStatus(false); // End loading state
       } else {
         setLeaveGroupMessage(`Error: ${response.error}`);
       }
@@ -207,20 +243,13 @@ export default function AccountPage() {
 
       if (response.success) {
         setJoinMessage("Successfully joined the group!");
+        setIsProcessingAccountStatus(true); // Start loading state
         setTimeout(() => {
           setShowJoinDialog(false);
           // Refresh data
-          const refreshData = async () => {
-            const status = await getUserStatus();
-            setUserStatus(status);
-            const membershipResponse = await getMyMembership();
-            setGroupMembership(
-              membershipResponse.success && membershipResponse.data
-                ? (membershipResponse.data as GroupMembership)
-                : null
-            );
-          };
-          refreshData();
+          refreshUserData().finally(() => {
+            setIsProcessingAccountStatus(false); // End loading state
+          });
         }, 1500);
       } else {
         setJoinMessage(`Error: ${response.error}`);
@@ -263,7 +292,17 @@ export default function AccountPage() {
           <div className="border-t border-muted my-8"></div>
 
           <h2 className="text-2xl font-bold mb-6">Daily Usage</h2>
-          {userStatus?.hasActiveSubscription || groupMembership ? (
+          {isProcessingAccountStatus ? (
+            <div className="mb-6 p-6 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                <p className="text-lg">Processing...</p>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Please wait while we update your account status.
+              </p>
+            </div>
+          ) : userStatus?.hasActiveSubscription || groupMembership ? (
             <p className="text-lg mb-6">
               You have unlimited daily usage as part of your study pack.
             </p>
@@ -300,7 +339,14 @@ export default function AccountPage() {
 
           <h2 className="text-2xl font-bold mb-6">Current Study Pack</h2>
 
-          {userStatus?.hasActiveSubscription ? (
+          {isProcessingAccountStatus ? (
+            <div className="mb-6 p-6 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                <p className="text-lg">Updating study pack status...</p>
+              </div>
+            </div>
+          ) : userStatus?.hasActiveSubscription ? (
             <div className="mb-6">
               <div
                 className="bg-muted/30 border rounded-lg p-6"
@@ -364,6 +410,13 @@ export default function AccountPage() {
                 </div>
               )}
             </div>
+          ) : isProcessingAccountStatus ? (
+            <div className="mb-6 p-6 border rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                <p className="text-lg">Updating membership status...</p>
+              </div>
+            </div>
           ) : groupMembership ? (
             <div className="mb-6">
               <div
@@ -395,7 +448,7 @@ export default function AccountPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleLeaveGroup}
-                    disabled={isLeavingGroup}
+                    disabled={isLeavingGroup || isProcessingAccountStatus}
                     className="text-destructive hover:text-destructive cursor-pointer"
                   >
                     {isLeavingGroup ? "Leaving..." : "Leave Group"}
@@ -440,6 +493,7 @@ export default function AccountPage() {
                       variant="outline"
                       size="sm"
                       onClick={handleJoinGroup}
+                      disabled={isProcessingAccountStatus}
                       className="cursor-pointer"
                     >
                       Join Existing Group
@@ -529,7 +583,7 @@ export default function AccountPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isJoining || !joinCode.trim()}>
+              <Button type="submit" disabled={isJoining || !joinCode.trim() || isProcessingAccountStatus}>
                 {isJoining ? "Joining..." : "Join Plan"}
               </Button>
             </div>
@@ -541,22 +595,22 @@ export default function AccountPage() {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Membership</AlertDialogTitle>
+            <AlertDialogTitle>Cancel Study Pack</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to cancel your {userStatus?.planName || ""}{" "}
-              study plan? You will lose unlimited usage and return to the daily
+              study pack? You will lose unlimited usage and return to the daily
               limit.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowCancelDialog(false)}>
-              Keep Membership
+              Keep Study Pack
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmCancelSubscription}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Cancel Membership
+              Cancel Study Pack
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -16,44 +16,35 @@ export async function GET() {
       );
     }
 
-    // Fetch the user's owned group plan
-    const { data: groupPlan, error: fetchError } = await supabase
+
+    // Fetch the user's owned group plan with stored emails (get most recent if multiple)
+    const { data: groupPlans, error: fetchError } = await supabase
       .from('group_plans')
       .select(`
         *,
-        memberships:group_plan_memberships(*)
+        memberships:group_plan_memberships(*, email)
       `)
       .eq('owner_id', user.id)
       .eq('active', true)
-      .single();
+      .order('created_at', { ascending: false });
+    
+    const groupPlan = groupPlans?.[0] || null;
+
 
     if (fetchError) {
-      if (fetchError.code === 'PGRST116') {
-        // No group plan found
-        return NextResponse.json({
-          success: true,
-          data: null,
-        });
-      }
-      console.error('Error fetching group plan:', fetchError);
+      console.error('Error fetching group plans:', fetchError);
       return NextResponse.json(
         { success: false, error: 'Failed to fetch group plan' },
         { status: 500 }
       );
     }
 
-    // Fetch user emails for all members
-    const { data: authUsers, error: usersError } = await supabase.auth.admin.listUsers();
-    
-    if (usersError) {
-      console.error('Error fetching user emails:', usersError);
+    if (!groupPlan) {
+      return NextResponse.json({
+        success: true,
+        data: null,
+      });
     }
-
-    // Create a map of user IDs to emails
-    const userEmailMap = new Map();
-    authUsers?.users.forEach(authUser => {
-      userEmailMap.set(authUser.id, authUser.email);
-    });
 
     // Fetch last activity for all members using service client to bypass RLS
     const memberUserIds = groupPlan.memberships?.map((membership: { user_id: string }) => membership.user_id) || [];
@@ -82,13 +73,9 @@ export async function GET() {
       }
     });
 
-    // Add user info and activity data to memberships
-    const membershipsWithUsers = groupPlan.memberships?.map((membership: { user_id: string; [key: string]: unknown }) => ({
+    // Add activity data to memberships (email is already included)
+    const membershipsWithActivity = groupPlan.memberships?.map((membership: { user_id: string; email?: string; [key: string]: unknown }) => ({
       ...membership,
-      user: { 
-        id: membership.user_id, 
-        email: userEmailMap.get(membership.user_id) || null
-      },
       last_activity_date: lastActivityMap.get(membership.user_id) || null,
     })) || [];
 
@@ -96,8 +83,8 @@ export async function GET() {
       success: true,
       data: {
         ...groupPlan,
-        memberships: membershipsWithUsers,
-        member_count: membershipsWithUsers.length,
+        memberships: membershipsWithActivity,
+        member_count: membershipsWithActivity.length,
       },
     };
 

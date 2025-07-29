@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { sendGroupCancellationEmail } from "@/lib/email";
 
 export const runtime = 'nodejs';
 export const preferredRegion = 'auto';
@@ -146,6 +147,9 @@ export async function POST(request: NextRequest) {
             } else {
               console.log("Successfully created group plan:", groupPlan);
               
+              // Get the owner's email from the checkout session
+              const ownerEmail = session.customer_email || session.customer_details?.email;
+              
               // Add the owner as the first member with admin role
               const { error: memberError } = await supabase
                 .from('group_plan_memberships')
@@ -153,6 +157,7 @@ export async function POST(request: NextRequest) {
                   group_plan_id: groupPlan.id,
                   user_id: userId,
                   role: 'admin',
+                  email: ownerEmail,
                 });
 
               if (memberError) {
@@ -187,6 +192,10 @@ export async function POST(request: NextRequest) {
       case "customer.subscription.deleted":
         const deletedSubscription = event.data.object as Stripe.Subscription;
 
+        // Get user ID from subscription metadata
+        const canceledUserId = deletedSubscription.metadata?.user_id;
+        
+
         // Mark subscription as cancelled in database
         const { error: deleteError } = await supabase
           .from("user_subscriptions")
@@ -198,6 +207,75 @@ export async function POST(request: NextRequest) {
 
         if (deleteError) {
           console.error("Failed to mark subscription as cancelled:", deleteError);
+        } else {
+          console.log("Successfully marked subscription as cancelled:", deletedSubscription.id);
+        }
+
+        // Handle group plan cleanup if this user owns a group
+        if (canceledUserId) {
+          try {
+            // Check if this user owns any active group plans
+            const { data: ownedGroups, error: groupFetchError } = await supabase
+              .from('group_plans')
+              .select('id, plan_type')
+              .eq('owner_id', canceledUserId)
+              .eq('active', true);
+            
+
+            if (groupFetchError) {
+              console.error('Error fetching owned groups:', groupFetchError);
+            } else if (ownedGroups && ownedGroups.length > 0) {
+              // Process each owned group
+              for (const group of ownedGroups) {
+                
+                // Get member emails before removing them (for notifications)
+                const { data: membersToNotify } = await supabase
+                  .from('group_plan_memberships')
+                  .select('email')
+                  .eq('group_plan_id', group.id)
+                  .neq('role', 'admin'); // Don't notify the owner
+
+                if (membersToNotify && membersToNotify.length > 0) {
+                  // Send email notifications to members about group cancellation
+                  const memberEmails = membersToNotify
+                    .map(m => m.email)
+                    .filter((email): email is string => Boolean(email));
+                  
+                  if (memberEmails.length > 0) {
+                    await sendGroupCancellationEmail({
+                      memberEmails,
+                      groupType: group.plan_type,
+                    });
+                  }
+                }
+                
+                // Remove all members from the group
+                const { error: removeMembersError } = await supabase
+                  .from('group_plan_memberships')
+                  .delete()
+                  .eq('group_plan_id', group.id);
+
+                if (removeMembersError) {
+                  console.error(`Error removing members from group ${group.id}:`, removeMembersError);
+                }
+
+                // Deactivate the group plan
+                const { error: deactivateError } = await supabase
+                  .from('group_plans')
+                  .update({ 
+                    active: false,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', group.id);
+
+                if (deactivateError) {
+                  console.error(`Error deactivating group ${group.id}:`, deactivateError);
+                }
+              }
+            }
+          } catch (groupCleanupError) {
+            console.error('Error during group cleanup:', groupCleanupError);
+          }
         }
         break;
 

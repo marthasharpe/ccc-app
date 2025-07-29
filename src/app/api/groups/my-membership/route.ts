@@ -1,38 +1,41 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export async function GET() {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     // Find the user's group membership using regular client
     const { data: membership, error: membershipError } = await supabase
-      .from('group_plan_memberships')
-      .select('*')
-      .eq('user_id', user.id)
+      .from("group_plan_memberships")
+      .select("*")
+      .eq("user_id", user.id)
       .single();
 
     if (membershipError) {
-      if (membershipError.code === 'PGRST116') {
+      if (membershipError.code === "PGRST116") {
         // No membership found
         return NextResponse.json({
           success: true,
           data: null,
         });
       }
-      console.error('Error fetching membership:', membershipError);
+      console.error("Error fetching membership:", membershipError);
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch membership' },
+        { success: false, error: "Failed to fetch membership" },
         { status: 500 }
       );
     }
@@ -44,15 +47,15 @@ export async function GET() {
     );
 
     const { data: groupPlan, error: planError } = await serviceSupabase
-      .from('group_plans')
-      .select('*')
-      .eq('id', membership.group_plan_id)
+      .from("group_plans")
+      .select("*")
+      .eq("id", membership.group_plan_id)
       .single();
 
     if (planError || !groupPlan) {
-      console.error('Error fetching group plan:', planError);
+      console.error("Error fetching group plan:", planError);
       return NextResponse.json(
-        { success: false, error: 'Failed to fetch group plan details' },
+        { success: false, error: "Failed to fetch group plan details" },
         { status: 500 }
       );
     }
@@ -71,9 +74,9 @@ export async function GET() {
       data: membershipWithOwner,
     });
   } catch (error) {
-    console.error('Unexpected error in get my membership:', error);
+    console.error("Unexpected error in get my membership:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -83,12 +86,15 @@ export async function GET() {
 export async function DELETE() {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -100,14 +106,14 @@ export async function DELETE() {
     );
 
     const { error: deleteError } = await serviceSupabase
-      .from('group_plan_memberships')
+      .from("group_plan_memberships")
       .delete()
-      .eq('user_id', user.id);
+      .eq("user_id", user.id);
 
     if (deleteError) {
-      console.error('Error leaving group:', deleteError);
+      console.error("Error leaving group:", deleteError);
       return NextResponse.json(
-        { success: false, error: 'Failed to leave group' },
+        { success: false, error: "Failed to leave group" },
         { status: 500 }
       );
     }
@@ -115,13 +121,13 @@ export async function DELETE() {
     return NextResponse.json({
       success: true,
       data: {
-        message: 'Successfully left the group',
+        message: "Successfully left the group",
       },
     });
   } catch (error) {
-    console.error('Unexpected error in leave group:', error);
+    console.error("Unexpected error in leave group:", error);
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

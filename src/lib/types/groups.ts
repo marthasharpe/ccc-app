@@ -14,14 +14,11 @@ export interface GroupPlanMembership {
   user_id: string;
   joined_at: string;
   role: 'member' | 'admin';
+  email?: string;
 }
 
 export interface GroupPlanWithMembers extends GroupPlan {
   memberships: (GroupPlanMembership & {
-    user: {
-      id: string;
-      email?: string;
-    };
     last_activity_date?: string | null;
   })[];
   member_count: number;
@@ -48,10 +45,6 @@ export type GroupPlanResponse = {
 export type GroupMembersResponse = {
   success: boolean;
   data?: (GroupPlanMembership & {
-    user: {
-      id: string;
-      email?: string;
-    };
     last_activity_date?: string | null;
   })[];
   error?: string;

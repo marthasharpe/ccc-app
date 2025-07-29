@@ -267,7 +267,7 @@ function GroupsPageContent() {
                     </div>
                     <div>
                       <div className="font-medium">
-                        User {membership.user_id.slice(0, 8)}
+                        {membership.email || membership.user_id.slice(0, 8)}
                         {membership.role === "admin" && (
                           <Badge variant="secondary" className="ml-2">
                             <Crown className="h-3 w-3 mr-1" />
