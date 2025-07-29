@@ -1,7 +1,7 @@
 export interface GroupPlan {
   id: string;
   owner_id: string;
-  plan_type: 'small' | 'large';
+  plan_type: "small" | "large";
   max_members: number;
   join_code: string;
   active: boolean;
@@ -13,7 +13,7 @@ export interface GroupPlanMembership {
   group_plan_id: string;
   user_id: string;
   joined_at: string;
-  role: 'member' | 'admin';
+  role: "member" | "admin";
   email?: string;
 }
 
@@ -25,7 +25,7 @@ export interface GroupPlanWithMembers extends GroupPlan {
 }
 
 export interface CreateGroupPlanRequest {
-  plan_type: 'small' | 'large';
+  plan_type: "small" | "large";
 }
 
 export interface JoinGroupRequest {

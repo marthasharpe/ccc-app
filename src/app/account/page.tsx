@@ -642,6 +642,33 @@ export default function AccountPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Leave Group Confirmation Dialog */}
+      <AlertDialog
+        open={showLeaveGroupDialog}
+        onOpenChange={setShowLeaveGroupDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Group</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave this group? You will lose access to
+              unlimited usage and return to the daily limit.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowLeaveGroupDialog(false)}>
+              Stay in Group
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLeaveGroup}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Leave Group
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
