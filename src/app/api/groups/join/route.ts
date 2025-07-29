@@ -114,13 +114,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Add user to the group
+    // Add user to the group with their email
     const { error: joinError } = await supabase
       .from("group_plan_memberships")
       .insert({
         group_plan_id: groupPlan.id,
         user_id: user.id,
         role: "member",
+        email: user.email,
       });
 
     if (joinError) {

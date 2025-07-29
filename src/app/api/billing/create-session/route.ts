@@ -69,6 +69,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user already owns an active group plan (prevent duplicate ownership)
+    const { data: existingGroupPlan } = await supabase
+      .from('group_plans')
+      .select('id')
+      .eq('owner_id', user.id)
+      .eq('active', true)
+      .single();
+
+    if (existingGroupPlan) {
+      return NextResponse.json(
+        { error: "You already own an active group plan" },
+        { status: 400 }
+      );
+    }
+
     // Get the price ID for the selected plan
     const priceId = PLAN_PRICE_IDS[planName as keyof typeof PLAN_PRICE_IDS];
 
