@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bookmark, BookmarkCheck, Copy, Check } from "lucide-react";
-import { LinkifyCCC, hasCCCReferences } from "@/utils/linkifyCCC";
+import { formatCCCLinks, hasCCCReferences } from "@/utils/cccLinkFormatter";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
 import {
@@ -404,7 +404,7 @@ export default function ChatPage() {
                 </div>
                 <div className="text-foreground leading-relaxed">
                   {hasCCCReferences(answer) ? (
-                    <LinkifyCCC text={answer} onCCCClick={handleCCCClick} />
+                    formatCCCLinks({ text: answer, onCCCClick: handleCCCClick })
                   ) : (
                     answer
                   )}

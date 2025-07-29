@@ -1,5 +1,6 @@
 import React from "react";
 import { HighlightedText } from "./highlightKeywords";
+import { formatCCCLinks, hasCCCReferences } from "./cccLinkFormatter";
 
 interface FormatCCCContentProps {
   content: string;
@@ -33,10 +34,9 @@ export function FormatCCCContent({
     const parts = [];
     let currentIndex = 0;
 
-    // Combined regex to match bold markers, italic markers, and paragraph references
-    // Updated to handle comma-separated paragraph numbers like (438, 695, 536)
-    const formatRegex =
-      /(\*\*([^*]+)\*\*|\*([^*]+)\*|\((\d{1,4}(?:\s*,\s*\d{1,4})*)\))/g;
+    // Regex to match bold markers and italic markers only
+    // CCC links will be handled separately by the formatCCCLinks utility
+    const formatRegex = /(\*\*([^*]+)\*\*|\*([^*]+)\*)/g;
 
     let match;
     while ((match = formatRegex.exec(text)) !== null) {
@@ -78,96 +78,6 @@ export function FormatCCCContent({
             )}
           </em>
         );
-      } else if (match[4]) {
-        // Paragraph number match (group 4 contains number(s), possibly comma-separated)
-        const numbersString = match[4];
-        const numbers = numbersString
-          .split(",")
-          .map((n) => n.trim())
-          .map((n) => parseInt(n));
-
-        // Check if all numbers are valid CCC paragraph numbers
-        const allValidNumbers = numbers.every((num) => num >= 1 && num <= 2865);
-
-        if (allValidNumbers && onCCCClick) {
-          // If single number, make only the number clickable (not the parentheses)
-          if (numbers.length === 1) {
-            parts.push(
-              <span key={`ccc-${match.index}`}>
-                (
-                <button
-                  onClick={() => onCCCClick(numbers[0].toString())}
-                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
-                  style={{
-                    padding: 0,
-                    margin: 0,
-                    border: "none",
-                    background: "none",
-                    display: "inline",
-                    font: "inherit",
-                    lineHeight: "inherit",
-                    verticalAlign: "baseline",
-                    fontSize: "inherit",
-                    fontFamily: "inherit",
-                  }}
-                  title={`Click to read CCC ${numbers[0]}`}
-                >
-                  {numbers[0]}
-                </button>
-                )
-              </span>
-            );
-          } else {
-            // Multiple numbers - create a span with individually clickable numbers
-            const clickableNumbers = [];
-            const numberParts = numbersString.split(",");
-
-            for (let i = 0; i < numberParts.length; i++) {
-              const numberPart = numberParts[i].trim();
-              const num = parseInt(numberPart);
-
-              clickableNumbers.push(
-                <button
-                  key={`ccc-${match.index}-${i}`}
-                  onClick={() => onCCCClick(num.toString())}
-                  className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
-                  style={{
-                    padding: 0,
-                    margin: 0,
-                    border: "none",
-                    background: "none",
-                    display: "inline",
-                    font: "inherit",
-                    lineHeight: "inherit",
-                    verticalAlign: "baseline",
-                    fontSize: "inherit",
-                    fontFamily: "inherit",
-                    outline: "none",
-                    WebkitAppearance: "none",
-                    appearance: "none",
-                    minHeight: "auto",
-                    height: "auto",
-                  }}
-                  title={`Click to read CCC ${num}`}
-                >
-                  {num}
-                </button>
-              );
-
-              // Add comma and space between numbers (except for the last one)
-              if (i < numberParts.length - 1) {
-                clickableNumbers.push(", ");
-              }
-            }
-
-            parts.push(
-              <span key={`ccc-group-${match.index}`}>({clickableNumbers})</span>
-            );
-          }
-        } else {
-          // Not all valid paragraph numbers or no click handler, treat as regular text
-          parts.push(match[0]);
-        }
       }
 
       currentIndex = match.index + match[0].length;
@@ -265,6 +175,32 @@ export function FormatCCCContent({
   flushCurrentContent();
   flushCurrentQuote();
 
+  // Apply CCC link formatting to the entire processed content if onCCCClick is provided
+  if (onCCCClick) {
+    // Convert processed elements back to a string for CCC link processing
+    const textContent = processedElements
+      .map(el => typeof el === 'string' ? el : '')
+      .join('');
+    
+    // If there's text content that might contain CCC references, process it
+    if (textContent.trim()) {
+      return (
+        <span>
+          {processedElements.map((element, index) => {
+            if (typeof element === 'string') {
+              return (
+                <span key={`ccc-${index}`}>
+                  {formatCCCLinks({ text: element, onCCCClick })}
+                </span>
+              );
+            }
+            return React.cloneElement(element as React.ReactElement, { key: index });
+          })}
+        </span>
+      );
+    }
+  }
+
   return <span>{processedElements}</span>;
 }
 
@@ -272,7 +208,6 @@ export function FormatCCCContent({
  * Simple function to check if content contains formatting that needs processing
  */
 export function hasFormattedContent(content: string): boolean {
-  return /(\*\*[^*]+\*\*|\*[^*]+\*|\(\d{1,4}(?:\s*,\s*\d{1,4})*\)|^>\s)/.test(
-    content
-  );
+  return /(\*\*[^*]+\*\*|\*[^*]+\*|^>\s)/.test(content) || 
+         hasCCCReferences(content);
 }

@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { UserResponse } from "@/lib/userResponses";
 import { copyResponseToClipboard } from "@/utils/copyResponse";
 import { useRouter } from "next/navigation";
-import { LinkifyCCC } from "@/utils/linkifyCCC";
+import { formatCCCLinks } from "@/utils/cccLinkFormatter";
 import SearchBar from "@/components/SearchBar";
 
 interface SearchResult {
@@ -391,10 +391,10 @@ export default function SavedResponsesPage() {
                   >
                     <div className="prose prose-sm max-w-none">
                       <p className="leading-relaxed whitespace-pre-wrap">
-                        <LinkifyCCC
-                          text={response.response}
-                          onCCCClick={handleCCCClick}
-                        />
+                        {formatCCCLinks({
+                          text: response.response,
+                          onCCCClick: handleCCCClick
+                        })}
                       </p>
                     </div>
                   </div>
