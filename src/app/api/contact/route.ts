@@ -12,12 +12,12 @@ const getSendGrid = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, message, type } = await request.json();
+    const { email, message, type } = await request.json();
 
     // Validate required fields
-    if (!name || !email || !message || !type) {
+    if (!email || !message || !type) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Email, message, and type are required" },
         { status: 400 }
       );
     }
@@ -46,7 +46,6 @@ export async function POST(request: NextRequest) {
     const emailBody = `
 New contact form submission from Truth Me Up:
 
-Name: ${name}
 Email: ${email}
 Type: ${type}
 
