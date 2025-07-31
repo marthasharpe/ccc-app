@@ -1,12 +1,11 @@
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 
-// Initialize SendGrid only if the API key is available
-const getSendGrid = () => {
-  if (!process.env.SENDGRID_API_KEY) {
-    throw new Error("SENDGRID_API_KEY is not configured");
+// Initialize Resend only if the API key is available
+const getResend = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured");
   }
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  return sgMail;
+  return new Resend(process.env.RESEND_API_KEY);
 };
 
 interface GroupCancellationEmailData {
@@ -26,11 +25,11 @@ export async function sendGroupCancellationEmail(
       return;
     }
 
-    const sendGrid = getSendGrid();
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL;
+    const resend = getResend();
+    const fromEmail = process.env.FROM_EMAIL;
 
     if (!fromEmail) {
-      throw new Error("SENDGRID_FROM_EMAIL is not configured");
+      throw new Error("FROM_EMAIL is not configured");
     }
 
     const groupTypeDisplay =
@@ -70,15 +69,13 @@ The Truth Me Up Team
     const emailPromises = data.memberEmails
       .filter((email) => email && email.trim()) // Filter out empty emails
       .map((email) => {
-        const msg = {
+        return resend.emails.send({
           to: email.trim(),
           from: fromEmail,
           subject,
           text: textContent,
           html: htmlContent,
-        };
-
-        return sendGrid.send(msg);
+        });
       });
 
     await Promise.all(emailPromises);
@@ -88,13 +85,9 @@ The Truth Me Up Team
   } catch (error) {
     console.error("Error sending group cancellation emails:", error);
 
-    // Log detailed SendGrid error
-    if (error && typeof error === "object" && "response" in error) {
-      const errorWithResponse = error as { response?: { body?: unknown } };
-      console.error(
-        "SendGrid error details:",
-        errorWithResponse.response?.body
-      );
+    // Log detailed Resend error
+    if (error && typeof error === "object" && "message" in error) {
+      console.error("Resend error details:", error.message);
     }
 
     // Don't throw - we don't want email failures to break the webhook

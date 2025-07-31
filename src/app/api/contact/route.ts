@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 
-// Initialize SendGrid only if the API key is available
-const getSendGrid = () => {
-  if (!process.env.SENDGRID_API_KEY) {
-    throw new Error("SENDGRID_API_KEY is not configured");
+// Initialize Resend only if the API key is available
+const getResend = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is not configured");
   }
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  return sgMail;
+  return new Resend(process.env.RESEND_API_KEY);
 };
 
 export async function POST(request: NextRequest) {
@@ -31,14 +30,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize SendGrid
-    const sendGrid = getSendGrid();
+    // Initialize Resend
+    const resend = getResend();
 
     // Get recipient email from environment
     const toEmail =
-      process.env.CONTACT_EMAIL || process.env.SENDGRID_FROM_EMAIL;
+      process.env.CONTACT_EMAIL || process.env.FROM_EMAIL;
     if (!toEmail) {
-      throw new Error("CONTACT_EMAIL or SENDGRID_FROM_EMAIL is not configured");
+      throw new Error("CONTACT_EMAIL or FROM_EMAIL is not configured");
     }
 
     // Prepare email content
@@ -57,17 +56,21 @@ Sent from Truth Me Up Contact Form
 Time: ${new Date().toISOString()}
 `;
 
-    const msg = {
+    // Validate FROM_EMAIL
+    const fromEmail = process.env.FROM_EMAIL;
+    if (!fromEmail) {
+      throw new Error("FROM_EMAIL environment variable is not configured");
+    }
+
+    // Send email
+    await resend.emails.send({
       to: toEmail,
-      from: process.env.SENDGRID_FROM_EMAIL!,
+      from: fromEmail,
       subject: emailSubject,
       text: emailBody,
       html: emailBody.replace(/\n/g, "<br>"),
       replyTo: email, // Allow easy reply to the sender
-    };
-
-    // Send email
-    await sendGrid.send(msg);
+    });
 
     return NextResponse.json(
       { message: "Message sent successfully!" },
@@ -76,13 +79,9 @@ Time: ${new Date().toISOString()}
   } catch (error) {
     console.error("Error sending contact form:", error);
 
-    // Log detailed SendGrid error
-    if (error && typeof error === "object" && "response" in error) {
-      const errorWithResponse = error as { response?: { body?: unknown } };
-      console.error(
-        "SendGrid error details:",
-        errorWithResponse.response?.body
-      );
+    // Log detailed Resend error
+    if (error && typeof error === "object" && "message" in error) {
+      console.error("Resend error details:", error.message);
     }
 
     return NextResponse.json(

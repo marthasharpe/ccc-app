@@ -1,65 +1,54 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-// import { useState } from "react";
-// import { Input } from "@/components/ui/input";
-// import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ContactPage() {
-  const handleEmailClick = () => {
-    const subject = encodeURIComponent("Truth Me Up - Contact");
-    const body = encodeURIComponent(
-      "Hi,\n\nI'd like to get in touch about Truth Me Up.\n\n[Please describe your question, feedback, or issue here]\n\nThanks!"
-    );
-    window.open(
-      `mailto:marthasharpe2020+truthmeup@gmail.com?subject=${subject}&body=${body}`,
-      "_blank"
-    );
+  const [formData, setFormData] = useState({
+    email: "",
+    message: "",
+    type: "Contact",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const [formData, setFormData] = useState({
-  //   email: "",
-  //   message: "",
-  //   type: "Contact",
-  // });
-  // const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [submitStatus, setSubmitStatus] = useState<
-  //   "idle" | "success" | "error"
-  // >("idle");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
 
-  // const handleInputChange = (
-  //   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  // ) => {
-  //   const { name, value } = e.target;
-  //   setFormData((prev) => ({ ...prev, [name]: value }));
-  // };
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsSubmitting(true);
-  //   setSubmitStatus("idle");
-
-  //   try {
-  //     const response = await fetch("/api/contact", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });
-
-  //     if (response.ok) {
-  //       setSubmitStatus("success");
-  //       setFormData({ email: "", message: "", type: "Contact" });
-  //     } else {
-  //       setSubmitStatus("error");
-  //     }
-  //   } catch {
-  //     setSubmitStatus("error");
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
+      if (response.ok) {
+        setSubmitStatus("success");
+        setFormData({ email: "", message: "", type: "Contact" });
+      } else {
+        setSubmitStatus("error");
+      }
+    } catch {
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -79,17 +68,6 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="text-center text-lg space-y-6">
-          <p className="mb-6">Have a question, feedback, or bug report?</p>
-          <Button
-            size="sm"
-            onClick={handleEmailClick}
-            className="w-full max-w-40"
-          >
-            Send Email
-          </Button>
-        </div>
-        {/* 
         <div className="space-y-6">
           <p className="text-center text-lg mb-6">
             Have a question, feedback, or bug report?
@@ -145,7 +123,7 @@ export default function ContactPage() {
               Failed to send message. Please try again later.
             </div>
           )}
-        </div> */}
+        </div>
       </div>
     </div>
   );
