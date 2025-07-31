@@ -3,6 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Bookmark, BookmarkCheck, Copy, Check, RotateCcw } from "lucide-react";
 import { formatCCCLinks, hasCCCReferences } from "@/utils/cccLinkFormatter";
 import { useRouter } from "next/navigation";
@@ -52,7 +59,11 @@ export default function ChatPage() {
   const [isCopying, setIsCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<"catechism" | "summa">(
+    "catechism"
+  );
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -73,6 +84,14 @@ export default function ChatPage() {
 
   const handleCCCClick = (reference: string) => {
     router.push(`/paragraph/${reference}`);
+  };
+
+  const handleSourceSelection = (source: string) => {
+    if (source === "summa") {
+      setShowComingSoonDialog(true);
+      return;
+    }
+    setSelectedSource(source as "catechism" | "summa");
   };
 
   // Check usage limits on component mount and when model changes
@@ -271,7 +290,10 @@ export default function ChatPage() {
             Ask About Catholic Teaching
           </h1>
           <p className="text-lg max-w-2xl mx-auto">
-            Get answers based on the Catechism of the Catholic Church{" "}
+            Get answers based on
+            {selectedSource === "catechism"
+              ? " the Catechism of the Catholic Church"
+              : " St. Thomas Aquinas's Summa Theologica"}{" "}
             <a
               href="/about"
               className="inline-flex items-center text-primary hover:text-primary/80 p-1"
@@ -370,6 +392,23 @@ export default function ChatPage() {
                 </div>
               </form>
             )}
+
+            {/* Source Selection */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-muted-foreground">Source:</span>
+              <Select
+                value={selectedSource}
+                onValueChange={handleSourceSelection}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="catechism">Catechism (CCC)</SelectItem>
+                  <SelectItem value="summa">Summa Theologica</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
@@ -511,6 +550,40 @@ export default function ChatPage() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleLoginDialogAction}>
               Login
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Coming Soon Dialog */}
+      <AlertDialog
+        open={showComingSoonDialog}
+        onOpenChange={setShowComingSoonDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Coming Soon!</AlertDialogTitle>
+            <AlertDialogDescription>
+              <p>
+                This feature will allow you to ask questions of St. Thomas
+                Aquinas&apos;s Summa Theologica.
+              </p>
+              <p className="mt-4">
+                Want to support this project?{" "}
+                <a
+                  href="https://coff.ee/marthasharpe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Donate to the developer
+                </a>
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowComingSoonDialog(false)}>
+              Got it
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

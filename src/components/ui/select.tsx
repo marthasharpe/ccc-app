@@ -35,7 +35,9 @@ export function Select({
 }: SelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState(defaultValue || "");
-  const [valueToLabelMap, setValueToLabelMap] = React.useState<Record<string, string>>({});
+  const [valueToLabelMap, setValueToLabelMap] = React.useState<
+    Record<string, string>
+  >({});
 
   const currentValue = value !== undefined ? value : internalValue;
 
@@ -55,11 +57,17 @@ export function Select({
   React.useEffect(() => {
     const map: Record<string, string> = {};
     React.Children.forEach(children, (child) => {
-      if (React.isValidElement<SelectContentProps>(child) && child.type === SelectContent) {
+      if (
+        React.isValidElement<SelectContentProps>(child) &&
+        child.type === SelectContent
+      ) {
         const childProps = child.props;
         if (childProps && childProps.children) {
           React.Children.forEach(childProps.children, (item) => {
-            if (React.isValidElement<SelectItemProps>(item) && item.type === SelectItem) {
+            if (
+              React.isValidElement<SelectItemProps>(item) &&
+              item.type === SelectItem
+            ) {
               const itemProps = item.props;
               if (itemProps && itemProps.value && itemProps.children) {
                 map[itemProps.value] = String(itemProps.children);
@@ -74,7 +82,11 @@ export function Select({
 
   return (
     <SelectContext.Provider
-      value={{ value: currentValue, onValueChange: handleValueChange, getDisplayValue }}
+      value={{
+        value: currentValue,
+        onValueChange: handleValueChange,
+        getDisplayValue,
+      }}
     >
       <div className="relative">
         {React.Children.map(children, (child) => {
@@ -146,7 +158,8 @@ export function SelectTrigger({
 
 export function SelectValue({ placeholder }: { placeholder?: string }) {
   const { value, getDisplayValue } = React.useContext(SelectContext);
-  const displayValue = value && getDisplayValue ? getDisplayValue(value) : value;
+  const displayValue =
+    value && getDisplayValue ? getDisplayValue(value) : value;
   return <span>{displayValue || placeholder}</span>;
 }
 
@@ -179,7 +192,11 @@ export function SelectContent({
   );
 }
 
-export function SelectItem({ children, value, disabled = false }: SelectItemProps) {
+export function SelectItem({
+  children,
+  value,
+  disabled = false,
+}: SelectItemProps) {
   const { onValueChange } = React.useContext(SelectContext);
 
   return (
@@ -187,8 +204,8 @@ export function SelectItem({ children, value, disabled = false }: SelectItemProp
       onClick={disabled ? undefined : () => onValueChange?.(value)}
       className={cn(
         "px-3 py-2 text-sm",
-        disabled 
-          ? "cursor-not-allowed opacity-50 text-muted-foreground" 
+        disabled
+          ? "cursor-not-allowed opacity-50 text-muted-foreground"
           : "cursor-pointer hover:bg-muted hover:text-muted-foreground"
       )}
     >
