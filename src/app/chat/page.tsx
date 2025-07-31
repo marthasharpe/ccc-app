@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bookmark, BookmarkCheck, Copy, Check } from "lucide-react";
+import { Bookmark, BookmarkCheck, Copy, Check, RotateCcw } from "lucide-react";
 import { formatCCCLinks, hasCCCReferences } from "@/utils/cccLinkFormatter";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
@@ -51,6 +51,7 @@ export default function ChatPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function ChatPage() {
     setIsSaving(false);
     setIsCopied(false);
     setIsCopying(false);
+    setIsRegenerating(false);
     // Focus the input after clearing
     setTimeout(() => {
       if (inputRef.current) {
@@ -148,6 +150,56 @@ export default function ChatPage() {
       console.error("Error copying response:", error);
     } finally {
       setIsCopying(false);
+    }
+  };
+
+  const regenerateResponse = async () => {
+    if (!submittedQuestion || isRegenerating || isLoading) return;
+
+    // Check if request would exceed daily cost limit
+    const estimated = estimateTokens(submittedQuestion) + 300; // Add ~300 for system prompt and response
+    const wouldExceed = await wouldExceedTokenLimit(estimated);
+    if (wouldExceed) {
+      setShowLimitDialog(true);
+      return;
+    }
+
+    setIsRegenerating(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: submittedQuestion,
+          model: selectedModel,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response");
+      }
+
+      const data = await response.json();
+      setAnswer(data.response);
+      // Add actual cost usage after successful response
+      if (data.tokensUsed) {
+        await addTokenUsage(data.tokensUsed);
+      }
+      await updateUsageCount();
+
+      // Reset saved state since this is a new response
+      setIsSaved(false);
+      setIsCopied(false);
+    } catch (error) {
+      console.error("Regenerate error:", error);
+      setAnswer(
+        "I apologize, but I encountered an error. Please try your question again."
+      );
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -243,7 +295,7 @@ export default function ChatPage() {
         </div>
 
         {/* Question Input (only show when no answer) */}
-        {!answer && (
+        {(!answer || isLoading) && (
           <div className="mb-8 w-full max-w-2xl mx-auto">
             {isLimitReached ? (
               /* Usage Limit Reached - Replace textarea with warning */
@@ -322,7 +374,7 @@ export default function ChatPage() {
         )}
 
         {/* Clear Question Button (show when answer exists) */}
-        {answer && (
+        {answer && !isLoading && (
           <div className="flex justify-center mb-6">
             <Button
               variant="outline"
@@ -371,6 +423,20 @@ export default function ChatPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={regenerateResponse}
+                      disabled={isRegenerating || isLoading}
+                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                      title="Regenerate response"
+                    >
+                      {isRegenerating ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      ) : (
+                        <RotateCcw className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={copyResponse}
                       disabled={isCopying}
                       className="h-8 w-8 p-0 hover:bg-primary/10"
@@ -403,8 +469,15 @@ export default function ChatPage() {
                   </div>
                 </div>
                 <div className="text-foreground leading-relaxed">
-                  {hasCCCReferences(answer) ? (
-                    formatCCCLinks({ text: answer, onCCCClick: handleCCCClick })
+                  {isRegenerating ? (
+                    <div className="text-center py-8">
+                      <p className="mt-2">Generating new response...</p>
+                    </div>
+                  ) : hasCCCReferences(answer) ? (
+                    formatCCCLinks({
+                      text: answer,
+                      onCCCClick: handleCCCClick,
+                    })
                   ) : (
                     answer
                   )}

@@ -24,19 +24,19 @@ export default function SearchPage() {
   const { query, results, isLoading, shouldFocusInput } = searchState;
 
   const handleSearch = async (searchQuery: string) => {
-    setIsLoading(true);
-    setQuery(searchQuery);
-    setResults([]);
-
-    // Check if this is a paragraph number query
+    // Check if this is a paragraph number query first, before setting any state
     const paragraphQuery = detectParagraphQuery(searchQuery);
 
     if (paragraphQuery.isParagraphQuery) {
       // Navigate to paragraph page instead of showing inline
       router.push(`/paragraph/${paragraphQuery.reference}`);
-      setIsLoading(false);
       return;
     }
+
+    // Only set search state for regular searches
+    setIsLoading(true);
+    setQuery(searchQuery);
+    setResults([]);
 
     // Regular semantic search
     try {
