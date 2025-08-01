@@ -52,7 +52,7 @@ export default function AboutPage() {
               </a>
             </li>
           </ul>
-          <div className="border-t border-muted my-8"></div>
+          <div className="border-t border-muted my-12"></div>
 
           {/* Main Content */}
 
@@ -83,7 +83,7 @@ export default function AboutPage() {
             Church Fathers, saints, councils, and other Church documents.
           </p>
 
-          <div className="border-t border-muted my-8"></div>
+          <div className="border-t border-muted my-12"></div>
 
           <h2 id="four-pillars" className="text-2xl font-bold mb-6">
             Structure of the Catechism: The Four Pillars
@@ -135,7 +135,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="border-t border-muted my-8"></div>
+          <div className="border-t border-muted my-12"></div>
 
           <h2 id="who-is-it-for" className="text-2xl font-bold mb-6">
             Who Is It For?
@@ -177,23 +177,23 @@ export default function AboutPage() {
             question, topic, or paragraph at a time.
           </p>
 
-          <div className="border-t border-muted my-8"></div>
+          <div className="border-t border-muted my-12"></div>
           <h2 id="interactive-catechism" className="text-2xl font-bold mb-6">
             Why an Interactive Catechism?
           </h2>
           <p className="text-lg leading-relaxed mb-6">
             Sometimes finding out what the Catholic Church actually teaches can
-            be difficult. Church documents can be challenging to navigate or
-            apply to specific questions. Asking other Catholics is not always
-            helpful, as they may not know the answer or give their own
-            interpretation rather than the Church&apos;s official teaching.
+            be difficult. The Catechism is already a compendium of Church
+            teaching, but it can be challenging to navigate or apply to specific
+            questions. Asking other Catholics is not always helpful as they may
+            not know the answer or give their own interpretation.
           </p>
           <p className="text-lg leading-relaxed mb-6">
             <strong>Truth Me Up</strong> strives to bridge this gap by using the
             latest AI technology (GPT‑4.0) to provide clear, trustworthy answers
             based only on official Church sources - the Catechism and other
             approved magisterial documents. Each answer includes direct links to
-            the relevant Catechism passages for further study.
+            relevant Catechism passages for further study.
           </p>
           <p className="text-lg leading-relaxed mb-6">
             By combining the authority of Church teaching with the accessibility
@@ -209,7 +209,7 @@ export default function AboutPage() {
             (2002)
           </p>
 
-          <div className="border-t border-muted my-8"></div>
+          <div className="border-t border-muted my-12"></div>
 
           <h2 id="support" className="text-2xl font-bold mb-6">
             Support Truth Me Up
