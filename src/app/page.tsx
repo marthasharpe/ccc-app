@@ -63,22 +63,21 @@ export default function Home() {
 
         <div className="space-y-6">
           <h2 id="interactive-catechism" className="text-2xl font-bold mb-6">
-            Why an Interactive Catechism?
+            Why Truth Me Up?
           </h2>
           <div className="text-left">
             <p className="text-lg leading-relaxed mb-6">
-              Sometimes finding out what the Catholic Church actually teaches
-              can be difficult. The Catechism is already a compendium of Church
-              teaching, but it can be challenging to navigate or apply to
-              specific questions. Asking other Catholics is not always helpful
-              as they may not know the answer or give their own interpretation.
+              It&apos;s not always easy to find out what the Catholic Church
+              actually teaches. The Catechism is a reliable source, but it can
+              be hard to navigate or apply to real-life questions. Asking other
+              Catholics can be even more confusing, as their answers may include
+              personal opinions or ideals rather than official Church teaching.
             </p>
             <p className="text-lg leading-relaxed mb-6">
-              <strong>Truth Me Up</strong> strives to bridge this gap by using
-              the latest AI technology (GPT‑4.0) to provide clear, trustworthy
-              answers based only on official Church sources - the Catechism and
-              other approved magisterial documents. Each answer includes direct
-              links to relevant Catechism passages for further study.
+              <strong>Truth Me Up</strong> uses advanced AI (GPT-4.0) to make
+              Church teaching more accessible. It gives clear, trustworthy
+              answers drawn only from official sources—the Catechism and other
+              approved magisterial documents—with direct links for deeper study.
             </p>
             <p className="text-lg leading-relaxed mb-6">
               By combining the authority of Church teaching with the

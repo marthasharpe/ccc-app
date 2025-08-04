@@ -55,24 +55,12 @@ export default function ContactPage() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-4">Contact Truth Me Up</h1>
-          <p className="text-lg max-w-2xl mx-auto mb-8">
-            Want to support this project?{" "}
-            <a
-              href="https://coff.ee/marthasharpe"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              Donate to the developer
-            </a>
+          <p className="text-center text-lg mb-6">
+            Share your question, feedback, or bug report.
           </p>
         </div>
 
         <div className="space-y-6">
-          <p className="text-center text-lg mb-6">
-            Have a question, feedback, or bug report?
-          </p>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
@@ -125,6 +113,20 @@ export default function ContactPage() {
           )}
         </div>
       </div>
+
+      <div className="border-t border-muted my-12"></div>
+
+      <p className="text-lg max-w-2xl mx-auto mb-8 text-center">
+        Want to support this project?{" "}
+        <a
+          href="https://coff.ee/marthasharpe"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center whitespace-nowrap font-medium ring-offset-background transition-all cursor-pointer text-primary hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          Donate to the developer
+        </a>
+      </p>
     </div>
   );
 }
