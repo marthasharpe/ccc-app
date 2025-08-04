@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabaseService } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export interface User {
   id: string;
@@ -13,12 +13,14 @@ export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const supabase = createClient();
+
     // Get initial session
     const getSession = async () => {
       try {
         const {
           data: { session },
-        } = await supabaseService.auth.getSession();
+        } = await supabase.auth.getSession();
         if (session?.user) {
           setUser({
             id: session.user.id,
@@ -41,7 +43,29 @@ export function useAuth() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabaseService.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event, !!session?.user);
+
+      // Handle token expiration or sign out
+      if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
+        setUser(null);
+        setIsAuthenticated(false);
+        setIsLoading(false);
+
+        // If user was previously authenticated and is now signed out unexpectedly,
+        // it might be due to token expiration
+        if (event === "SIGNED_OUT" && user) {
+          console.warn(
+            "User was signed out - possibly due to token expiration"
+          );
+          // Redirect to login with expiration message
+          if (typeof window !== "undefined") {
+            window.location.href = "/auth/login?reason=expired";
+          }
+        }
+        return;
+      }
+
       if (session?.user) {
         setUser({
           id: session.user.id,
@@ -59,12 +83,13 @@ export function useAuth() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const signIn = async (email: string, password: string) => {
+    const supabase = createClient();
     try {
       setIsLoading(true);
-      const { data, error } = await supabaseService.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -83,9 +108,10 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    const supabase = createClient();
     try {
       setIsLoading(true);
-      const { data, error } = await supabaseService.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -110,9 +136,10 @@ export function useAuth() {
   };
 
   const signOut = async () => {
+    const supabase = createClient();
     try {
       setIsLoading(true);
-      const { error } = await supabaseService.auth.signOut();
+      const { error } = await supabase.auth.signOut();
 
       if (error) {
         throw error;

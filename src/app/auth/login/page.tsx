@@ -1,19 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    const reason = searchParams.get('reason');
+    if (reason === 'expired') {
+      setMessage('Your session has expired. Please log in again.');
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -119,8 +127,16 @@ export default function LoginPage() {
         )}
 
         {message && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-700">{message}</p>
+          <div className={`mb-4 p-3 rounded-md ${
+            message.includes('expired') 
+              ? 'bg-yellow-50 border border-yellow-200' 
+              : 'bg-green-50 border border-green-200'
+          }`}>
+            <p className={`text-sm ${
+              message.includes('expired') 
+                ? 'text-yellow-700' 
+                : 'text-green-700'
+            }`}>{message}</p>
           </div>
         )}
 
@@ -219,5 +235,15 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 sm:px-4 py-16">
+      <div className="max-w-md mx-auto text-center">Loading...</div>
+    </div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

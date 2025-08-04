@@ -14,6 +14,15 @@ export const supabaseService = createClient(supabaseUrl, supabaseServiceKey, {
   },
 })
 
+// Client for frontend with automatic token refresh enabled
+export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+})
+
 export type Database = {
   public: {
     Tables: {
