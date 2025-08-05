@@ -9,6 +9,7 @@ interface MatchObject {
   type: 'ccc-comma' | 'ccc-range' | 'ccc-single' | 'bare-numbers';
   match: RegExpExecArray;
   numbers?: number[];
+  segments?: Array<{type: 'single', number: number} | {type: 'range', start: number, end: number}>;
   startNum?: number;
   endNum?: number;
   index: number;
@@ -29,8 +30,8 @@ export function formatCCCLinks({ text, onCCCClick }: CCCLinkFormatterProps) {
   const parts = [];
   let lastIndex = 0;
   
-  // Pattern 1: CCC followed by comma-separated numbers (with optional parentheses)
-  const cccCommaRegex = /(\(?)CCC\s+(\d{1,4}(?:\s*,\s*\d{1,4})*)([\)]?)/gi;
+  // Pattern 1: CCC followed by comma-separated numbers and ranges (with optional parentheses)
+  const cccCommaRegex = /(\(?)CCC\s+((?:\d{1,4}(?:-\d{1,4})?(?:\s*,\s*)?)+)([\)]?)/gi;
   // Pattern 2: CCC followed by single number or range (with optional parentheses)  
   const cccSingleRegex = /(\(?)CCC\s+(\d+)(?:-(\d+))?([\)]?)/gi;
   // Pattern 3: Bare numbers in parentheses
@@ -41,15 +42,34 @@ export function formatCCCLinks({ text, onCCCClick }: CCCLinkFormatterProps) {
   
   let match: RegExpExecArray | null;
   while ((match = cccCommaRegex.exec(text)) !== null) {
-    const numbers = match[2].split(',').map(n => parseInt(n.trim()));
-    if (numbers.length > 1 && numbers.every(num => num >= 1 && num <= 2865)) {
-      allMatches.push({
-        type: 'ccc-comma',
-        match: match,
-        numbers: numbers,
-        index: match.index,
-        length: match[0].length
+    const segments = match[2].split(',').map(s => s.trim());
+    if (segments.length > 1) {
+      // Parse each segment - could be a single number or a range
+      const parsedSegments = segments.map(segment => {
+        if (segment.includes('-')) {
+          const [start, end] = segment.split('-').map(n => parseInt(n.trim()));
+          return { type: 'range' as const, start, end };
+        } else {
+          return { type: 'single' as const, number: parseInt(segment) };
+        }
       });
+      
+      // Validate all numbers are in valid CCC range
+      const allValid = parsedSegments.every(seg => 
+        seg.type === 'single' 
+          ? seg.number >= 1 && seg.number <= 2865
+          : seg.start >= 1 && seg.start <= 2865 && seg.end >= 1 && seg.end <= 2865
+      );
+      
+      if (allValid) {
+        allMatches.push({
+          type: 'ccc-comma',
+          match: match,
+          segments: parsedSegments,
+          index: match.index,
+          length: match[0].length
+        });
+      }
     }
   }
   
@@ -105,23 +125,38 @@ export function formatCCCLinks({ text, onCCCClick }: CCCLinkFormatterProps) {
     }
     
     if (matchObj.type === 'ccc-comma') {
-      const { match, numbers } = matchObj;
+      const { match, segments } = matchObj;
       if (match[1]) parts.push('(');
-      parts.push('CCC ');
       
-      for (let i = 0; i < numbers!.length; i++) {
-        parts.push(
-          <button
-            key={`ccc-comma-${matchObj.index}-${i}`}
-            onClick={() => onCCCClick(numbers![i].toString())}
-            className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
-            style={buttonStyles}
-            title={`Click to read CCC ${numbers![i]}`}
-          >
-            {numbers![i]}
-          </button>
-        );
-        if (i < numbers!.length - 1) parts.push(', ');
+      for (let i = 0; i < segments!.length; i++) {
+        const segment = segments![i];
+        if (segment.type === 'single') {
+          parts.push(
+            <button
+              key={`ccc-comma-${matchObj.index}-${i}`}
+              onClick={() => onCCCClick(segment.number.toString())}
+              className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+              style={buttonStyles}
+              title={`Click to read CCC ${segment.number}`}
+            >
+              {i === 0 ? `CCC ${segment.number}` : segment.number}
+            </button>
+          );
+        } else {
+          // Range segment - single link that goes to the first number
+          parts.push(
+            <button
+              key={`ccc-comma-range-${matchObj.index}-${i}`}
+              onClick={() => onCCCClick(segment.start.toString())}
+              className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
+              style={buttonStyles}
+              title={`Click to read CCC ${segment.start}`}
+            >
+              {i === 0 ? `CCC ${segment.start}-${segment.end}` : `${segment.start}-${segment.end}`}
+            </button>
+          );
+        }
+        if (i < segments!.length - 1) parts.push(', ');
       }
       
       if (match[3]) parts.push(match[3]);
@@ -131,25 +166,13 @@ export function formatCCCLinks({ text, onCCCClick }: CCCLinkFormatterProps) {
       
       parts.push(
         <button
-          key={`ccc-range-start-${matchObj.index}`}
+          key={`ccc-range-${matchObj.index}`}
           onClick={() => onCCCClick(startNum!.toString())}
           className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
           style={buttonStyles}
           title={`Click to read CCC ${startNum}`}
         >
-          CCC {startNum}
-        </button>
-      );
-      parts.push('-');
-      parts.push(
-        <button
-          key={`ccc-range-end-${matchObj.index}`}
-          onClick={() => onCCCClick(endNum!.toString())}
-          className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors cursor-pointer"
-          style={buttonStyles}
-          title={`Click to read CCC ${endNum}`}
-        >
-          {endNum}
+          CCC {startNum}-{endNum}
         </button>
       );
       
@@ -208,13 +231,30 @@ export function formatCCCLinks({ text, onCCCClick }: CCCLinkFormatterProps) {
  * Checks if text contains any CCC references that would be processed by formatCCCLinks
  */
 export function hasCCCReferences(text: string): boolean {
-  // Check for CCC comma-separated numbers
-  const cccCommaRegex = /(\(?)CCC\s+(\d{1,4}(?:\s*,\s*\d{1,4})*)([\)]?)/i;
+  // Check for CCC comma-separated numbers and ranges
+  const cccCommaRegex = /(\(?)CCC\s+((?:\d{1,4}(?:-\d{1,4})?(?:\s*,\s*)?)+)([\)]?)/i;
   const cccCommaMatch = cccCommaRegex.exec(text);
   if (cccCommaMatch) {
-    const numbers = cccCommaMatch[2].split(',').map(n => parseInt(n.trim()));
-    if (numbers.length > 1 && numbers.every(num => num >= 1 && num <= 2865)) {
-      return true;
+    const segments = cccCommaMatch[2].split(',').map(s => s.trim());
+    if (segments.length > 1) {
+      const parsedSegments = segments.map(segment => {
+        if (segment.includes('-')) {
+          const [start, end] = segment.split('-').map(n => parseInt(n.trim()));
+          return { type: 'range' as const, start, end };
+        } else {
+          return { type: 'single' as const, number: parseInt(segment) };
+        }
+      });
+      
+      const allValid = parsedSegments.every(seg => 
+        seg.type === 'single' 
+          ? seg.number >= 1 && seg.number <= 2865
+          : seg.start >= 1 && seg.start <= 2865 && seg.end >= 1 && seg.end <= 2865
+      );
+      
+      if (allValid) {
+        return true;
+      }
     }
   }
   

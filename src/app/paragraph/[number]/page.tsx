@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FormatCCCContent } from "@/utils/formatCCCContent";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ArrowLeft } from "lucide-react";
 import { copyParagraphToClipboard } from "@/utils/copyResponse";
 
 interface CCCParagraph {
@@ -33,6 +33,8 @@ export default function ParagraphPage() {
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
   const [isCopying, setIsCopying] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   useEffect(() => {
     if (reference) {
@@ -69,6 +71,46 @@ export default function ParagraphPage() {
 
   const handleCCCClick = (reference: string) => {
     router.push(`/paragraph/${reference}`);
+  };
+
+  // Swipe gesture handlers
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe || isRightSwipe) {
+      // For single paragraph: navigate to next/previous paragraph number
+      if (data?.paragraph_number) {
+        const currentNumber = data.paragraph_number;
+        if (isLeftSwipe && currentNumber < 2865) {
+          router.push(`/paragraph/${currentNumber + 1}`);
+        } else if (isRightSwipe && currentNumber > 1) {
+          router.push(`/paragraph/${currentNumber - 1}`);
+        }
+      }
+      // For paragraph ranges: navigate within the range
+      else if (data?.paragraphs && data.paragraphs.length > 1) {
+        if (isLeftSwipe && currentParagraphIndex < data.paragraphs.length - 1) {
+          setCurrentParagraphIndex(currentParagraphIndex + 1);
+        } else if (isRightSwipe && currentParagraphIndex > 0) {
+          setCurrentParagraphIndex(currentParagraphIndex - 1);
+        }
+      }
+    }
   };
 
   const handlePreviousParagraph = () => {
@@ -136,7 +178,21 @@ export default function ParagraphPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="border rounded-lg p-6 bg-card">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="mb-4 gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Go Back
+          </Button>
+          <div 
+            className="border rounded-lg p-6 bg-card"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-semibold text-primary">
                 CCC {data.paragraph_number}
@@ -144,7 +200,9 @@ export default function ParagraphPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyParagraph(data.paragraph_number!, data.content!)}
+                onClick={() =>
+                  copyParagraph(data.paragraph_number!, data.content!)
+                }
                 disabled={isCopying}
                 className="h-8 w-8 p-0 hover:bg-primary/10"
                 title={isCopied ? "Copied!" : "Copy paragraph"}
@@ -165,7 +223,7 @@ export default function ParagraphPage() {
               />
             </div>
           </div>
-          <div className="flex justify-between items-center mt-6 pt-4 border-t mx-6">
+          <div className="flex justify-between items-center mt-6 pt-4 border-t">
             <Button
               onClick={() => router.push(`/paragraph/${previousNumber}`)}
               disabled={previousNumber < 1}
@@ -195,7 +253,21 @@ export default function ParagraphPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="border rounded-lg p-6 bg-card">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="mb-4 gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Go Back
+          </Button>
+          <div 
+            className="border rounded-lg p-6 bg-card"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-semibold text-primary">
                 CCC {currentParagraph.paragraph_number}
@@ -204,7 +276,12 @@ export default function ParagraphPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyParagraph(currentParagraph.paragraph_number, currentParagraph.content)}
+                  onClick={() =>
+                    copyParagraph(
+                      currentParagraph.paragraph_number,
+                      currentParagraph.content
+                    )
+                  }
                   disabled={isCopying}
                   className="h-8 w-8 p-0 hover:bg-primary/10"
                   title={isCopied ? "Copied!" : "Copy paragraph"}

@@ -2,12 +2,8 @@ import { createClient } from "@/lib/supabase/client";
 import { hasGroupPlanBenefits } from "@/lib/groupPlanUtils";
 
 // Daily token limits
-const ANONYMOUS_DAILY_TOKEN_LIMIT = 4000;
 const AUTHENTICATED_DAILY_TOKEN_LIMIT = 4000;
 const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid options
-
-// Anonymous user storage key
-const TOKEN_STORAGE_KEY = "cathcat_daily_token_usage";
 
 // Test users list - these users get access to experimental features
 const TEST_USER_IDS = [
@@ -46,57 +42,9 @@ export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
-/**
- * Get token usage from localStorage for anonymous users
- */
-async function getLocalTokenUsage(): Promise<number> {
-  if (typeof window === "undefined") return 0;
-
-  try {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (!stored) return 0;
-
-    const data = JSON.parse(stored);
-    const currentDate = getCurrentDate();
-
-    // Reset if it's a new day
-    if (data.date !== currentDate) {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      return 0;
-    }
-    console.log("data.tokensUsed", data.tokensUsed);
-    return data.tokensUsed || 0;
-  } catch (error) {
-    console.warn("Error reading local token usage:", error);
-    return 0;
-  }
-}
-
-/**
- * Add token usage to localStorage for anonymous users
- */
-async function addLocalTokenUsage(tokens: number): Promise<void> {
-  if (typeof window === "undefined") return;
-
-  try {
-    const currentDate = getCurrentDate();
-    const existingTokens = await getLocalTokenUsage();
-    const newTotal = existingTokens + tokens;
-
-    const data = {
-      date: currentDate,
-      tokensUsed: newTotal,
-    };
-
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.warn("Error storing local token usage:", error);
-  }
-}
 
 interface UsageData {
   tokensUsed: number;
-  isAuthenticated: boolean;
   dailyLimit: number; // in tokens
   hasActiveSubscription: boolean;
   planName?: string;
@@ -117,7 +65,8 @@ export function calculateUsagePercentage(
 }
 
 /**
- * Get the current user and their usage data
+ * Get the current authenticated user and their usage data
+ * Throws error if user is not authenticated
  */
 export async function getUserUsageData(): Promise<UsageData> {
   const supabase = createClient();
@@ -129,16 +78,7 @@ export async function getUserUsageData(): Promise<UsageData> {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      // Anonymous user - use token-based localStorage tracking
-      const tokensUsed = await getLocalTokenUsage();
-      return {
-        tokensUsed,
-        isAuthenticated: false,
-        dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
-        hasActiveSubscription: false,
-        isTestUser: false,
-        hasGroupPlanBenefits: false,
-      };
+      throw new Error("User must be authenticated to access usage data");
     }
 
     // Check for active subscription
@@ -192,7 +132,6 @@ export async function getUserUsageData(): Promise<UsageData> {
       // Fallback to 0 if there's an error
       return {
         tokensUsed: 0,
-        isAuthenticated: true,
         dailyLimit,
         hasActiveSubscription,
         planName: subscription?.plan_name,
@@ -203,7 +142,6 @@ export async function getUserUsageData(): Promise<UsageData> {
 
     return {
       tokensUsed: usage?.tokens_used || 0,
-      isAuthenticated: true,
       dailyLimit,
       hasActiveSubscription,
       planName: subscription?.plan_name,
@@ -212,22 +150,13 @@ export async function getUserUsageData(): Promise<UsageData> {
     };
   } catch (error) {
     console.warn("Error in getUserUsageData:", error);
-    // Fallback to anonymous usage
-    const tokensUsed = await getLocalTokenUsage();
-
-    return {
-      tokensUsed,
-      isAuthenticated: false,
-      dailyLimit: ANONYMOUS_DAILY_TOKEN_LIMIT,
-      hasActiveSubscription: false,
-      isTestUser: false,
-      hasGroupPlanBenefits: false,
-    };
+    throw error;
   }
 }
 
 /**
- * Add tokens to the user's daily usage
+ * Add tokens to the authenticated user's daily usage
+ * Throws error if user is not authenticated
  */
 export async function addTokenUsage(tokens: number): Promise<void> {
   const supabase = createClient();
@@ -238,9 +167,7 @@ export async function addTokenUsage(tokens: number): Promise<void> {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      // Anonymous user - use token-based localStorage
-      await addLocalTokenUsage(tokens);
-      return;
+      throw new Error("User must be authenticated to track token usage");
     }
 
     // Authenticated user - use Supabase with current date
@@ -256,9 +183,7 @@ export async function addTokenUsage(tokens: number): Promise<void> {
 
     if (selectError && selectError.code !== "PGRST116") {
       console.warn("Error fetching existing usage:", selectError);
-      // Fallback to localStorage
-      await addLocalTokenUsage(tokens);
-      return;
+      throw selectError;
     }
 
     const existingTokens = existingUsage?.tokens_used || 0;
@@ -279,13 +204,11 @@ export async function addTokenUsage(tokens: number): Promise<void> {
 
     if (error) {
       console.warn("Error updating usage in Supabase:", error);
-      // Fallback to localStorage
-      await addLocalTokenUsage(tokens);
+      throw error;
     }
   } catch (error) {
     console.warn("Error in addTokenUsage:", error);
-    // Fallback to localStorage
-    await addLocalTokenUsage(tokens);
+    throw error;
   }
 }
 
@@ -343,7 +266,8 @@ export async function getUsagePercentage(): Promise<number> {
 }
 
 /**
- * Get user authentication status and benefits
+ * Get authenticated user status and benefits
+ * Throws error if user is not authenticated
  */
 export async function getUserStatus(): Promise<{
   isAuthenticated: boolean;
@@ -365,6 +289,7 @@ export async function getUserStatus(): Promise<{
 
   return {
     ...data,
+    isAuthenticated: true, // Always true since getUserUsageData throws if not authenticated
     remainingTokens,
     usagePercentage,
   };

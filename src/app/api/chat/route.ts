@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateChatResponse } from '@/lib/openai'
+import { withAuth } from '@/lib/auth-utils'
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (user, request: NextRequest) => {
   try {
     const { message, model } = await request.json()
 
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const validModels = ["gpt-4", "gpt-3.5-turbo"]
     const selectedModel = validModels.includes(model) ? model : "gpt-4"
 
-    console.log('Chat question received:', message, 'Model:', selectedModel)
+    console.log('Chat question received:', message, 'Model:', selectedModel, 'User:', (user as { id: string }).id)
 
     // Generate response using Catholic catechism assistant
     const { response, tokensUsed } = await generateChatResponse(message, selectedModel)
@@ -36,4 +37,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

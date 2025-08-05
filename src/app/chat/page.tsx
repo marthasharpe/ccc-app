@@ -7,15 +7,16 @@ import { Bookmark, BookmarkCheck, Copy, Check, RotateCcw } from "lucide-react";
 import { formatCCCLinks, hasCCCReferences } from "@/utils/cccLinkFormatter";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
+import { useAuth } from "@/hooks/useAuth";
 import {
   isTokenLimitReached,
   addTokenUsage,
   wouldExceedTokenLimit,
-  getUserStatus,
   estimateTokens,
 } from "@/lib/usageTracking";
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
 import { copyResponseToClipboard } from "@/utils/copyResponse";
+import { SampleQuestions } from "@/components/SampleQuestions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,16 +38,10 @@ export default function ChatPage() {
     clearChat,
   } = useChat();
   const { question, answer, submittedQuestion, selectedModel } = chatState;
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [showLimitDialog, setShowLimitDialog] = useState(false);
-  const [userStatus, setUserStatus] = useState<{
-    isAuthenticated: boolean;
-    dailyLimit: number;
-    tokensUsed: number;
-    remainingTokens: number;
-    usagePercentage: number;
-  } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
@@ -75,33 +70,31 @@ export default function ChatPage() {
     router.push(`/paragraph/${reference}`);
   };
 
-  // Check usage limits on component mount and when model changes
+  // Check usage limits on component mount and when model changes (only for authenticated users)
   useEffect(() => {
     const checkUsage = async () => {
-      const status = await getUserStatus();
-      const limitReached = await isTokenLimitReached();
-      setUserStatus(status);
-      setIsLimitReached(limitReached);
+      if (isAuthenticated && !authLoading) {
+        const limitReached = await isTokenLimitReached();
+        setIsLimitReached(limitReached);
+      }
     };
 
     checkUsage();
-  }, [selectedModel]);
+  }, [selectedModel, isAuthenticated, authLoading]);
 
   const updateUsageCount = async () => {
-    const status = await getUserStatus();
-    const limitReached = await isTokenLimitReached();
-
-    setUserStatus(status);
-    setIsLimitReached(limitReached);
+    if (isAuthenticated) {
+      const limitReached = await isTokenLimitReached();
+      setIsLimitReached(limitReached);
+    }
   };
 
   const saveResponse = async () => {
     if (!submittedQuestion || !answer || isSaving || isSaved) return;
 
-    // Check if user is authenticated
-    if (!userStatus?.isAuthenticated) {
-      // Show login dialog
-      setShowLoginDialog(true);
+    // User is guaranteed to be authenticated at this point
+    if (!isAuthenticated) {
+      router.push("/auth/login");
       return;
     }
 
@@ -155,6 +148,12 @@ export default function ChatPage() {
 
   const regenerateResponse = async () => {
     if (!submittedQuestion || isRegenerating || isLoading) return;
+
+    // Ensure user is authenticated
+    if (!isAuthenticated) {
+      router.push("/auth/login");
+      return;
+    }
 
     // Check if request would exceed daily cost limit
     const estimated = estimateTokens(submittedQuestion) + 300; // Add ~300 for system prompt and response
@@ -213,6 +212,12 @@ export default function ChatPage() {
 
     if (!question.trim() || isLoading) return;
 
+    // Ensure user is authenticated
+    if (!isAuthenticated) {
+      router.push("/auth/login");
+      return;
+    }
+
     // Default to GPT-4 for all users
     if (selectedModel === "gpt-3.5-turbo") {
       setSelectedModel("gpt-4");
@@ -270,7 +275,7 @@ export default function ChatPage() {
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">
             Ask About Catholic Teaching
           </h1>
-          <p className="text-lg max-w-2xl mx-auto">
+          <p className="text-lg mx-auto">
             Get answers based on the Catechism of the Catholic Church{" "}
             <a
               href="/about"
@@ -296,8 +301,31 @@ export default function ChatPage() {
 
         {/* Question Input (only show when no answer) */}
         {(!answer || isLoading) && (
-          <div className="mb-8 w-full max-w-2xl mx-auto">
-            {isLimitReached ? (
+          <div className="mb-8 w-full mx-auto">
+            {authLoading ? (
+              /* Loading authentication state */
+              <div className="p-6 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-2 text-muted-foreground">Loading...</p>
+              </div>
+            ) : !isAuthenticated ? (
+              <>
+                <div className="flex justify-center mb-10">
+                  <Button
+                    size="lg"
+                    className="px-8 cursor-pointer"
+                    onClick={() => router.push("/auth/login")}
+                  >
+                    Login to Ask a Question
+                  </Button>
+                </div>
+                <div className="border-t border-muted my-12"></div>
+                <h2 className="text-2xl font-bold mb-6 w-full text-center">
+                  Sample Questions and Answers
+                </h2>
+                <SampleQuestions />
+              </>
+            ) : isLimitReached ? (
               /* Usage Limit Reached - Replace textarea with warning */
               <div className="border border-primary rounded-md p-6 text-center">
                 <div className="mb-4">
@@ -318,32 +346,17 @@ export default function ChatPage() {
                     Daily Usage Limit Reached
                   </h3>
                   <p className="mb-4">
-                    {userStatus?.isAuthenticated
-                      ? "View study plans to keep asking questions or come back tomorrow."
-                      : "Login to keep asking questions or come back tomorrow."}
+                    View study plans to keep asking questions or come back
+                    tomorrow.
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  {userStatus?.isAuthenticated ? (
-                    <Button
-                      className="px-8"
-                      onClick={() => router.push("/options")}
-                    >
-                      Get Unlimited Usage
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outline"
-                        className="px-8"
-                        onClick={() => (window.location.href = "/auth/login")}
-                      >
-                        Login
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <Button
+                  className="px-8"
+                  onClick={() => router.push("/options")}
+                >
+                  Get Unlimited Usage
+                </Button>
               </div>
             ) : (
               /* Normal question input form */
@@ -379,8 +392,8 @@ export default function ChatPage() {
             <Button
               variant="outline"
               size="lg"
-              onClick={handleClearQuestion}
               className="px-8 cursor-pointer"
+              onClick={handleClearQuestion}
             >
               Ask Another Question
             </Button>
@@ -468,7 +481,7 @@ export default function ChatPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="text-foreground leading-relaxed">
+                <div className="text-foreground leading-relaxed whitespace-pre-wrap">
                   {isRegenerating ? (
                     <div className="text-center py-8">
                       <p className="mt-2">Generating new response...</p>
@@ -492,7 +505,10 @@ export default function ChatPage() {
       <UsageAlertDialog
         isOpen={showLimitDialog}
         onOpenChange={setShowLimitDialog}
-        userStatus={userStatus}
+        userStatus={{
+          isAuthenticated: isAuthenticated,
+          usagePercentage: 0,
+        }}
       />
 
       {/* Login Required Dialog */}

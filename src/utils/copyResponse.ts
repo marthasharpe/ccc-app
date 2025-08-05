@@ -14,9 +14,9 @@ export const formatParagraphForSharing = (
   paragraphNumber: number,
   content: string
 ): string => {
-  return `CCC ${paragraphNumber}
+  return `
 
-${content}
+"${content}" - CCC ${paragraphNumber}
 
 Shared from Truth Me Up - An Interactive Catechism
 https://truthmeup.com`;

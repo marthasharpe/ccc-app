@@ -59,7 +59,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="border-t border-muted my-12"></div>
+        <div className="border-t border-muted my-12 sm:my-20"></div>
 
         <div className="space-y-6">
           <h2 id="interactive-catechism" className="text-2xl font-bold mb-6">
