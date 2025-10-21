@@ -26,12 +26,14 @@ const CCCDataSchema = z.array(CCCParagraphSchema);
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const openaiApiKey = process.env.OPENAI_API_KEY;
+const openaiProject = process.env.OPENAI_PROJECT;
 
-if (!supabaseUrl || !supabaseServiceKey || !openaiApiKey) {
+if (!supabaseUrl || !supabaseServiceKey || !openaiApiKey || !openaiProject) {
   console.error("Missing required environment variables:");
   console.error("- SUPABASE_URL:", !!supabaseUrl);
   console.error("- SUPABASE_SERVICE_ROLE_KEY:", !!supabaseServiceKey);
   console.error("- OPENAI_API_KEY:", !!openaiApiKey);
+  console.error("- OPENAI_PROJECT:", !!openaiProject);
   process.exit(1);
 }
 
@@ -44,6 +46,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 const openai = new OpenAI({
   apiKey: openaiApiKey,
+  project: openaiProject,
 });
 
 async function generateEmbedding(text: string): Promise<number[]> {

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { hasGroupPlanBenefits } from "@/lib/groupPlanUtils";
 
 // Daily token limits
-const AUTHENTICATED_DAILY_TOKEN_LIMIT = 4000;
+const AUTHENTICATED_DAILY_TOKEN_LIMIT = 10000;
 const UNLIMITED_DAILY_TOKEN_LIMIT = 999999; // Effectively unlimited for paid options
 
 // Test users list - these users get access to experimental features
@@ -41,7 +41,6 @@ function getCurrentDate(): string {
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
-
 
 interface UsageData {
   tokensUsed: number;
@@ -100,10 +99,10 @@ export async function getUserUsageData(): Promise<UsageData> {
     }
 
     const hasActiveSubscription = !!subscription;
-    
+
     // Check for group plan benefits
     const userHasGroupPlanBenefits = await hasGroupPlanBenefits();
-    
+
     const dailyLimit =
       hasActiveSubscription || isTestUser(user.id) || userHasGroupPlanBenefits
         ? UNLIMITED_DAILY_TOKEN_LIMIT

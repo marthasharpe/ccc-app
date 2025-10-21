@@ -5,6 +5,7 @@ import type { UserResponse } from "@/lib/userResponses";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  project: process.env.OPENAI_PROJECT,
 });
 
 export async function POST(request: NextRequest) {
@@ -49,37 +50,35 @@ export async function POST(request: NextRequest) {
 
     if (searchError) {
       console.error("Semantic search error:", searchError);
-      return NextResponse.json(
-        { error: "Search failed" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Search failed" }, { status: 500 });
     }
 
     // Transform the results to match UserResponse interface
-    const results: UserResponse[] = (matches || []).map((match: {
-      id: string;
-      user_id: string;
-      prompt: string;
-      response: string;
-      tokens_used: number;
-      created_at: string;
-      similarity: number;
-    }) => ({
-      id: match.id,
-      user_id: match.user_id,
-      prompt: match.prompt,
-      response: match.response,
-      tokens_used: match.tokens_used,
-      created_at: match.created_at,
-      similarity: match.similarity,
-    }));
+    const results: UserResponse[] = (matches || []).map(
+      (match: {
+        id: string;
+        user_id: string;
+        prompt: string;
+        response: string;
+        tokens_used: number;
+        created_at: string;
+        similarity: number;
+      }) => ({
+        id: match.id,
+        user_id: match.user_id,
+        prompt: match.prompt,
+        response: match.response,
+        tokens_used: match.tokens_used,
+        created_at: match.created_at,
+        similarity: match.similarity,
+      })
+    );
 
     return NextResponse.json({
       success: true,
       data: results,
       count: results.length,
     });
-
   } catch (error) {
     console.error("Error in semantic search:", error);
     return NextResponse.json(

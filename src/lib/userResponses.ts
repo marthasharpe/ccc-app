@@ -3,6 +3,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  project: process.env.OPENAI_PROJECT,
 });
 
 export interface SaveResponseParams {
@@ -30,7 +31,11 @@ export async function saveUserResponse({
   prompt,
   response,
   tokensUsed,
-}: SaveResponseParams): Promise<{ success: boolean; error?: string; id?: string }> {
+}: SaveResponseParams): Promise<{
+  success: boolean;
+  error?: string;
+  id?: string;
+}> {
   try {
     // Generate embedding for the response
     const embeddingResponse = await openai.embeddings.create({
@@ -62,9 +67,9 @@ export async function saveUserResponse({
     return { success: true, id: data.id };
   } catch (error) {
     console.error("Error in saveUserResponse:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to save response" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to save response",
     };
   }
 }
@@ -93,9 +98,10 @@ export async function getRecentUserResponses(
     return { success: true, data: data || [] };
   } catch (error) {
     console.error("Error in getRecentUserResponses:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to fetch responses" 
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to fetch responses",
     };
   }
 }
