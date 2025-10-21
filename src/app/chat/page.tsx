@@ -134,18 +134,14 @@ export default function ChatPage() {
   const regenerateResponse = async () => {
     if (!submittedQuestion || isRegenerating || isLoading) return;
 
-    // Ensure user is authenticated
-    if (!isAuthenticated) {
-      router.push("/auth/login");
-      return;
-    }
-
-    // Check if request would exceed daily cost limit
-    const estimated = estimateTokens(submittedQuestion) + 300; // Add ~300 for system prompt and response
-    const wouldExceed = await wouldExceedTokenLimit(estimated);
-    if (wouldExceed) {
-      setShowLimitDialog(true);
-      return;
+    // Check if authenticated user would exceed daily cost limit
+    if (isAuthenticated) {
+      const estimated = estimateTokens(submittedQuestion) + 300; // Add ~300 for system prompt and response
+      const wouldExceed = await wouldExceedTokenLimit(estimated);
+      if (wouldExceed) {
+        setShowLimitDialog(true);
+        return;
+      }
     }
 
     setIsRegenerating(true);
@@ -168,11 +164,11 @@ export default function ChatPage() {
 
       const data = await response.json();
       setAnswer(data.response);
-      // Add actual cost usage after successful response
-      if (data.tokensUsed) {
+      // Add actual cost usage after successful response (only for authenticated users)
+      if (isAuthenticated && data.tokensUsed) {
         await addTokenUsage(data.tokensUsed);
+        await updateUsageCount();
       }
-      await updateUsageCount();
 
       // Reset saved state since this is a new response
       setIsSaved(false);
@@ -197,18 +193,14 @@ export default function ChatPage() {
 
     if (!question.trim() || isLoading) return;
 
-    // Ensure user is authenticated
-    if (!isAuthenticated) {
-      router.push("/auth/login");
-      return;
-    }
-
-    // Check if request would exceed daily cost limit
-    const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
-    const wouldExceed = await wouldExceedTokenLimit(estimated);
-    if (wouldExceed) {
-      setShowLimitDialog(true);
-      return;
+    // Check if authenticated user would exceed daily cost limit
+    if (isAuthenticated) {
+      const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
+      const wouldExceed = await wouldExceedTokenLimit(estimated);
+      if (wouldExceed) {
+        setShowLimitDialog(true);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -232,11 +224,11 @@ export default function ChatPage() {
 
       const data = await response.json();
       setAnswer(data.response);
-      // Add actual cost usage after successful response
-      if (data.tokensUsed) {
+      // Add actual cost usage after successful response (only for authenticated users)
+      if (isAuthenticated && data.tokensUsed) {
         await addTokenUsage(data.tokensUsed);
+        await updateUsageCount();
       }
-      await updateUsageCount();
     } catch (error) {
       console.error("Chat error:", error);
       setAnswer(
@@ -286,7 +278,7 @@ export default function ChatPage() {
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="mt-2 text-muted-foreground">Loading...</p>
             </div>
-          ) : isLimitReached ? (
+          ) : isAuthenticated && isLimitReached ? (
             /* Usage Limit Reached - Replace textarea with warning */
             <div className="border border-primary rounded-md p-6 text-center">
               <div className="mb-4">
