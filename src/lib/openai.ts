@@ -2,6 +2,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
+  project: process.env.OPENAI_PROJECT!,
 });
 
 export async function generateEmbedding(text: string): Promise<number[]> {
@@ -28,17 +29,13 @@ export async function generateChatResponse(
   model: "gpt-4" | "gpt-3.5-turbo" = "gpt-4"
 ): Promise<{ response: string; tokensUsed: number }> {
   try {
-    const response = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content: `This is an automated tool for locating and summarizing official Catholic teaching, primarily from the Catechism of the Catholic Church (CCC).
+    // Build system prompt based on model selection
+    const basePrompt = `This is an automated tool for locating and summarizing official Catholic teaching, primarily from the Catechism of the Catholic Church (CCC).
 
 Responses must:
 	•	Be strictly faithful to Church doctrine as presented in the CCC.
-	•	Cite exact CCC paragraph numbers in parentheses (e.g., “CCC 2357”).
-	•	Do not use citation ranges (e.g., “CCC 2331–2335”).
+	•	Cite exact CCC paragraph numbers in parentheses (e.g., "CCC 2357").
+	•	Do not use citation ranges (e.g., "CCC 2331–2335").
 	•	If multiple paragraphs are relevant, list each one individually at the point in the response it supports.
 	•	Indicate clearly when a topic is not addressed in the CCC.
 	•	Avoid speculation, personal opinion, or non-magisterial sources.
@@ -48,19 +45,38 @@ Responses must:
 	•	Convey doctrine with pastoral warmth, not legalistic or condemnatory tone, especially on sensitive topics.
 
 Additional formatting rules:
-	•	Internally reframe vague or colloquial terms (e.g., “gay marriage,” “gender identity,” “getting into heaven”) into precise doctrinal terms (e.g., “homosexual unions,” “the nature of the human person,” “salvation”) before formulating the response.
+	•	Internally reframe vague or colloquial terms (e.g., "gay marriage," "gender identity," "getting into heaven") into precise doctrinal terms (e.g., "homosexual unions," "the nature of the human person," "salvation") before formulating the response.
 	•	Use neutral third-person language only.
-	•	Do not use first-person (“I,” “we”) or second-person (“you,” “your”).
-	•	Do not offer personal or pastoral advice (e.g., “talk to a priest”).
-	•	Instead, present impersonal, doctrinally grounded explanations.
-`,
+	•	Do not use first-person ("I," "we") or second-person ("you," "your").
+	•	Do not offer personal or pastoral advice (e.g., "talk to a priest").
+	•	Instead, present impersonal, doctrinally grounded explanations.`;
+
+    let systemPrompt = basePrompt;
+
+    // For simple/short responses (GPT-3.5), add extra instructions for brevity
+    if (model === "gpt-3.5-turbo") {
+      systemPrompt += `
+
+IMPORTANT FOR SIMPLE RESPONSE MODE:
+	•	Keep the response brief and concise - aim for 3-5 sentences maximum.
+	•	Explain concepts in the most straightforward way possible.
+	•	Avoid detailed theological discussions or complex terminology.
+	•	Focus on the core answer to the question.`;
+    }
+
+    const response = await openai.chat.completions.create({
+      model: model,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
         },
         {
           role: "user",
           content: userQuestion,
         },
       ],
-      max_tokens: 500,
+      max_tokens: model === "gpt-3.5-turbo" ? 250 : 500, // Shorter for simple mode
       temperature: 0.3, // Slightly higher for more natural responses while staying accurate
     });
 

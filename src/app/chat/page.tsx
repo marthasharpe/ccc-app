@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Bookmark, BookmarkCheck, Copy, Check, RotateCcw } from "lucide-react";
+import { QueryInput } from "@/components/QueryInput";
 import { formatCCCLinks, hasCCCReferences } from "@/utils/cccLinkFormatter";
 import { useRouter } from "next/navigation";
 import { useChat } from "@/contexts/ChatContext";
@@ -16,7 +16,8 @@ import {
 } from "@/lib/usageTracking";
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
 import { copyResponseToClipboard } from "@/utils/copyResponse";
-import { SampleQuestions } from "@/components/SampleQuestions";
+import { ChatInstructions } from "@/components/ChatInstructions";
+import { ModelToggle } from "@/components/ModelToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +36,6 @@ export default function ChatPage() {
     setAnswer,
     setSubmittedQuestion,
     setSelectedModel,
-    clearChat,
   } = useChat();
   const { question, answer, submittedQuestion, selectedModel } = chatState;
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -50,21 +50,6 @@ export default function ChatPage() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-
-  const handleClearQuestion = () => {
-    clearChat();
-    setIsSaved(false);
-    setIsSaving(false);
-    setIsCopied(false);
-    setIsCopying(false);
-    setIsRegenerating(false);
-    // Focus the input after clearing
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, 0);
-  };
 
   const handleCCCClick = (reference: string) => {
     router.push(`/paragraph/${reference}`);
@@ -218,12 +203,6 @@ export default function ChatPage() {
       return;
     }
 
-    // Default to GPT-4 for all users
-    if (selectedModel === "gpt-3.5-turbo") {
-      setSelectedModel("gpt-4");
-      return;
-    }
-
     // Check if request would exceed daily cost limit
     const estimated = estimateTokens(question) + 300; // Add ~300 for system prompt and response
     const wouldExceed = await wouldExceedTokenLimit(estimated);
@@ -300,105 +279,75 @@ export default function ChatPage() {
         </div>
 
         {/* Question Input (only show when no answer) */}
-        {(!answer || isLoading) && (
-          <div className="mb-8 w-full mx-auto">
-            {authLoading ? (
-              /* Loading authentication state */
-              <div className="p-6 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-2 text-muted-foreground">Loading...</p>
-              </div>
-            ) : !isAuthenticated ? (
-              <>
-                <div className="flex justify-center mb-10">
-                  <Button
-                    size="lg"
-                    className="px-8 cursor-pointer"
-                    onClick={() => router.push("/auth/login")}
-                  >
-                    Login to Ask a Question
-                  </Button>
-                </div>
-                <div className="border-t border-muted my-12"></div>
-                <h2 className="text-2xl font-bold mb-6 w-full text-center">
-                  Sample Questions and Answers
-                </h2>
-                <SampleQuestions />
-              </>
-            ) : isLimitReached ? (
-              /* Usage Limit Reached - Replace textarea with warning */
-              <div className="border border-primary rounded-md p-6 text-center">
-                <div className="mb-4">
-                  <svg
-                    className="w-12 h-12 text-primary mx-auto mb-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                  <h3 className="text-xl font-semibold mb-2">
-                    Daily Usage Limit Reached
-                  </h3>
-                  <p className="mb-4">
-                    View study plans to keep asking questions or come back
-                    tomorrow.
-                  </p>
-                </div>
-
-                <Button
-                  className="px-8"
-                  onClick={() => router.push("/options")}
+        <div className="mb-8 w-full mx-auto">
+          {authLoading ? (
+            /* Loading authentication state */
+            <div className="p-6 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-2 text-muted-foreground">Loading...</p>
+            </div>
+          ) : isLimitReached ? (
+            /* Usage Limit Reached - Replace textarea with warning */
+            <div className="border border-primary rounded-md p-6 text-center">
+              <div className="mb-4">
+                <svg
+                  className="w-12 h-12 text-primary mx-auto mb-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Get Unlimited Usage
-                </Button>
-              </div>
-            ) : (
-              /* Normal question input form */
-              <form onSubmit={handleSubmit} data-lastpass-ignore>
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                  <Input
-                    ref={inputRef}
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Ask a question..."
-                    disabled={isLoading}
-                    maxLength={500}
-                    className="flex-1 w-full"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
                   />
-                  {question.trim() && (
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full sm:w-auto shrink-0 min-w-[100px]"
-                    >
-                      Ask
-                    </Button>
-                  )}
-                </div>
-              </form>
-            )}
-          </div>
-        )}
+                </svg>
+                <h3 className="text-xl font-semibold mb-2">
+                  Daily Usage Limit Reached
+                </h3>
+                <p className="mb-4">
+                  View study plans to keep asking questions or come back
+                  tomorrow.
+                </p>
+              </div>
 
-        {/* Clear Question Button (show when answer exists) */}
-        {answer && !isLoading && (
-          <div className="flex justify-center mb-6">
-            <Button
-              variant="outline"
-              size="lg"
-              className="px-8 cursor-pointer"
-              onClick={handleClearQuestion}
-            >
-              Ask Another Question
-            </Button>
-          </div>
-        )}
+              <Button className="px-8" onClick={() => router.push("/options")}>
+                Get Unlimited Usage
+              </Button>
+            </div>
+          ) : (
+            /* Normal question input form */
+            <>
+              <form onSubmit={handleSubmit} data-lastpass-ignore>
+                <QueryInput
+                  ref={inputRef}
+                  value={question}
+                  onChange={setQuestion}
+                  placeholder="Ask a question..."
+                  disabled={isLoading}
+                  maxLength={500}
+                  submitLabel="Ask"
+                  containerClassName="w-full"
+                />
+              </form>
+              <ModelToggle
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                disabled={isLoading}
+              />
+              {!answer && !isLoading && (
+                <ChatInstructions
+                  onExampleClick={(exampleQuestion) => {
+                    setQuestion(exampleQuestion);
+                    // Focus the input to show the question was set
+                    setTimeout(() => inputRef.current?.focus(), 0);
+                  }}
+                />
+              )}
+            </>
+          )}
+        </div>
 
         {/* Loading State */}
         {isLoading && (

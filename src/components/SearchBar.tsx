@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { QueryInput } from "@/components/QueryInput";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -77,27 +77,16 @@ export default function SearchBar({
       className={`w-full max-w-2xl mx-auto ${className}`}
       data-lastpass-ignore
     >
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Input
-          ref={inputRef}
-          type="text"
-          placeholder={placeholder}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
-          disabled={isLoading}
-        />
-        {query.trim() && (
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full sm:w-auto shrink-0"
-          >
-            {showSearchIcon && <Search className="h-4 w-4 mr-2" />}
-            Search
-          </Button>
-        )}
-      </div>
+      <QueryInput
+        ref={inputRef}
+        placeholder={placeholder}
+        value={query}
+        onChange={setQuery}
+        disabled={isLoading}
+        submitLabel="Search"
+        submitIcon={showSearchIcon ? <Search className="h-4 w-4" /> : undefined}
+        containerClassName="w-full"
+      />
     </form>
   );
 }
