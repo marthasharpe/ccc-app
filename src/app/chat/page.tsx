@@ -17,7 +17,6 @@ import {
 import { UsageAlertDialog } from "@/components/UsageAlertDialog";
 import { copyResponseToClipboard } from "@/utils/copyResponse";
 import { ChatInstructions } from "@/components/ChatInstructions";
-import { ModelToggle } from "@/components/ModelToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +34,6 @@ export default function ChatPage() {
     setQuestion,
     setAnswer,
     setSubmittedQuestion,
-    setSelectedModel,
   } = useChat();
   const { question, answer, submittedQuestion, selectedModel } = chatState;
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -323,11 +321,6 @@ export default function ChatPage() {
                   containerClassName="w-full"
                 />
               </form>
-              <ModelToggle
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-                disabled={isLoading}
-              />
               {!answer && !isLoading && (
                 <ChatInstructions
                   onExampleClick={(exampleQuestion) => {

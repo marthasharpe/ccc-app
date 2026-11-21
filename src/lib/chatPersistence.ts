@@ -7,7 +7,7 @@ interface Message {
 
 interface ChatSession {
   messages: Message[];
-  selectedModel: "gpt-4" | "gpt-3.5-turbo";
+  selectedModel: "gpt-6.2-sol" | "gpt-5.4-mini";
   lastUpdated: Date;
 }
 
@@ -15,7 +15,7 @@ const CHAT_STORAGE_KEY = "mycat_current_chat";
 
 export const saveChatSession = (
   messages: Message[],
-  selectedModel: "gpt-4" | "gpt-3.5-turbo"
+  selectedModel: "gpt-6.2-sol" | "gpt-5.4-mini"
 ) => {
   try {
     const session: ChatSession = {

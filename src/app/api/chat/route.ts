@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate model parameter
-    const validModels = ["gpt-4", "gpt-3.5-turbo"];
-    const selectedModel = validModels.includes(model) ? model : "gpt-4";
+    const validModels = ["gpt-6.2-sol", "gpt-5.4-mini"];
+    const selectedModel = validModels.includes(model) ? model : "gpt-6.2-sol";
 
     // Try to get authenticated user (optional for chat generation)
     let userId = "anonymous";

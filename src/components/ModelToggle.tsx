@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/select";
 
 interface ModelToggleProps {
-  selectedModel: "gpt-3.5-turbo" | "gpt-4";
-  onModelChange: (model: "gpt-3.5-turbo" | "gpt-4") => void;
+  selectedModel: "gpt-5.4-mini" | "gpt-6.2-sol";
+  onModelChange: (model: "gpt-5.4-mini" | "gpt-6.2-sol") => void;
   disabled?: boolean;
 }
 
@@ -27,7 +27,7 @@ export function ModelToggle({
       <Select
         value={selectedModel}
         onValueChange={(value) =>
-          onModelChange(value as "gpt-3.5-turbo" | "gpt-4")
+          onModelChange(value as "gpt-5.4-mini" | "gpt-6.2-sol")
         }
       >
         <SelectTrigger
@@ -36,8 +36,8 @@ export function ModelToggle({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="gpt-3.5-turbo">Simple</SelectItem>
-          <SelectItem value="gpt-4">In-Depth</SelectItem>
+          <SelectItem value="gpt-5.4-mini">Simple</SelectItem>
+          <SelectItem value="gpt-6.2-sol">In-Depth</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -6,10 +6,12 @@ interface ChatInstructionsProps {
 
 export function ChatInstructions({ onExampleClick }: ChatInstructionsProps) {
   const examples = [
-    "What does the Catholic Church teach about conscience?",
-    "Explain the sacrament of reconciliation",
-    "What is the Catholic understanding of free will?",
-    "How does the Church define mortal sin?",
+    "Why does God allow suffering?",
+    "Why do Catholics pray to Mary and the saints?",
+    "Why do Catholics confess their sins to a priest?",
+    "Is it wrong to be angry?",
+    "Can a good person go to heaven without being Catholic?",
+    "Does God answer every prayer?",
   ];
 
   return (

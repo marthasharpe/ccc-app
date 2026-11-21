@@ -51,7 +51,7 @@ interface UsageData {
   hasGroupPlanBenefits: boolean;
 }
 
-type ModelName = "gpt-4" | "gpt-3.5-turbo";
+type ModelName = "gpt-6.2-sol" | "gpt-5.4-mini";
 
 /**
  * Calculate percentage of daily limit used

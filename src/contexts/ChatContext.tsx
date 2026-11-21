@@ -6,7 +6,7 @@ interface ChatState {
   question: string;
   answer: string | null;
   submittedQuestion: string | null;
-  selectedModel: "gpt-4" | "gpt-3.5-turbo";
+  selectedModel: "gpt-6.2-sol" | "gpt-5.4-mini";
 }
 
 interface ChatContextType {
@@ -14,7 +14,7 @@ interface ChatContextType {
   setQuestion: (question: string) => void;
   setAnswer: (answer: string | null) => void;
   setSubmittedQuestion: (question: string | null) => void;
-  setSelectedModel: (model: "gpt-4" | "gpt-3.5-turbo") => void;
+  setSelectedModel: (model: "gpt-6.2-sol" | "gpt-5.4-mini") => void;
   clearChat: () => void;
 }
 
@@ -24,7 +24,7 @@ const initialChatState: ChatState = {
   question: "",
   answer: null,
   submittedQuestion: null,
-  selectedModel: "gpt-4", // Default to GPT-4
+  selectedModel: "gpt-6.2-sol",
 };
 
 export function ChatProvider({ children }: { children: ReactNode }) {
@@ -42,7 +42,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setChatState(prev => ({ ...prev, submittedQuestion }));
   };
 
-  const setSelectedModel = (selectedModel: "gpt-4" | "gpt-3.5-turbo") => {
+  const setSelectedModel = (selectedModel: "gpt-6.2-sol" | "gpt-5.4-mini") => {
     setChatState(prev => ({ ...prev, selectedModel }));
   };
 

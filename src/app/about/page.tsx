@@ -189,7 +189,7 @@ export default function AboutPage() {
             personal opinions or ideals rather than official Church teaching.
           </p>
           <p className="text-lg leading-relaxed mb-6">
-            Truth Me Up uses advanced AI (GPT-4.0) to make Church teaching more
+            Truth Me Up uses advanced AI to make Church teaching more
             accessible. It gives clear, trustworthy answers drawn only from
             official sources—the Catechism and other approved magisterial
             documents—with direct links for deeper study.

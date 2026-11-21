@@ -14,7 +14,7 @@ A comprehensive Next.js application that provides AI-powered access to the Catec
 ### AI Chat Interface
 
 - **AI-Powered Q&A**: Ask questions about Catholic teaching and receive contextual responses
-- **GPT-4 Integration**: Advanced AI responses based on Catechism content
+- **OpenAI Integration**: AI responses based on Catechism content
 - **Response Management**: Save, copy, and organize AI responses
 - **Usage Tracking**: Token-based usage limits with daily reset
 
@@ -235,7 +235,7 @@ src/
 - **[shadcn/ui](https://ui.shadcn.com/)** - Modern React component library
 - **[Supabase](https://supabase.com/)** - Backend as a Service with PostgreSQL
 - **[pgvector](https://github.com/pgvector/pgvector)** - Vector similarity search
-- **[OpenAI API](https://openai.com/)** - GPT-4 integration for AI responses
+- **[OpenAI API](https://openai.com/)** - AI integration for responses
 - **[Stripe](https://stripe.com/)** - Payment processing and subscriptions
 - **[SendGrid](https://sendgrid.com/)** - Email notifications
 - **[Radix UI](https://www.radix-ui.com/)** - Accessible UI primitives
